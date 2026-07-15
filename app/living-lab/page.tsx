@@ -1,0 +1,18 @@
+import Link from "next/link";
+import { sprint7DemoMission, sprint7DemoProfile, sprint7DemoSession, sprint7DemoTimeline } from "@/lib/living-lab/demo-data";
+
+const trace = [
+  ["研究觀察資格", "有效", "license_sprint7_demo_001"],
+  ["已指派觀察任務", "可執行", sprint7DemoMission.id],
+  ["300 秒觀察紀錄", "已送出", sprint7DemoSession.id],
+  ["固定規則品質驗證", `${sprint7DemoSession.validationFlags.length} 項提示`, sprint7DemoSession.qualityScore?.version ?? "SL-OQS-1"],
+  ["教師審核", "已核准", "review_teacher"],
+  ["收容所確認", "已確認", "review_shelter"],
+  ["人工發布", "已發布", "publication"],
+  ["犬隻證據時間軸", `${sprint7DemoTimeline.length} 項事件`, "DOG-TPE-001"],
+  ["犬隻證據檔案", "收容所已核准", sprint7DemoProfile.id]
+];
+
+export default function LivingLabEvidencePage() {
+  return <main className="mx-auto max-w-[1400px] p-5 lg:p-8"><header className="flex flex-wrap items-end justify-between gap-4 border-b pb-4"><div><p className="text-xs font-semibold text-cyan-700">合成示範資料（SYNTHETIC_DEMO）· 評審證據畫面</p><h1 className="mt-1 text-2xl font-semibold">收容所實境探究證據</h1><p className="mt-2 max-w-3xl text-sm text-slate-600">從取得資格，一路追溯至經隱私權篩選、由收容所核准的長期證據。</p></div><span className="border border-blue-300 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800">未宣稱真實學生或犬隻成效</span></header><section className="mt-6"><div className="flex items-center justify-between"><h2 className="font-semibold">完整實境探究證據鏈</h2><span className="border border-emerald-300 bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-800">完整</span></div><ol className="mt-3 divide-y border-y">{trace.map(([label,state,id],index)=><li className="grid gap-2 py-3 text-sm md:grid-cols-[40px_240px_1fr_180px]" key={label}><span className="font-mono text-slate-400">{String(index+1).padStart(2,"0")}</span><span className="font-semibold">{label}</span><span className="font-mono text-xs text-slate-500">{id}</span><span className="font-mono text-xs font-semibold text-cyan-700">{state}</span></li>)}</ol></section><div className="mt-7 grid gap-6 lg:grid-cols-3"><section><h2 className="font-semibold">科學觀察規範</h2><dl className="mt-3 divide-y border-y text-sm"><div className="py-3"><dt className="text-xs text-slate-500">規範版本</dt><dd>{sprint7DemoSession.protocolVersion} · 非接觸式</dd></div><div className="py-3"><dt className="text-xs text-slate-500">伺服器計時</dt><dd>{sprint7DemoSession.durationSec} 秒</dd></div><div className="py-3"><dt className="text-xs text-slate-500">行為事件</dt><dd>{sprint7DemoSession.behaviorEvents.length} 筆結構化紀錄</dd></div></dl></section><section><h2 className="font-semibold">品質與權責</h2><dl className="mt-3 divide-y border-y text-sm"><div className="py-3"><dt className="text-xs text-slate-500">品質分數</dt><dd>{sprint7DemoSession.qualityScore?.total}/100 · 只用於安排審核優先順序</dd></div><div className="py-3"><dt className="text-xs text-slate-500">固定規則驗證</dt><dd>只回傳提示，不改寫資料</dd></div><div className="py-3"><dt className="text-xs text-slate-500">發布</dt><dd>由收容所另行人工執行</dd></div></dl></section><section><h2 className="font-semibold">公開證據界線</h2><dl className="mt-3 divide-y border-y text-sm"><div className="py-3"><dt className="text-xs text-slate-500">檔案敘述</dt><dd>{sprint7DemoProfile.statements.length} 項有證據支持</dd></div><div className="py-3"><dt className="text-xs text-slate-500">尚無資料</dt><dd>清楚保留，不以推測補填</dd></div><div className="py-3"><dt className="text-xs text-slate-500">學生身分</dt><dd>不對外公開</dd></div></dl></section></div><nav className="mt-7 flex flex-wrap gap-3 text-sm"><Link className="border px-4 py-2" href="/today">學生觀察任務</Link><Link className="border px-4 py-2" href="/teacher/living-lab">教師儀表板</Link><Link className="border px-4 py-2" href="/shelter/living-lab">收容所儀表板</Link><Link className="border px-4 py-2" href="/dogs/DOG-TPE-001/evidence">公開犬隻證據檔案</Link></nav></main>;
+}
