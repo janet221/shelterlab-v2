@@ -1,161 +1,106 @@
-"use client";
-
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
 import { PublicPageShell } from "./_components/public-shell";
 
-/**
- * 針對 TypeScript 優化的 Hook
- */
-function useOnScreen(options: IntersectionObserverInit) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+export const metadata: Metadata = {
+  title: "ShelterLab｜青少年動物科學探究實驗室",
+  description: "從看見一隻犬，到理解牠身後的世界。連結校園學習、政府開放資料與收容所實務，透過六週數位課程，提出負責任的動保行動。"
+};
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      setIsVisible(entry.isIntersecting);
-    }, options);
+const weeks = [
+  ["第一週｜角色與處境", "比較家庭犬、工作犬、校犬與街頭犬的生活及照護責任。", "同樣是犬隻，為什麼過著不同的生活？"],
+  ["第二週｜承諾與責任", "盤點時間、經濟、家庭支持與突發照護安排。", "決定帶牠回家前，我真正要承擔什麼？"],
+  ["第三週｜品種與標籤", "理解品種形成、個體差異、健康迷思與來源查核。", "一個品種名稱，究竟告訴了我們多少？"],
+  ["第四週｜數量與源頭", "認識繁殖、走失、放養、棄養與收容之間的關係。", "為什麼持續有人認養，街頭與收容所仍有新犬出現？"],
+  ["第五週｜政策與兩難", "討論動物福利、生態保育、公共安全與資源分配。", "當不同生命的需要發生衝突，我們如何負責地選擇？"],
+  ["第六週｜現場與行動", "尋找動保資源、確認需求與安全條件，完成聯絡及行動計畫。", "從「我想幫忙」到「真正幫上忙」，還需要做哪些準備？"]
+];
+const goals = [
+  ["看見處境，不急著貼標籤", "毛色、體型、品種與年齡可以提供線索，卻不能代替對個體的理解。透過情境選擇與案例討論，學生練習看見表象背後的需求與責任。"],
+  ["閱讀資料，也讀懂資料的限制", "數字回答了什麼？哪些資訊沒有被記錄？學生從公開資料出發，區分事實、推論與未知，避免把相關誤認為因果。"],
+  ["理解不同立場，說明選擇的代價", "犬隻、野生動物、居民與照護人員，都可能承受不同的風險。課程引導學生比較方案、提出理由，並思考配套與後續追蹤。"],
+  ["把善意寫成可執行的計畫", "有效的參與，從確認需求開始。學生依自己的能力、時間與成人支持，規劃資料整理、教育宣導、物資協調或參訪提案，並準備替代方案。"]
+];
+const connections = [
+  ["校園｜讓提問與討論有空間", "教師引導學生檢查證據、表達理由與修正判斷，將探究歷程累積為學習成果。"],
+  ["政府開放資料｜讓討論有共同依據", "運用公開的動物認領養、收容與學校等資料，認識來源、欄位、更新時間及使用限制。"],
+  ["收容與動保實務｜讓行動回應真實需求", "透過官方資訊與聯絡管道，了解單位需求、參與資格及安全規範，再由教師或家長協助評估行動。"]
+];
+const outcomes = [
+  ["責任盤點", "我能承擔什麼？還需要哪些支持？"],
+  ["資料判讀", "我的說法根據什麼？哪些部分仍待查證？"],
+  ["議題分析", "不同方案保護了誰，又可能讓誰承受代價？"],
+  ["行動計畫", "我要聯絡誰、確認什麼，以及如何完成下一步？"]
+];
+const curriculum = [
+  ["科學探究", "提出問題、比較案例、辨識變項與證據限制", "探究問題、資料比較與查證計畫"],
+  ["資訊與媒體素養", "查核來源、判讀圖表、區分影像與推論", "資料判讀紀錄、影音分析"],
+  ["生命教育", "理解個體需求、長期照護與福利", "責任盤點、情境反思"],
+  ["公民參與", "比較政策、理解利害關係與資源限制", "方案分析、動保行動提案"]
+];
+const button = "inline-flex min-h-12 items-center justify-center rounded-full px-7 py-3 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-700";
+const heading = "text-2xl font-bold leading-relaxed tracking-tight sm:text-3xl";
 
-    const currentRef = ref.current;
-    if (currentRef) observer.observe(currentRef);
-    
-    return () => {
-      if (currentRef) observer.unobserve(currentRef);
-    };
-  }, [options]);
-
-  return { ref, isVisible };
+function LearningTable({ label, headers, rows }: { label: string; headers: string[]; rows: string[][] }) {
+  return (
+    <div className="mt-8 overflow-x-auto rounded-2xl border border-stone-200 bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-700" role="region" aria-label={label} tabIndex={0}>
+      <table className="w-full min-w-[680px] text-left text-sm leading-7 sm:text-base">
+        <caption className="sr-only">{label}</caption>
+        <thead className="bg-[#e9eee7] text-[#314b40]"><tr>{headers.map((header) => <th key={header} scope="col" className="px-6 py-5 font-bold">{header}</th>)}</tr></thead>
+        <tbody className="divide-y divide-stone-200">{rows.map(([title, practice, question]) => <tr key={title} className="align-top even:bg-stone-50/70"><th scope="row" className="w-1/4 px-6 py-5 font-semibold text-stone-800">{title}</th><td className="w-2/5 px-6 py-5 text-stone-600">{practice}</td><td className="px-6 py-5 text-stone-700">{question}</td></tr>)}</tbody>
+      </table>
+    </div>
+  );
 }
 
 export default function HomePage() {
-  const { ref: ctaRef, isVisible } = useOnScreen({ threshold: 0.2 });
-
   return (
     <PublicPageShell>
-      {/* 1. 全域背景層 */}
-      <div 
-        className="fixed inset-0 -z-10 h-full w-full bg-cover bg-center bg-no-repeat"
-        style={{ 
-          backgroundImage: "url('/tour.png')",
-          backgroundColor: '#F7F4F0' 
-        }}
-      />
-
-      {/* 2. SECTION 1: HERO */}
-      <section className="relative w-full h-[90vh] overflow-hidden">
-        <img 
-          src="/Shelter-Dog.png" 
-          alt="Shelter Dog running" 
-          className="absolute inset-0 w-full h-full object-cover object-center"
-        />
-        <div className="absolute bottom-0 left-0 w-full pb-20 pt-32 px-10 md:px-20 z-10 bg-gradient-to-t from-[#332a22]/90 via-[#332a22]/30 to-transparent">
-          <div className="max-w-7xl mx-auto flex flex-col justify-end items-start h-full">
-            <span className="mb-4 inline-block px-3 py-1 border border-[#ebd197]/50 rounded-full text-[9px] font-bold tracking-[0.3em] uppercase text-[#ebd197]">
-              One Health Education Initiative
-            </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-[1.15] tracking-tight max-w-[850px] drop-shadow-md">
-              ShelterLab:青少年科學實驗室
-              <span className="text-[#ebd197] text-xl md:text-2xl lg:text-3xl font-medium block mt-5 leading-snug drop-shadow-sm">
-                校園+政府+收容所的動物科學資訊協作平台
-              </span>
-            </h1>
-            <p className="mt-6 text-base md:text-lg text-white/80 max-w-[500px] leading-relaxed font-normal drop-shadow-sm">
-              透過數位協作，將收容所轉化為真實的科學探究場域。讓每一位青少年的觀察，都成為提升動物認養品質的關鍵數據資產。
-            </p>
-            <div className="mt-8">
-              <Link className="inline-block bg-[#ebd197] text-[#332a22] px-8 py-3 text-sm md:text-base font-bold tracking-wider transition hover:bg-white shadow-xl rounded-full" href="/#vision">
-                了解專案願景
-              </Link>
+      <div className="bg-[#f7f4ef] text-[#403b33]">
+        <section className="relative isolate overflow-hidden bg-[#332a22] text-white">
+          <Image src="/Shelter-Dog.png" alt="在戶外奔跑的犬隻" fill priority sizes="100vw" className="-z-20 object-cover object-center" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#211f19]/95 via-[#211f19]/80 to-[#211f19]/30" />
+          <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-28 lg:py-36">
+            <div className="max-w-3xl">
+              <h1 className="text-balance text-3xl font-bold leading-snug tracking-tight sm:text-4xl lg:text-5xl">ShelterLab｜青少年動物科學探究實驗室</h1>
+              <p className="mt-7 text-xl font-medium leading-relaxed text-[#ebd197] sm:text-2xl">從看見一隻犬，到理解牠身後的世界。</p>
+              <p className="mt-6 max-w-2xl text-base leading-8 text-stone-100 sm:text-lg">連結校園學習、政府開放資料與收容所實務，讓青少年透過六週數位課程，練習閱讀證據、辨識偏見、理解不同立場，並提出負責任的動保行動。</p>
+              <p className="mt-5 max-w-2xl leading-8 text-stone-100">從「我想幫助牠」開始，進一步思考：<strong className="text-[#ebd197]">我知道什麼？還需要查證什麼？怎麼做才真正有幫助？</strong></p>
+              <div className="mt-9 flex flex-wrap gap-4"><Link href="/start" className={`${button} bg-[#ebd197] text-[#332a22] hover:bg-white`}>開始六週探索</Link><Link href="#vision" className={`${button} border border-white/60 hover:bg-white/10`}>了解專案願景</Link></div>
             </div>
           </div>
+        </section>
+
+        <div className="mx-auto max-w-6xl space-y-20 px-5 py-16 sm:space-y-24 sm:px-8 sm:py-24">
+          <section id="vision" aria-labelledby="vision-title" className="scroll-mt-32">
+            <h2 id="vision-title" className={heading}>專案願景｜讓關心有依據，讓行動有方向</h2>
+            <div className="mt-8 max-w-4xl space-y-5 text-base leading-8 text-stone-600 sm:text-lg sm:leading-9">
+              <p>一張照片、一個品種名稱，或一段令人心疼的故事，往往影響我們對犬隻的第一印象。但要理解牠的處境，我們還需要看見照護關係、生活環境，以及人與制度如何共同形塑牠的一生。</p>
+              <p>ShelterLab 以動物議題為起點，將生命教育、科學探究與公共議題討論帶進學習現場。學生從熟悉的生活情境出發，逐步接觸政府開放資料、動物福利與政策兩難，學習提出問題、比較證據，也保留對未知的誠實。</p>
+              <p>我們期待串起校園、公開資訊與收容實務，讓學生的關心轉化為有根據的判斷，讓每一次參與都更貼近動物與照護者的真實需求。</p>
+            </div>
+          </section>
+          <section aria-labelledby="map-title"><h2 id="map-title" className={heading}>六週學習地圖｜從理解處境，到規劃行動</h2><LearningTable label="六週學習地圖" headers={["週次", "探究主題", "帶著一個問題出發"]} rows={weeks} /></section>
+          <section aria-labelledby="goals-title">
+            <h2 id="goals-title" className={heading}>我們希望學生學會的四件事</h2>
+            <ol className="mt-8 grid gap-5 md:grid-cols-2">{goals.map(([title, description], index) => <li key={title} className="rounded-3xl border border-stone-200 bg-white p-6 sm:p-8"><span aria-hidden="true" className="text-sm font-bold tracking-widest text-teal-700">0{index + 1}</span><h3 className="mt-4 text-xl font-bold leading-8">{title}</h3><p className="mt-3 leading-8 text-stone-600">{description}</p></li>)}</ol>
+          </section>
+          <section aria-labelledby="connections-title">
+            <h2 id="connections-title" className={heading}>從課堂出發，連結真實世界</h2>
+            <ul className="mt-8 grid gap-6 lg:grid-cols-3">{connections.map(([title, description]) => <li key={title} className="border-t-4 border-[#9ba995] pt-6"><h3 className="text-lg font-bold leading-8">{title}</h3><p className="mt-3 leading-8 text-stone-600">{description}</p></li>)}</ul>
+          </section>
+          <section aria-labelledby="outcomes-title" className="rounded-3xl bg-[#e9eee7] p-6 sm:p-10">
+            <h2 id="outcomes-title" className={heading}>讓學習成果看得見</h2><p className="mt-5 leading-8 text-stone-600">學生帶走的不只是測驗答案，而是一段可以回顧的思考歷程：</p>
+            <ul className="mt-7 grid gap-5 md:grid-cols-2">{outcomes.map(([title, question]) => <li key={title} className="rounded-2xl bg-white/80 p-5 leading-8"><strong className="text-[#314b40]">{title}：</strong>{question}</li>)}</ul>
+          </section>
+          <section aria-labelledby="curriculum-title"><h2 id="curriculum-title" className={heading}>連結高中探究與實作</h2><LearningTable label="連結高中探究與實作" headers={["學習面向", "課程中的練習", "可整理的學習成果"]} rows={curriculum} /></section>
+          <section aria-labelledby="cta-title" className="rounded-3xl bg-[#344b40] px-6 py-12 text-center text-white sm:px-12 sm:py-16">
+            <h2 id="cta-title" className={heading}>讓下一份關心，多一點理解與準備</h2><p className="mt-6 text-lg text-[#ebd197]">改變可以從一個更好的問題開始。</p><p className="mx-auto mt-4 max-w-2xl leading-8 text-stone-100">走進 ShelterLab，練習用證據理解動物議題，用同理看見不同處境，再找到自己能負責完成的一步。</p>
+            <div className="mt-8 flex flex-wrap justify-center gap-4"><Link href="/tour/welcome" className={`${button} border border-white/60 hover:bg-white/10`}>如何運作</Link><Link href="/start" className={`${button} bg-[#ebd197] text-[#332a22] hover:bg-white`}>開始體驗</Link></div>
+          </section>
         </div>
-      </section>
-
-      {/* 3. SECTION 2: 完整文案內容 */}
-      <section className="py-24 px-8">
-        <div className="mx-auto max-w-6xl text-[#4a3f35]">
-          <div className="bg-white/80 backdrop-blur-sm p-12 md:p-20 rounded-[2.5rem] shadow-xl border border-white/60">
-            
-            <h2 id="vision" className="text-3xl font-bold mb-10 border-l-8 border-[#ebd197] pl-6 scroll-mt-24">
-              【專案願景：讓學生探究成為社會改變的動力】
-            </h2>
-            
-            <div className="space-y-6 leading-8 text-lg mb-16">
-              <p>在數位化時代的浪潮下，動物收容所不僅是生命的避風港，更是社會公共衛生、城市生態與動物福利治理的核心場域。長期以來，台灣的動物福利議題往往受限於單向的愛心救助模式，缺乏數據支持的透明度與科學論證，這導致了民眾參與意願與實際需求之間的落差。ShelterLab 應運而生，我們致力於將傳統收容所轉化為青少年的「科學探究實驗室」。</p>
-              <p>我們不僅是建立一個認養平台，而是在構建一個橫跨校園、政府機關與收容所的數位協作生態系。我們將冷冰冰的資訊轉化為有溫度的生命數據，並引導學生以公民科學家的身分，透過結構化的觀察與科學分析，實質參與城市的動物福利治理。在這裡，學習不再只是課本上的理論，而是推動社會向善的真實行動。</p>
-            </div>
-
-            <h3 className="text-2xl font-bold mb-6">1. 核心使命：打破圍牆，共築科學協作網絡</h3>
-            <ul className="list-disc pl-6 mb-12 space-y-4 text-lg">
-              <li><strong>賦能教育革新：</strong>我們將自然科學的探究精神落實於真實社會問題，將 108 課綱要求的科學素養轉化為具備社會影響力的實踐報告。</li>
-              <li><strong>深耕數位治理：</strong>我們填補公部門開放資料中關於「行為特徵」與「家庭適配度」的空白，提升治理效能。</li>
-              <li><strong>推動專業共融：</strong>讓收容所、教師與學生在同一個數據平台上共同努力，打破機構間的資訊壁壘。</li>
-            </ul>
-
-            <h3 className="text-2xl font-bold mb-6">2. 科學實踐：四階段嚴謹協作流程</h3>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-              {[
-                { title: "研究資格認證", desc: "通過動物行為學課程與安全規範考核。" },
-                { title: "標準化科學觀察", desc: "執行非接觸式觀察，量化行為數據。" },
-                { title: "雙層審核與 AI 品管", desc: "經 AI 初審與專業人工複審，確保品質。" },
-                { title: "資訊回流與適配", desc: "產出犬隻適配卡，降低認養障礙。" }
-              ].map((step, i) => (
-                <div key={i} className="p-8 border-2 border-[#5b86a6] rounded-full text-center hover:bg-[#5b86a6] hover:text-white transition-all cursor-default">
-                  <h4 className="font-bold text-lg mb-1">{step.title}</h4>
-                  <p className="text-sm opacity-80">{step.desc}</p>
-                </div>
-              ))}
-            </div>
-
-            <h3 className="text-2xl font-bold mb-6">3. 功能亮點：數據驅動的影響力儀表板</h3>
-            <p className="mb-12 text-lg">透過 AI 認養推薦摘要、研究可信度分數、犬隻生命故事軸，以及社會影響力指標，讓所有的努力都有跡可循。</p>
-
-            <h3 className="text-2xl font-bold mb-6">4. 與 108 課綱的深度對話</h3>
-            <div className="overflow-hidden border border-[#f0eae1] rounded-3xl mb-16">
-              <table className="w-full text-left text-sm md:text-base">
-                <thead>
-                  <tr className="bg-[#f0eae1] text-[#332a22]">
-                    <th className="p-4 border-b">探究主軸</th>
-                    <th className="p-4 border-b">科學探究內容</th>
-                    <th className="p-4 border-b">協作產出</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr><td className="p-4 border-b">動物行為科學</td><td className="p-4 border-b">刺激與反應、壓力適應</td><td className="p-4 border-b">行為代碼序列、分析圖表</td></tr>
-                  <tr><td className="p-4 border-b">都市生態分析</td><td className="p-4 border-b">環境因子與族群分佈</td><td className="p-4 border-b">環境觀察紀錄、生態分析</td></tr>
-                  <tr><td className="p-4 border-b">公共衛生實踐</td><td className="p-4 border-b">防疫資料治理</td><td className="p-4 border-b">防疫科普、數據解讀</td></tr>
-                </tbody>
-              </table>
-            </div>
-
-            {/* CTA 區塊 */}
-            <div 
-              ref={ctaRef}
-              className={`
-                mt-20 relative overflow-hidden bg-[#f4f2ef]/90 backdrop-blur-md p-20 rounded-[2.5rem] text-center shadow-inner border border-[#e5e2de]
-                transition-all duration-1000 ease-out transform
-                ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}
-              `}
-            >
-              <h3 className="text-[#a69888] text-base font-black tracking-[0.4em] uppercase mb-8">
-                READY TO START?
-              </h3>
-              <p className="relative z-10 mb-16 text-2xl md:text-3xl text-[#4a3f35] max-w-3xl mx-auto leading-relaxed font-bold">
-                我們深信，當教育的熱情與數據的理性結合，改變就會發生。
-                <span className="block mt-4 text-[#c5a059]">讓我們攜手建立一個更開放、更科學、更溫暖的動物友善城市。</span>
-              </p>
-              <div className="relative z-10 flex flex-col sm:flex-row gap-8 justify-center items-center">
-                <Link href="/tour/welcome" className="px-12 py-5 font-bold border-2 border-[#4a3f35]/20 text-[#4a3f35] rounded-full hover:border-[#c5a059] hover:bg-white transition-all duration-300">
-                  如何運作
-                </Link>
-                <Link href="/start" className="px-12 py-5 font-bold bg-[#4a3f35] text-white rounded-full hover:bg-[#332a22] hover:scale-105 active:scale-95 transition-all duration-300 shadow-xl">
-                  開始體驗
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
     </PublicPageShell>
   );
 }

@@ -29,13 +29,13 @@ describe("Sprint 11C public demo engine", () => {
   it("defines the approved eight-step tour in order", () => {
     expect(publicTourSteps.map((step) => step.title)).toEqual([
       "第一步：課程與帳號啟動",
-      "第二步：通過觀察資格認證",
-      "第三步：進行行為觀察紀錄",
-      "第四步：師生共同審閱紀錄",
-      "第五步：產出犬隻數位檔案",
-      "第六步：撰寫探究分析報告",
-      "第七步：系統指標資料回填",
-      "第八步：學期結案與存檔"
+      "第二步：第一週｜角色與處境",
+      "第三步：第二週｜承諾與責任",
+      "第四步：第三週｜品種與標籤",
+      "第五步：第四週｜數量與源頭",
+      "第六步：第五週｜政策與兩難",
+      "第七步：第六週｜現場與行動",
+      "第八步：學期結案與證據總覽"
     ]);
     expect(publicTourSteps.map((step) => step.sequence)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(getRemainingTourSeconds(8)).toBe(0);

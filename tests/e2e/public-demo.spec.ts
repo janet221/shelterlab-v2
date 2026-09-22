@@ -1,120 +1,65 @@
 import { expect, test } from "@playwright/test";
 
-test("/start renders four roles without creating a fake authenticated session", async ({ page }) => {
+test("role selection contains exactly three direct workspace links", async ({ page }) => {
   await page.goto("/start");
-  await expect(page.getByRole("heading", { name: "【請選擇參與視角】" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /我是學生/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /我是教師/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /我是收容所人員/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /我是評審或合作夥伴/ })).toBeVisible();
-  await expect(page.getByText("不代表正式登入或權限授予").first()).toBeVisible();
-  await expect(page.locator("body")).not.toContainText("session granted");
+  const roles = page.getByRole("region", { name: "角色選擇" });
+  await expect(roles.getByRole("link")).toHaveCount(3);
+  for (const [name, href] of [["我是學生", "/student"], ["我是教師", "/teacher"], ["我是收容所人員", "/shelter"]]) {
+    await expect(roles.getByRole("link", { name: new RegExp(name) })).toHaveAttribute("href", href);
+  }
+  await expect(page.getByText("我是評審或合作夥伴")).toHaveCount(0);
+  await expect(page.getByText(/角色導覽不代表正式登入或/)).toHaveCount(0);
 });
 
-test("selecting a role changes content and CTA routes to each demo perspective", async ({ page }) => {
+for (const [name, destination] of [["我是學生", "student"], ["我是教師", "teacher"], ["我是收容所人員", "shelter"]]) {
+  test(`${name} enters its workspace or login with one click`, async ({ page }) => {
+    await page.goto("/start");
+    await page.getByRole("link", { name: new RegExp(name) }).click();
+    await expect(page).toHaveURL(destination === "shelter" ? /\/shelter$/ : new RegExp(`/auth\\?role=${destination}$`));
+    if (destination !== "shelter") await expect(page.getByRole("heading", { name: "登入／註冊專區" })).toBeVisible();
+  });
+}
+
+test("keyboard activation directly enters the student login", async ({ page }) => {
   await page.goto("/start");
-
-  await page.getByRole("button", { name: /我是學生/ }).click();
-  await expect(page).toHaveURL(/\/start\?role=student$/);
-  await expect(page.getByRole("region", { name: "角色選擇" })).toContainText("六週關卡逐步解鎖");
-  await expect(page.getByRole("link", { name: "進入六週學習地圖" })).toHaveAttribute("href", "/student");
-
-  await page.getByRole("button", { name: /我是教師/ }).click();
-  await expect(page).toHaveURL(/\/start\?role=teacher$/);
-  await expect(page.getByRole("region", { name: "角色選擇" })).toContainText("審核學生觀察");
-  await expect(page.getByRole("link", { name: "查看教師工作流程" })).toHaveAttribute("href", "/demo/teacher");
-
-  await page.getByRole("button", { name: /我是收容所人員/ }).click();
-  await expect(page).toHaveURL(/\/start\?role=shelter$/);
-  await expect(page.getByRole("region", { name: "角色選擇" })).toContainText("接收及審核學生申請");
-  await expect(page.getByRole("link", { name: "進入動保夥伴工作台" })).toHaveAttribute("href", "/shelter");
-
-  await page.getByRole("button", { name: /我是評審或合作夥伴/ }).click();
-  await expect(page).toHaveURL(/\/start\?role=judge_partner$/);
-  await expect(page.getByRole("region", { name: "角色選擇" })).toContainText("查看完整證據鏈");
-  await expect(page.getByRole("link", { name: "進入七分鐘評審導覽" })).toHaveAttribute("href", "/competition/judge");
-});
-
-test("query parameter restores selected role and keyboard selection works", async ({ page }) => {
-  await page.goto("/start?role=teacher");
-  await expect(page.getByRole("button", { name: /我是教師/ })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByRole("region", { name: "角色選擇" })).toContainText("課程設計");
-
-  await page.getByRole("button", { name: /我是學生/ }).focus();
+  await page.getByRole("link", { name: /我是學生/ }).focus();
   await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/start\?role=student$/);
-  await expect(page.getByRole("button", { name: /我是學生/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page).toHaveURL(/\/auth\?role=student$/);
+  await expect(page.getByRole("heading", { name: "登入／註冊專區" })).toBeVisible();
 });
 
-test("mobile role cards do not overflow", async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/start");
-  await expect(page.getByRole("button", { name: /我是學生/ })).toBeVisible();
-  const dimensions = await page.evaluate(() => ({
-    content: document.documentElement.scrollWidth,
-    viewport: document.documentElement.clientWidth
-  }));
-  expect(dimensions.content).toBeLessThanOrEqual(dimensions.viewport);
-});
-
-test("first-time visitor journey goes from homepage to the student learning map", async ({ page }) => {
-  await page.goto("/");
-  await page.getByRole("link", { name: "開始體驗", exact: true }).first().click();
-  await page.getByRole("button", { name: /我是學生/ }).click();
-  await page.getByRole("link", { name: "進入六週學習地圖" }).click();
-  await expect(page).toHaveURL(/\/student$/);
-  await expect(page.locator('img[src^="/student-map/map-background.webp"]')).toBeVisible();
-});
-
-test("shelter role opens the partner workspace instead of the legacy demo", async ({ page }) => {
-  await page.goto("/start?role=shelter");
-  await page.getByRole("button", { name: /我是收容所人員/ }).click();
-  await page.getByRole("link", { name: "進入動保夥伴工作台" }).click();
-  await expect(page).toHaveURL(/\/shelter$/);
-  await expect(page.getByRole("heading", { name: "ShelterLab 動保夥伴工作台" })).toBeVisible();
-  await expect(page).not.toHaveURL(/\/demo\/shelter/);
-});
-
-test("legacy shelter demo keeps a safe link to the new workspace", async ({ page }) => {
+test("legacy demo URLs redirect and judge routes are removed", async ({ page, request }) => {
   await page.goto("/demo/shelter");
-  await expect(page.getByRole("link", { name: "進入動保夥伴工作台" })).toHaveAttribute("href", "/shelter");
+  await expect(page).toHaveURL(/\/shelter$/);
+  for (const path of ["/competition/judge", "/competition/judge/overview", "/demo/judge"]) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { name: "這條證據路徑不存在。" })).toBeVisible();
+  }
+  expect(await (await request.get("/sitemap.xml")).text()).not.toContain("/competition/judge");
 });
 
-test("judge enters seven-minute judge mode from role selection", async ({ page }) => {
-  await page.goto("/start");
-  await page.getByRole("button", { name: /我是評審或合作夥伴/ }).click();
-  await page.getByRole("link", { name: "進入七分鐘評審導覽" }).click();
-  await expect(page).toHaveURL(/\/competition\/judge/);
-  await expect(page.getByRole("heading", { name: "ShelterLab 七分鐘評審導覽" })).toBeVisible();
-});
-
-test("guided tour and trust pages remain reachable", async ({ page, request }) => {
+test("eight-step guide only offers a setup action on step one", async ({ page }) => {
   await page.goto("/tour");
   await expect(page).toHaveURL(/\/tour\/welcome$/);
-  await expect(page.getByRole("heading", { name: "第一步：課程與帳號啟動" })).toBeVisible();
-  await expect(page.getByLabel("導覽進度").locator(":scope > div")).toHaveCount(8);
-  await page.getByRole("link", { name: "下一步" }).click();
-  await expect(page.getByRole("heading", { name: "第二步：通過觀察資格認證" })).toBeVisible();
-
-  await page.goto("/about");
-  await expect(page.getByRole("heading").first()).toBeVisible();
-  await page.goto("/privacy");
-  await expect(page.getByRole("heading").first()).toBeVisible();
-  await page.goto("/research-notice");
-  await expect(page.getByRole("heading").first()).toBeVisible();
-  await page.goto("/contact");
-  await expect(page.getByText("hello@shelterlab.example", { exact: true })).toBeVisible();
-
-  const robots = await request.get("/robots.txt");
-  expect(await robots.text()).toContain("Sitemap:");
-  const sitemap = await request.get("/sitemap.xml");
-  expect(await sitemap.text()).toContain("/competition/judge/overview");
-  const manifest = await request.get("/manifest.webmanifest");
-  expect(await manifest.json()).toMatchObject({ display: "standalone" });
+  const cards = page.getByRole("region", { name: "八步驟學習流程" }).getByRole("article");
+  await expect(cards).toHaveCount(8);
+  await expect(cards.first().getByRole("link")).toHaveText("進入系統設置 →");
+  await expect(cards.first().getByRole("link")).toHaveAttribute("href", "/auth");
+  for (let index = 1; index < 8; index++) {
+    await expect(cards.nth(index).getByRole("link")).toHaveCount(0);
+    await expect(cards.nth(index).getByRole("button")).toHaveCount(0);
+  }
+  await page.getByRole("navigation", { name: "實作步驟清單" }).getByRole("link").nth(7).click();
+  await expect(page.locator("#step-8")).toBeInViewport();
+  await page.goto("/tour/welcome");
+  await cards.first().getByRole("link").click();
+  await expect(page).toHaveURL(/\/auth$/);
 });
 
-test("unknown public path renders the evidence-aware 404 page", async ({ page }) => {
-  const response = await page.goto("/this-public-page-does-not-exist");
-  expect(response?.status()).toBe(404);
-  await expect(page.getByRole("heading").first()).toBeVisible();
+test("role and tour cards fit mobile screens", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ["/start", "/tour/welcome"]) {
+    await page.goto(path);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  }
 });

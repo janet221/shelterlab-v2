@@ -60,92 +60,78 @@ export type PublicTourStep = {
   eyebrow: string;
   summary: string;
   detail: string;
-  evidenceLabel: string;
-  evidenceHref: string;
+  evidenceLabel?: string;
+  evidenceHref?: string;
 };
 
-export const publicTourSteps = [
+export const publicTourSteps: readonly PublicTourStep[] = [
   {
-    slug: "welcome",
-    sequence: 1,
-    title: "第一步：課程與帳號啟動",
-    eyebrow: "學期準備",
-    summary: "完成學生與教師帳號註冊，設定系統連線環境。",
-    detail: "學期初由教師建立課程專屬空間，學生完成註冊並與收容所系統完成帳號綁定。確保所有參與者皆能正確介接政府開放資料，順利開啟 16 週的實作任務。",
-    evidenceLabel: "進入系統設置",
-    evidenceHref: "/"
+    "slug": "welcome",
+    "sequence": 1,
+    "title": "第一步：課程與帳號啟動",
+    "eyebrow": "學期準備",
+    "summary": "完成師生帳號註冊與系統連線環境設定。",
+    "detail": "由教師建立課程專屬空間，學生完成註冊與系統介接，串接政府開放資料 (COA_OpenData)，正式開啟 6 週核心探究任務。",
+    "evidenceLabel": "進入系統設置",
+    "evidenceHref": "/auth"
   },
   {
-    slug: "research-license",
-    sequence: 2,
-    title: "第二步：通過觀察資格認證",
-    eyebrow: "實地準備",
-    summary: "完成行為觀察課程並通過測驗，取得進入收容所實地的許可。",
-    detail: "學生必須在課堂中完成標準化觀察測驗，系統紀錄通過資格後，學生方可獲得前往現場的門禁許可與觀察權限。",
-    evidenceLabel: "進行資格測驗",
-    evidenceHref: "/research-license"
+    "slug": "research-license",
+    "sequence": 2,
+    "title": "第二步：第一週｜角色與處境",
+    "eyebrow": "第一週",
+    "summary": "探索家庭、工作、校犬與街頭犬的生活差異。",
+    "detail": "透過比較生活路徑風險，並以毛色資料練習區分觀察與解釋，拒絕不當腦補與編故事。"
   },
   {
-    slug: "observation",
-    sequence: 3,
-    title: "第三步：進行行為觀察紀錄",
-    eyebrow: "現場觀察",
-    summary: "到收容所現場，依照規定格式把看到的行為寫下來。",
-    detail: "學生根據課程教的方法，對指定的犬隻進行觀察。請在系統的觀察表單中，填入看到的行為細節與互動過程，將這些觀察變成課堂需要的紀錄資料。",
-    evidenceLabel: "查看觀察表單",
-    evidenceHref: "/living-lab"
+    "slug": "observation",
+    "sequence": 3,
+    "title": "第三步：第二週｜承諾與責任",
+    "eyebrow": "第二週",
+    "summary": "透過情境作答全面盤點長期飼養的時間、經濟、醫療與家庭備援。",
+    "detail": "利用體型數據思考個體實際需求，學習不把體型直接當成命運。"
   },
   {
-    slug: "review-process",
-    sequence: 4,
-    title: "第四步：師生共同審閱紀錄",
-    eyebrow: "品質管理",
-    summary: "由指導教師對學生提交的觀察紀錄進行品質檢查與修正。",
-    detail: "學生提交紀錄後，教師在系統內檢查資料邏輯與觀察精確度，確認無誤後核准該筆紀錄，確保資料符合學術品質要求。",
-    evidenceLabel: "查看審閱狀態",
-    evidenceHref: "/adoption-profile/DOG-TPE-001/timeline"
+    "slug": "review-process",
+    "sequence": 4,
+    "title": "第四步：第三週｜品種與標籤",
+    "eyebrow": "第三週",
+    "summary": "閱讀品種形成時間線，拆解品種傾向與健康迷思。",
+    "detail": "針對混種犬等欄位進行追問，練習辨識資料支持什麼、不能支持什麼、還缺哪些證據。"
   },
   {
-    slug: "dog-profile",
-    sequence: 5,
-    title: "第五步：產出犬隻數位檔案",
-    eyebrow: "資訊輸出",
-    summary: "將審核後的觀察紀錄彙整為犬隻檔案，並發送至收容所系統。",
-    detail: "系統整合 16 週累積的觀察結果，自動生成犬隻行為檔案，並即時更新至收容所的作業系統中，供工作人員進行認養配對參考。",
-    evidenceLabel: "查看犬隻數位檔案",
-    evidenceHref: "/adoption-profile/DOG-TPE-001"
+    "slug": "dog-profile",
+    "sequence": 5,
+    "title": "第五步：第四週｜數量與源頭",
+    "eyebrow": "第四週",
+    "summary": "以系統觀點理解遊蕩犬的存量與流量，比較政策研究指標與責任照護。",
+    "detail": "學習嚴謹的資料邏輯，避免直接用「未絕育」推論懷孕。"
   },
   {
-    slug: "one-health-inquiry",
-    sequence: 6,
-    title: "第六步：撰寫探究分析報告",
-    eyebrow: "期末作業",
-    summary: "整合觀察數據與政府資料，產出 One Health 分析報告並提交審核。",
-    detail: "學生應用期末蒐集的行為數據，結合區域環境與公衛資料進行分析，產出完整的分析報告，並交由授課教師完成最終評核。",
-    evidenceLabel: "查看探究報告格式",
-    evidenceHref: "/inquiries/demo"
+    "slug": "one-health-inquiry",
+    "sequence": 6,
+    "title": "第六步：第五週｜政策與兩難",
+    "eyebrow": "第五週",
+    "summary": "面對動物福利、生態保育與公共安全衝突，在資源限制下權衡多方處境。",
+    "detail": "評估政策提案與個別處置，提出兼顧現實的理性方案。"
   },
   {
-    slug: "impact-dashboard",
-    sequence: 7,
-    title: "第七步：系統指標資料回填",
-    eyebrow: "數據蒐集",
-    summary: "系統自動計算探究結果，更新影響力指標與治理資料庫。",
-    detail: "學生的作業成果經教師最終確認後，數據會自動回填至儀表板，更新收容所治理指標與公共資料庫，完成資料循環。",
-    evidenceLabel: "查看治理影響力數據",
-    evidenceHref: "/competition/impact"
+    "slug": "impact-dashboard",
+    "sequence": 7,
+    "title": "第七步：第六週｜現場與行動",
+    "eyebrow": "第六週",
+    "summary": "使用動保資源地圖搜尋單位、盤點自身角色與安全情境。",
+    "detail": "產出包含執行日期、成人協助與替代方案的具體可行行動計畫。"
   },
   {
-    slug: "final-vision",
-    sequence: 8,
-    title: "第八步：學期結案與存檔",
-    eyebrow: "作業歸檔",
-    summary: "確認所有觀察紀錄與報告皆已歸檔，完成學期實作流程。",
-    detail: "最後確認所有的行為觀察、審核紀錄與探究報告均已正確分類並永久存檔，供相關單位作為下學期實作的基礎資料。",
-    evidenceLabel: "查看公開證據總覽",
-    evidenceHref: "/competition/evidence"
+    "slug": "final-vision",
+    "sequence": 8,
+    "title": "第八步：學期結案與證據總覽",
+    "eyebrow": "學期結案",
+    "summary": "整合前六週的每週作業與教師審核結果，繳交結構化的實證思辨報告。",
+    "detail": "系統同步彙整班級數據分析與盲點，完成學期實作循環與歸檔。"
   }
-] as const satisfies readonly PublicTourStep[];
+];
 
 // 以下狀態管理部分保持不變
 export type PublicDemoState = {
