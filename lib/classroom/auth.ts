@@ -3,9 +3,18 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db/prisma";
 import { newToken, tokenHash } from "./security";
 import { RequestError } from "./http";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const COOKIE = "shelterlab_session";
 export async function currentAccount() {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const { data: profile } = await supabase.from("profiles").select("role, display_name").eq("id", user.id).single();
+    if (profile && (profile.role === "student" || profile.role === "teacher" || profile.role === "shelter")) {
+      return { id: user.id, role: profile.role, displayName: profile.display_name || "", email: user.email || "" };
+    }
+  }
   const token = (await cookies()).get(COOKIE)?.value;
   if (!token || !/^[A-Za-z0-9_-]{43}$/.test(token)) return null;
   const session = await prisma.learningSession.findUnique({ where: { tokenHash: tokenHash(token) }, include: { account: true } });
