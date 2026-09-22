@@ -1,0 +1,85 @@
+.scene {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(255,255,255,.82), transparent 36%),
+    linear-gradient(180deg, #f0e7da 0%, #e7dac8 100%);
+}
+
+.bookBacking {
+  border: 1px solid #b8aa96;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.28), rgba(125,111,92,.05)),
+    #d9cdbc;
+  box-shadow:
+    0 24px 42px rgba(72,66,58,.18),
+    0 6px 14px rgba(72,66,58,.12),
+    inset 0 0 0 1px rgba(255,255,255,.38);
+}
+
+.bookBacking::before {
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.34),
+    inset 0 0 18px rgba(103,94,80,.08);
+}
+
+.bookBacking::after {
+  background: linear-gradient(
+    90deg,
+    rgba(104,96,84,.16),
+    rgba(255,255,255,.28) 45%,
+    rgba(104,96,84,.14)
+  );
+}
+
+.paperPage {
+  background:
+    linear-gradient(rgba(255,252,244,.22), rgba(255,252,244,.22)),
+    url('/student-notebook/paper-texture.svg'),
+    #fbf2df !important;
+  color: #302f2b;
+}
+
+.paperPage::before {
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 33px,
+      rgba(122,145,151,.20) 33px,
+      rgba(122,145,151,.20) 34px
+    );
+  opacity: .72;
+}
+
+.paperPage::after {
+  box-shadow:
+    inset 0 0 24px rgba(112,81,52,.05),
+    inset 0 -2px 0 rgba(104,76,52,.08),
+    inset 0 2px 0 rgba(255,255,255,.82);
+}
+
+.leftPaper {
+  box-shadow:
+    inset -26px 0 30px -30px rgba(88,61,40,.34),
+    inset 2px 0 0 rgba(255,255,255,.74);
+}
+
+.rightPaper {
+  box-shadow:
+    inset 26px 0 30px -30px rgba(88,61,40,.34),
+    inset -2px 0 0 rgba(255,255,255,.74);
+}
+
+.book :global(.stf__wrapper) {
+  filter: drop-shadow(0 18px 20px rgba(73,67,59,.14));
+}
+
+.book :global(.stf__outerShadow),
+.book :global(.stf__innerShadow),
+.book :global(.stf__hardShadow),
+.book :global(.stf__hardInnerShadow) {
+  opacity: .12 !important;
+}
+
+.book :global(canvas) {
+  opacity: .16 !important;
+}

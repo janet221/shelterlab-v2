@@ -1,0 +1,15 @@
+import Link from "next/link";
+import { competitionDemoResult } from "@/lib/competition/evidence";
+import { phase2LearningModules } from "@/lib/research-license/phase2-data";
+
+export default function QuizResultPage() {
+  return (
+    <main className="mx-auto max-w-5xl p-6 lg:p-8">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-5"><div><p className="text-sm font-semibold text-blue-700">SYNTHETIC_DEMO · final submission</p><h1 className="mt-1 text-2xl font-semibold">Quiz result</h1><p className="mt-2 text-slate-600">Demo result: pass. Module-level scores and evidence explanations are displayed only after submission.</p></div><div className="border border-emerald-300 bg-emerald-50 p-4 text-right"><div className="text-xs font-semibold uppercase text-emerald-700">Total score</div><div className="text-3xl font-semibold text-emerald-900">{competitionDemoResult.totalScore}%</div></div></div>
+      <section className="mt-6"><h2 className="text-lg font-semibold">Module and competency outcomes</h2><div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">{phase2LearningModules.map((module) => { const score = competitionDemoResult.moduleScores[module.code]; return <div className={`border p-4 ${score < 80 ? "border-amber-300 bg-amber-50" : "border-slate-200 bg-white"}`} key={module.code}><div className="text-xs font-semibold text-slate-500">{module.code}</div><div className="mt-2 text-2xl font-semibold">{score}%</div><div className="mt-1 text-xs">{score < 80 ? "Targeted remediation" : "Strength"}</div></div>; })}</div></section>
+      <section className="mt-7 border border-amber-300 bg-amber-50 p-5"><h2 className="text-lg font-semibold">Targeted remediation</h2><p className="mt-2 text-sm">`URBAN_ECOLOGY` is below 80. The deterministic rule maps missed items to <span className="font-mono">std_demo_data_interpretation</span> and recommends the approved Urban Ecology Data Primer. Passing remains valid because the existing module minimum of 60 is met.</p><p className="mt-3 text-xs text-amber-900">Provenance: module score → missed question snapshots → DEMO_REFERENCE standard → approved and available resource.</p></section>
+      <section className="mt-7"><h2 className="text-lg font-semibold">Why this belongs to the curriculum</h2><p className="mt-2 text-sm text-slate-600">The missed synthetic-data item measures denominator-aware interpretation and evidence limitations. Its question, option order, resource IDs, standard IDs, dataset IDs, provider version, and prompt version are preserved in the attempt snapshot.</p></section>
+      <div className="mt-7 flex flex-wrap gap-3"><Link className="border bg-white px-4 py-2 text-sm font-medium" href="/research-license/certificate">View license status</Link><Link className="border bg-white px-4 py-2 text-sm font-medium" href="/student/resources">Review remediation resources</Link><Link className="border bg-white px-4 py-2 text-sm font-medium" href="/competition/evidence#traceability">View evidence chain</Link></div>
+    </main>
+  );
+}

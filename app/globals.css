@@ -1,0 +1,40 @@
+@import "leaflet/dist/leaflet.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+#vision {
+  scroll-margin-top: 100px; /* 確保錨點位置與 Header 間距適當 */
+}
+
+/* 🎯 1. 定義字體路徑 */
+@font-face {
+  font-family: 'NotoSerifTC';
+  src: url('/fonts/NotoSerifTC-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background:transparent !important;
+  color: #111827;
+  /* 🚀 2. 使用剛剛定義好的字體名稱 */
+  font-family: 'NotoSerifTC', serif !important;
+  letter-spacing: 0;
+  text-rendering: optimizeLegibility;
+  /* 確保 Tailwind 的 antialiased 在這裡也會生效 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ...其餘 CSS 保持不變 */

@@ -1,0 +1,86 @@
+.workspace {
+  margin: 28px 0;
+  overflow: hidden;
+  border: 3px solid #5b554c;
+  border-radius: 26px 18px 29px 21px;
+  background: #fff9e9;
+  box-shadow: 6px 7px 0 rgba(91, 85, 76, .12);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, #fff4c9, #f3e2aa);
+}
+
+.toolImage {
+  width: 92px;
+  height: 92px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #d4b45e;
+  border-radius: 22px 16px 24px 18px;
+  padding: 7px;
+  background: rgba(255, 255, 255, .76);
+}
+
+.toolImage img { width: 100%; height: 100%; object-fit: contain; }
+.summaryCopy { min-width: 0; }
+.summaryCopy span { color: #8b642b; font-size: 12px; font-weight: 950; letter-spacing: .08em; }
+.summaryCopy h3 { margin: 5px 0; color: #315f55; font-size: clamp(23px, 3vw, 31px); }
+.summaryCopy p { margin: 0; color: #62584d; font-weight: 750; line-height: 1.65; }
+.summaryAction { display: grid; justify-items: end; gap: 9px; }
+.summaryAction strong { border-radius: 999px; padding: 6px 10px; color: #36685b; background: #e4f0e9; font-size: 13px; }
+.summaryAction button {
+  min-height: 44px;
+  border: 2px solid #315f55;
+  border-radius: 999px;
+  padding: 9px 15px;
+  color: #fff;
+  background: #397665;
+  font: inherit;
+  font-weight: 950;
+  cursor: pointer;
+}
+.summaryAction button:disabled { border-color: #9b9184; color: #6e665e; background: #ddd7ce; cursor: not-allowed; }
+.summaryAction button:focus-visible, .categories button:focus-visible { outline: 4px solid rgba(218, 153, 56, .5); outline-offset: 2px; }
+
+.lockedNote { margin: 0; border-top: 2px dashed #cdbd9d; padding: 14px 20px; color: #7b5841; font-weight: 800; line-height: 1.65; }
+.panel { border-top: 2px dashed #cdbd9d; padding: 20px; }
+.instructions { border-left: 6px solid #d58746; border-radius: 14px; padding: 13px 15px; background: #fffdf7; }
+.instructions strong { color: #315f55; }
+.instructions p { margin: 5px 0 0; color: #62584d; line-height: 1.7; }
+.items { display: grid; gap: 14px; margin-top: 17px; }
+.item { min-width: 0; margin: 0; border: 2px solid #9c9286; border-radius: 19px 14px 22px 16px; padding: 16px; background: #fff; }
+.item legend { max-width: 100%; padding: 0 8px; color: #3f4944; font-weight: 950; line-height: 1.55; }
+.item legend span { display: inline-grid; width: 28px; height: 28px; margin-right: 8px; place-items: center; border-radius: 50%; color: #fff; background: #a96045; font-size: 13px; }
+.categories { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.categories button { min-width: 0; border: 2px solid #aaa094; border-radius: 12px; padding: 10px 12px; color: #49433c; background: #fffdf9; font: inherit; font-weight: 800; line-height: 1.5; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.categories button:hover:not(:disabled) { border-color: #397665; transform: translateY(-1px); }
+.categories button:disabled { cursor: default; }
+.categories .assigned { border-color: #397665; color: #285b4d; background: #dceee6; opacity: 1; }
+.categories .incorrect { border-color: #a95548; color: #7d392f; background: #f8e0d9; }
+.explanation, .correction { margin: 11px 0 0; border-radius: 11px; padding: 10px 12px; font-size: 13px; line-height: 1.65; }
+.explanation { color: #2d5f51; background: #e4f1eb; }
+.correction { color: #853d32; background: #f9e3dc; }
+.explanation strong, .correction strong { display: block; margin-bottom: 3px; }
+.completedNote { margin: 16px 0 0; border-radius: 13px; padding: 12px 14px; color: #285b4d; background: #dceee6; font-weight: 900; }
+
+@media (max-width: 720px) {
+  .summary { grid-template-columns: 72px minmax(0, 1fr); }
+  .toolImage { width: 72px; height: 72px; }
+  .summaryAction { grid-column: 1 / -1; width: 100%; grid-template-columns: 1fr auto; align-items: center; justify-items: start; }
+  .categories { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 440px) {
+  .summary { grid-template-columns: 58px minmax(0, 1fr); gap: 12px; padding: 15px; }
+  .toolImage { width: 58px; height: 58px; border-radius: 16px; }
+  .summaryAction { grid-template-columns: 1fr; justify-items: stretch; }
+  .summaryAction button { width: 100%; }
+  .panel { padding: 15px; }
+  .item { padding: 13px; }
+}

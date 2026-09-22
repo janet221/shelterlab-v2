@@ -1,0 +1,2443 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  student
+  teacher
+  shelter_staff
+  admin
+}
+
+enum Sex {
+  male
+  female
+  unknown
+}
+
+enum AgeBand {
+  puppy
+  young
+  adult
+  senior
+  unknown
+}
+
+enum AdoptionStatus {
+  unavailable
+  available
+  pending
+  adopted
+}
+
+enum RiskFlag {
+  none
+  caution
+  restricted
+}
+
+enum BehaviorCode {
+  APP_FRONT
+  MOVE_AWAY
+  STAY_BACK
+  STAND
+  SIT
+  LIE
+  PACE
+  SPIN
+  JUMP_GATE
+  BARK
+  WHINE
+  QUIET_OBSERVE
+  TAIL_TUCK
+  EARS_BACK
+  YAWN
+  LIP_LICK
+}
+
+enum TeacherReviewStatus {
+  pending
+  approved
+  revision_required
+}
+
+enum ShelterConfirmStatus {
+  pending
+  confirmed
+  revision_required
+}
+
+enum ObservationStatus {
+  draft
+  submitted
+  teacher_approved
+  teacher_revision_required
+  shelter_confirmed
+  shelter_revision_required
+  published
+}
+
+enum ObservationSessionStatus {
+  draft
+  running
+  submitted
+  teacher_review
+  teacher_revision
+  teacher_rejected
+  shelter_review
+  shelter_revision
+  shelter_rejected
+  shelter_confirmed
+  published
+  archived
+}
+
+enum ObservationMissionStatus {
+  draft
+  awaiting_shelter_confirmation
+  assigned
+  available
+  in_progress
+  submitted
+  teacher_revision
+  teacher_rejected
+  shelter_revision
+  shelter_rejected
+  shelter_confirmed
+  published
+  cancelled
+  archived
+}
+
+enum ObservationConfidenceLevel {
+  low
+  medium
+  high
+}
+
+enum ObservationEvidenceType {
+  direct_observation
+  media_reference
+  shelter_record
+}
+
+enum ObservationPrivacyState {
+  pending
+  approved_internal
+  approved_public
+  rejected
+  quarantined
+}
+
+enum ObservationReviewerRole {
+  teacher
+  shelter_staff
+  admin
+}
+
+enum ObservationReviewDecision {
+  approve
+  request_revision
+  reject
+  confirm
+}
+
+enum EvidenceTimelineEventType {
+  shelter_intake
+  mission_assigned
+  observation_started
+  observation_submitted
+  teacher_review
+  revision
+  shelter_confirmation
+  publication
+  unpublication
+  professional_note
+  evidence_profile_update
+  foster_placeholder
+  outing_placeholder
+  adoption_placeholder
+}
+
+enum EvidenceTimelineVisibility {
+  internal
+  public
+}
+
+enum ImpactEvidenceStatus {
+  VERIFIED
+  DEMO
+  SYNTHETIC
+  UNVERIFIED
+}
+
+enum ImpactConfidenceLevel {
+  HIGH
+  MEDIUM
+  LOW
+  INSUFFICIENT
+  DEMO_ONLY
+}
+
+enum InquiryType {
+  shelter_behavior
+  one_health_public_health
+  urban_ecology
+  shelter_statistics
+  animal_welfare
+  adoption_accessibility
+  data_quality
+  custom_teacher_approved
+}
+
+enum InquiryStatus {
+  draft
+  question_review
+  design_review
+  data_collection
+  analysis
+  submitted
+  teacher_revision
+  teacher_rejected
+  teacher_approved
+  shelter_review
+  shelter_revision
+  shelter_rejected
+  shelter_confirmed
+  final
+  archived
+}
+
+enum InquiryOneHealthDimension {
+  human_health
+  animal_health
+  animal_welfare
+  environment
+  public_health
+  education
+  citizen_science
+  local_policy
+}
+
+enum InquiryEvidenceType {
+  government_dataset_snapshot
+  curriculum_resource
+  learning_standard
+  observation_session
+  published_dog_evidence
+  shelter_statistic
+  student_generated_dataset
+  teacher_reference
+}
+
+enum InquiryEvidenceVerificationState {
+  VERIFIED
+  DEMO_REFERENCE
+  SYNTHETIC_DEMO
+  SHELTER_CONFIRMED
+  UNVERIFIED
+}
+
+enum InquiryPrivacyClassification {
+  public
+  restricted
+  private
+}
+
+enum InquiryAnalysisMethod {
+  count
+  proportion
+  mean
+  median
+  minimum
+  maximum
+  category_comparison
+  time_comparison
+  regional_comparison
+  contingency_table
+  simple_correlation
+  observation_frequency
+  behavior_duration_summary
+}
+
+enum InquiryReviewDecision {
+  approve
+  request_revision
+  reject
+  confirm
+}
+
+enum AdoptionProfileStatus {
+  draft
+  review
+  approved
+  published
+  archived
+}
+
+enum AdoptionEvidenceType {
+  shelter_intake
+  health_check
+  observation
+  teacher_approval
+  shelter_confirmation
+  publication
+  media_photo
+  media_video
+  profile_update
+}
+
+enum AdoptionTimelineEventType {
+  shelter_intake
+  health_check
+  observation
+  teacher_approval
+  shelter_confirmation
+  publication
+  profile_update
+  foster
+  one_day_outing
+  trial_adoption
+  formal_adoption
+  returned
+}
+
+enum AdoptionTimelineState {
+  evidence
+  not_recorded
+  future_placeholder
+}
+
+enum ObservationBehaviorCode {
+  APPROACH
+  MOVE_AWAY
+  STAND
+  SIT
+  LIE
+  PACE
+  BARK
+  WHINE
+  TAIL_WAG
+  TAIL_TUCK
+  EARS_FORWARD
+  EARS_BACK
+  YAWN
+  LIP_LICK
+  JUMP
+  PLAY_BOW
+  SNIFF
+  LOOK_AT_HUMAN
+  LOOK_AWAY
+  OTHER
+}
+
+enum DatasetStatus {
+  configured
+  mock_synced
+  sync_failed
+  disabled
+}
+
+enum DatasetReferenceStatus {
+  demo
+  verified
+  unverified
+}
+
+enum TeacherRevisionReason {
+  missing_information
+  incorrect_behavior_classification
+  poor_media_quality
+  subjective_description
+  time_inconsistency
+  other
+}
+
+enum CertificateStatus {
+  unavailable
+  eligible
+  issued
+  revoked
+}
+
+enum ModuleStatus {
+  draft
+  published
+  archived
+}
+
+enum LearningStandardStatus {
+  demo_reference
+  official_verified
+  unverified
+  archived
+}
+
+enum QuestionType {
+  single_choice
+  multiple_choice
+  true_false
+  scenario_choice
+}
+
+enum QuestionDifficulty {
+  basic
+  intermediate
+  advanced
+}
+
+enum QuestionStatus {
+  draft
+  pending_review
+  approved
+  published
+  rejected
+  archived
+}
+
+enum EvidenceVerificationState {
+  VERIFIED
+  METADATA_VERIFIED
+  UNVERIFIED
+  UNAVAILABLE
+  DEMO_REFERENCE
+  SYNTHETIC_DEMO
+}
+
+enum DatasetRetrievalStatus {
+  CONFIGURED
+  READY
+  SUCCESS
+  FAILED
+  DISABLED
+}
+
+enum DatasetValidationStatus {
+  PENDING
+  PASSED
+  WARNING
+  FAILED
+}
+
+enum DatasetSyncRunStatus {
+  STARTED
+  SUCCEEDED
+  FAILED
+  SKIPPED
+}
+
+enum DatasetUsageModule {
+  CURRICULUM_DISCOVERY
+  LEARNING_RESOURCE_MAPPING
+  COMPETENCY_CONTEXT
+  QUESTION_GENERATION
+  REMEDIATION
+  INQUIRY_CONTEXT
+  COMPETITION_EVIDENCE
+}
+
+enum QuestionSourceType {
+  government_reference
+  teacher_authored
+  ai_draft
+  project_seed
+}
+
+enum BlueprintStatus {
+  draft
+  published
+  archived
+}
+
+enum QuizAttemptStatus {
+  in_progress
+  submitted
+  passed
+  failed
+  expired
+  cancelled
+}
+
+enum ResearchLicenseStatus {
+  active
+  expired
+  revoked
+  suspended
+  superseded
+}
+
+enum LicenseLevel {
+  level_1
+}
+
+enum CurriculumResourceType {
+  video
+  article
+  lesson_plan
+  government_dataset
+  image
+  interactive_resource
+  teacher_material
+}
+
+enum ResourceVerificationStatus {
+  unverified
+  metadata_verified
+  content_reviewed
+  approved_for_course
+  rejected
+  unavailable
+}
+
+enum ResourceAvailabilityStatus {
+  active
+  unavailable
+  archived
+}
+
+enum ResourceRequirementType {
+  required
+  optional
+}
+
+enum ResourceMappingStatus {
+  draft
+  active
+  archived
+}
+
+enum ResourceImportProvider {
+  ilearn
+  government_dataset
+  manual_teacher
+}
+
+enum ResourceImportStatus {
+  previewed
+  imported
+  failed
+}
+
+enum BloomLevel {
+  remember
+  understand
+  apply
+  analyze
+  evaluate
+}
+
+enum QuestionGenerationBlueprintStatus {
+  draft
+  active
+  archived
+}
+
+enum QuestionDraftStatus {
+  ai_draft
+  draft
+  pending_review
+  revision_required
+  approved
+  rejected
+  published
+  archived
+}
+
+enum QuestionGenerationMethod {
+  manual
+  ai_assisted
+  imported_metadata
+}
+
+enum DraftCheckStatus {
+  pending
+  passed
+  warning
+  failed
+}
+
+model User {
+  id        String   @id @default(cuid())
+  role      UserRole
+  testCode  String   @unique @map("test_code")
+  email     String?  @unique
+  shelterId String?  @map("shelter_id")
+  shelter   Shelter? @relation(fields: [shelterId], references: [shelterId])
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  observations                         Observation[]                 @relation("ObserverObservations")
+  observationSessionsAsStudent         ObservationSession[]          @relation("ObservationSessionStudent")
+  observationSessionsAsTeacher         ObservationSession[]          @relation("ObservationSessionTeacher")
+  observationSessionsAsShelterStaff    ObservationSession[]          @relation("ObservationSessionShelterStaff")
+  auditLogs                            AuditLog[]                    @relation("ActorAuditLogs")
+  learningModulesCreated               LearningModule[]              @relation("ModuleCreatedBy")
+  learningModulesReviewed              LearningModule[]              @relation("ModuleReviewedBy")
+  questionsCreated                     Question[]                    @relation("QuestionCreatedBy")
+  questionsReviewed                    Question[]                    @relation("QuestionReviewedBy")
+  quizAttempts                         QuizAttempt[]                 @relation("StudentQuizAttempts")
+  researchLicenses                     ResearchLicense[]             @relation("StudentResearchLicenses")
+  revokedLicenses                      ResearchLicense[]             @relation("LicenseRevokedBy")
+  curriculumResourcesVerified          CurriculumResource[]          @relation("ResourceVerifiedBy")
+  coursePlansCreated                   CoursePlan[]                  @relation("CoursePlanCreatedBy")
+  questionGenerationBlueprintsCreated  QuestionGenerationBlueprint[] @relation("QuestionGenerationBlueprintCreatedBy")
+  questionGenerationBlueprintsReviewed QuestionGenerationBlueprint[] @relation("QuestionGenerationBlueprintReviewedBy")
+  questionDraftsCreated                QuestionDraft[]               @relation("QuestionDraftCreatedBy")
+  questionDraftsReviewed               QuestionDraft[]               @relation("QuestionDraftReviewedBy")
+  questionDraftsPublished              QuestionDraft[]               @relation("QuestionDraftPublishedBy")
+  teacherCourseAuthorizations          TeacherCourseAuthorization[]  @relation("TeacherCourseAuthorizationTeacher")
+  courseAuthorizationsGranted          TeacherCourseAuthorization[]  @relation("TeacherCourseAuthorizationGrantedBy")
+  studentResourceProgress              StudentResourceProgress[]
+
+  @@map("app_user")
+}
+
+model Shelter {
+  shelterId String   @id @map("shelter_id")
+  name      String
+  county    String
+  city      String
+  zones     String[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  dogs                Dog[]
+  users               User[]
+  observationMissions ObservationMission[]
+
+  @@map("shelter")
+}
+
+model Dog {
+  dogId          String         @id @default(cuid()) @map("dog_id")
+  shelterId      String         @map("shelter_id")
+  shelter        Shelter        @relation(fields: [shelterId], references: [shelterId])
+  publicName     String         @map("public_name")
+  sex            Sex
+  ageBand        AgeBand        @map("age_band")
+  zone           String
+  riskFlag       RiskFlag       @default(none) @map("risk_flag")
+  adoptionStatus AdoptionStatus @default(unavailable) @map("adoption_status")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  observations              Observation[]
+  observationSessions       ObservationSession[]
+  observationMissions       ObservationMission[]
+  evidenceTimeline          EvidenceTimelineEntry[]
+  evidenceProfiles          DogEvidenceProfile[]
+  professionalNotes         ShelterProfessionalNote[]
+  publishedAdoptionEvidence PublishedAdoptionEvidence[]
+  adoptionProfiles          AdoptionProfile[]
+  adoptionTimeline          AdoptionTimelineEvent[]
+
+  @@index([shelterId])
+  @@map("dog")
+}
+
+model CurriculumModule {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  title       String
+  description String
+  tags        String[]
+  sortOrder   Int      @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  quizQuestions QuizQuestion[]
+
+  @@map("curriculum_module")
+}
+
+model QuizQuestion {
+  id                  String              @id @default(cuid())
+  moduleId            String              @map("module_id")
+  module              CurriculumModule    @relation(fields: [moduleId], references: [id])
+  prompt              String
+  options             Json
+  correctOptionIndex  Int                 @map("correct_option_index")
+  curriculumTags      String[]            @map("curriculum_tags")
+  governmentDatasetId String?             @map("government_dataset_id")
+  governmentDataset   GovernmentDataset?  @relation(fields: [governmentDatasetId], references: [datasetId])
+  teacherReviewStatus TeacherReviewStatus @default(pending) @map("teacher_review_status")
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  @@unique([moduleId, prompt])
+  @@index([moduleId])
+  @@index([governmentDatasetId])
+  @@map("quiz_question")
+}
+
+model LearningModule {
+  id               String       @id @default(cuid())
+  code             String       @unique
+  title            String
+  description      String
+  moduleOrder      Int          @map("module_order")
+  estimatedMinutes Int          @map("estimated_minutes")
+  passingScore     Int          @map("passing_score")
+  status           ModuleStatus @default(draft)
+  version          Int          @default(1)
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  publishedAt      DateTime?    @map("published_at")
+  createdById      String?      @map("created_by")
+  reviewedById     String?      @map("reviewed_by")
+  createdBy        User?        @relation("ModuleCreatedBy", fields: [createdById], references: [id])
+  reviewedBy       User?        @relation("ModuleReviewedBy", fields: [reviewedById], references: [id])
+
+  standards                    LearningModuleStandard[]
+  questions                    Question[]
+  requirements                 QuizBlueprintModuleRequirement[]
+  resourceMappings             CurriculumResourceLearningModule[]
+  courseWeeks                  CourseWeek[]
+  questionGenerationBlueprints QuestionGenerationBlueprint[]
+
+  @@map("learning_module")
+}
+
+model LearningStandard {
+  id                      String                 @id @default(cuid())
+  jurisdiction            String
+  curriculumName          String                 @map("curriculum_name")
+  subject                 String
+  educationLevel          String                 @map("education_level")
+  gradeBand               String                 @map("grade_band")
+  learningContentCode     String                 @map("learning_content_code")
+  learningContentText     String                 @map("learning_content_text")
+  learningPerformanceCode String                 @map("learning_performance_code")
+  learningPerformanceText String                 @map("learning_performance_text")
+  coreCompetencyCode      String                 @map("core_competency_code")
+  coreCompetencyText      String                 @map("core_competency_text")
+  sourceAgency            String                 @map("source_agency")
+  governmentDatasetId     String?                @map("government_dataset_id")
+  governmentDataset       GovernmentDataset?     @relation(fields: [governmentDatasetId], references: [datasetId])
+  sourceUrl               String                 @map("source_url")
+  version                 String
+  status                  LearningStandardStatus @default(demo_reference)
+  tags                    String[]
+  createdAt               DateTime               @default(now()) @map("created_at")
+  updatedAt               DateTime               @updatedAt @map("updated_at")
+
+  modules                              LearningModuleStandard[]
+  questions                            QuestionLearningStandard[]
+  resourceMappings                     CurriculumResourceLearningStandard[]
+  questionGenerationBlueprintStandards QuestionGenerationBlueprintStandard[]
+  inquiryProjects                      InquiryProjectLearningStandard[]
+
+  @@index([governmentDatasetId])
+  @@map("learning_standard")
+}
+
+model LearningModuleStandard {
+  moduleId   String           @map("module_id")
+  standardId String           @map("standard_id")
+  module     LearningModule   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  standard   LearningStandard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@id([moduleId, standardId])
+  @@map("learning_module_standard")
+}
+
+model Question {
+  id               String             @id @default(cuid())
+  moduleId         String             @map("module_id")
+  module           LearningModule     @relation(fields: [moduleId], references: [id])
+  questionType     QuestionType       @map("question_type")
+  prompt           String
+  explanation      String
+  difficulty       QuestionDifficulty
+  status           QuestionStatus     @default(draft)
+  version          Int                @default(1)
+  sourceType       QuestionSourceType @map("source_type")
+  sourceDatasetId  String?            @map("source_dataset_id")
+  sourceDataset    GovernmentDataset? @relation("QuestionSourceDataset", fields: [sourceDatasetId], references: [datasetId])
+  sourceReference  String?            @map("source_reference")
+  copyrightNote    String?            @map("copyright_note")
+  parentQuestionId String?            @map("parent_question_id")
+  parentQuestion   Question?          @relation("QuestionVersions", fields: [parentQuestionId], references: [id])
+  versions         Question[]         @relation("QuestionVersions")
+  createdById      String?            @map("created_by")
+  reviewedById     String?            @map("reviewed_by")
+  reviewedBy       User?              @relation("QuestionReviewedBy", fields: [reviewedById], references: [id])
+  createdBy        User?              @relation("QuestionCreatedBy", fields: [createdById], references: [id])
+  reviewReason     String?            @map("review_reason")
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  approvedAt       DateTime?          @map("approved_at")
+
+  options          QuestionOption[]
+  standards        QuestionLearningStandard[]
+  attemptQuestions QuizAttemptQuestion[]
+  resourceMappings CurriculumResourceQuestion[]
+  sourceDrafts     QuestionDraft[]              @relation("PublishedQuestionDraft")
+  datasetMappings  QuestionGovernmentDataset[]
+
+  @@index([moduleId])
+  @@index([status])
+  @@index([sourceDatasetId])
+  @@map("question")
+}
+
+model QuestionOption {
+  id          String   @id @default(cuid())
+  questionId  String   @map("question_id")
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  optionKey   String   @map("option_key")
+  optionText  String   @map("option_text")
+  isCorrect   Boolean  @map("is_correct")
+  explanation String?
+  optionOrder Int      @map("option_order")
+
+  @@unique([questionId, optionKey])
+  @@map("question_option")
+}
+
+model QuestionLearningStandard {
+  questionId String           @map("question_id")
+  standardId String           @map("standard_id")
+  question   Question         @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  standard   LearningStandard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, standardId])
+  @@map("question_learning_standard")
+}
+
+model QuizBlueprint {
+  id                 String          @id @default(cuid())
+  code               String
+  title              String
+  educationLevel     String          @map("education_level")
+  version            Int             @default(1)
+  status             BlueprintStatus @default(draft)
+  totalQuestions     Int             @map("total_questions")
+  timeLimitMinutes   Int             @map("time_limit_minutes")
+  passingScore       Int             @map("passing_score")
+  maxAttempts        Int             @map("max_attempts")
+  cooldownMinutes    Int             @map("cooldown_minutes")
+  randomizeQuestions Boolean         @default(true) @map("randomize_questions")
+  randomizeOptions   Boolean         @default(true) @map("randomize_options")
+  createdById        String?         @map("created_by")
+  publishedAt        DateTime?       @map("published_at")
+
+  requirements     QuizBlueprintModuleRequirement[]
+  attempts         QuizAttempt[]
+  licenses         ResearchLicense[]
+  resourceMappings CurriculumResourceQuizBlueprint[]
+
+  @@unique([code, version])
+  @@map("quiz_blueprint")
+}
+
+model QuizBlueprintModuleRequirement {
+  blueprintId            String         @map("blueprint_id")
+  moduleId               String         @map("module_id")
+  blueprint              QuizBlueprint  @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  module                 LearningModule @relation(fields: [moduleId], references: [id])
+  requiredQuestionCount  Int            @map("required_question_count")
+  minimumModuleScore     Int            @map("minimum_module_score")
+  difficultyDistribution Json           @map("difficulty_distribution")
+
+  @@id([blueprintId, moduleId])
+  @@map("quiz_blueprint_module_requirement")
+}
+
+model QuizAttempt {
+  id                   String            @id @default(cuid())
+  studentId            String            @map("student_id")
+  student              User              @relation("StudentQuizAttempts", fields: [studentId], references: [id])
+  blueprintId          String            @map("blueprint_id")
+  blueprint            QuizBlueprint     @relation(fields: [blueprintId], references: [id])
+  blueprintVersion     Int               @map("blueprint_version")
+  startedAt            DateTime          @default(now()) @map("started_at")
+  submittedAt          DateTime?         @map("submitted_at")
+  expiresAt            DateTime          @map("expires_at")
+  status               QuizAttemptStatus @default(in_progress)
+  totalScore           Int?              @map("total_score")
+  moduleScoresJson     Json              @default("{}") @map("module_scores_json")
+  attemptNumber        Int               @map("attempt_number")
+  integrityFlagsJson   Json?             @map("integrity_flags_json")
+  competencyScoresJson Json              @default("{}") @map("competency_scores_json")
+  evidenceSnapshotJson Json              @default("{}") @map("evidence_snapshot_json")
+
+  attemptQuestions           QuizAttemptQuestion[]
+  license                    ResearchLicense?
+  remediationRecommendations RemediationRecommendation[]
+
+  @@index([studentId, blueprintId])
+  @@map("quiz_attempt")
+}
+
+model QuizAttemptQuestion {
+  id                           String              @id @default(cuid())
+  attemptId                    String              @map("attempt_id")
+  attempt                      QuizAttempt         @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId                   String              @map("question_id")
+  question                     Question            @relation(fields: [questionId], references: [id])
+  questionVersion              Int                 @map("question_version")
+  moduleCode                   String              @map("module_code")
+  promptSnapshot               String              @map("prompt_snapshot")
+  explanationSnapshot          String              @map("explanation_snapshot")
+  optionsSnapshotJson          Json                @map("options_snapshot_json")
+  questionOrder                Int                 @map("question_order")
+  resourceIdsSnapshot          String[]            @default([]) @map("resource_ids_snapshot")
+  learningStandardIdsSnapshot  String[]            @default([]) @map("learning_standard_ids_snapshot")
+  governmentDatasetIdsSnapshot String[]            @default([]) @map("government_dataset_ids_snapshot")
+  verificationSnapshotJson     Json                @default("{}") @map("verification_snapshot_json")
+  providerNameSnapshot         String?             @map("provider_name_snapshot")
+  providerVersionSnapshot      String?             @map("provider_version_snapshot")
+  promptVersionSnapshot        String?             @map("prompt_version_snapshot")
+  bloomLevelSnapshot           BloomLevel?         @map("bloom_level_snapshot")
+  difficultySnapshot           QuestionDifficulty? @map("difficulty_snapshot")
+
+  answers QuizAnswer[]
+
+  @@index([attemptId])
+  @@map("quiz_attempt_question")
+}
+
+model QuizAnswer {
+  id                String              @id @default(cuid())
+  attemptQuestionId String              @map("attempt_question_id")
+  attemptQuestion   QuizAttemptQuestion @relation(fields: [attemptQuestionId], references: [id], onDelete: Cascade)
+  selectedOptionIds String[]            @map("selected_option_ids")
+  isCorrect         Boolean             @map("is_correct")
+  scoreAwarded      Int                 @map("score_awarded")
+  answeredAt        DateTime            @default(now()) @map("answered_at")
+
+  @@map("quiz_answer")
+}
+
+model ResearchLicense {
+  id                  String                @id @default(cuid())
+  studentId           String                @map("student_id")
+  student             User                  @relation("StudentResearchLicenses", fields: [studentId], references: [id])
+  licenseLevel        LicenseLevel          @default(level_1) @map("license_level")
+  blueprintId         String                @map("blueprint_id")
+  blueprint           QuizBlueprint         @relation(fields: [blueprintId], references: [id])
+  blueprintVersion    Int                   @map("blueprint_version")
+  qualifyingAttemptId String                @unique @map("qualifying_attempt_id")
+  qualifyingAttempt   QuizAttempt           @relation(fields: [qualifyingAttemptId], references: [id])
+  status              ResearchLicenseStatus @default(active)
+  issuedAt            DateTime              @map("issued_at")
+  expiresAt           DateTime              @map("expires_at")
+  revokedAt           DateTime?             @map("revoked_at")
+  revokedById         String?               @map("revoked_by")
+  revokedBy           User?                 @relation("LicenseRevokedBy", fields: [revokedById], references: [id])
+  revocationReason    String?               @map("revocation_reason")
+  certificateCode     String                @unique @map("certificate_code")
+  certificateVersion  Int                   @default(1) @map("certificate_version")
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @updatedAt @map("updated_at")
+
+  @@index([studentId, status])
+  @@map("research_license")
+}
+
+model Observation {
+  observationId         String                 @id @default(cuid()) @map("observation_id")
+  dogId                 String                 @map("dog_id")
+  dog                   Dog                    @relation(fields: [dogId], references: [dogId])
+  observerId            String                 @map("observer_id")
+  observer              User                   @relation("ObserverObservations", fields: [observerId], references: [id])
+  timestamp             DateTime
+  behaviorCode          BehaviorCode           @map("behavior_code")
+  durationSec           Int                    @map("duration_sec")
+  context               String
+  notes                 String?
+  mediaUrl              String?                @map("media_url")
+  mediaChecksum         String?                @map("media_checksum")
+  teacherReview         TeacherReviewStatus    @default(pending) @map("teacher_review")
+  teacherRevisionReason TeacherRevisionReason? @map("teacher_revision_reason")
+  teacherRevisionNote   String?                @map("teacher_revision_note")
+  shelterConfirm        ShelterConfirmStatus   @default(pending) @map("shelter_confirm")
+  workflowStatus        ObservationStatus      @default(draft) @map("workflow_status")
+  incidentFlag          Boolean                @default(false) @map("incident_flag")
+  validationFlags       Json                   @default("[]") @map("validation_flags")
+  publishedAt           DateTime?              @map("published_at")
+  publishedById         String?                @map("published_by_id")
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+
+  auditLogs AuditLog[]
+
+  @@index([dogId])
+  @@index([observerId])
+  @@index([workflowStatus])
+  @@map("observation")
+}
+
+model ObservationSession {
+  id                  String                   @id @default(cuid())
+  studentId           String                   @map("student_id")
+  student             User                     @relation("ObservationSessionStudent", fields: [studentId], references: [id])
+  dogId               String                   @map("dog_id")
+  dog                 Dog                      @relation(fields: [dogId], references: [dogId])
+  teacherId           String?                  @map("teacher_id")
+  teacher             User?                    @relation("ObservationSessionTeacher", fields: [teacherId], references: [id])
+  shelterStaffId      String?                  @map("shelter_staff_id")
+  shelterStaff        User?                    @relation("ObservationSessionShelterStaff", fields: [shelterStaffId], references: [id])
+  startedAt           DateTime?                @map("started_at")
+  endedAt             DateTime?                @map("ended_at")
+  status              ObservationSessionStatus @default(draft)
+  durationSec         Int?                     @map("duration_sec")
+  locationZone        String                   @map("location_zone")
+  weather             String?
+  temperature         Float?
+  notes               String?
+  validationFlags     Json                     @default("[]") @map("validation_flags")
+  teacherReviewReason String?                  @map("teacher_review_reason")
+  shelterReviewReason String?                  @map("shelter_review_reason")
+  publishedAt         DateTime?                @map("published_at")
+  missionId           String?                  @map("mission_id")
+  mission             ObservationMission?      @relation(fields: [missionId], references: [id])
+  parentSessionId     String?                  @map("parent_session_id")
+  parentSession       ObservationSession?      @relation("ObservationSessionRevisions", fields: [parentSessionId], references: [id])
+  childSessions       ObservationSession[]     @relation("ObservationSessionRevisions")
+  revisionNumber      Int                      @default(1) @map("revision_number")
+  shelterId           String?                  @map("shelter_id")
+  startedAtServer     DateTime?                @map("started_at_server")
+  endedAtServer       DateTime?                @map("ended_at_server")
+  deadlineAtServer    DateTime?                @map("deadline_at_server")
+  clientStartedAt     DateTime?                @map("client_started_at")
+  lastAutosavedAt     DateTime?                @map("last_autosaved_at")
+  submittedAt         DateTime?                @map("submitted_at")
+  teacherReviewedAt   DateTime?                @map("teacher_reviewed_at")
+  shelterConfirmedAt  DateTime?                @map("shelter_confirmed_at")
+  rowVersion          Int                      @default(0) @map("row_version")
+  protocolVersion     String                   @default("SL-OBS-1") @map("protocol_version")
+  environmentContext  Json                     @default("{}") @map("environment_context_json")
+  generalNotes        String?                  @map("general_notes")
+  incidentFlag        Boolean                  @default(false) @map("incident_flag")
+  privacyState        ObservationPrivacyState  @default(pending) @map("privacy_state")
+  syntheticDemo       Boolean                  @default(false) @map("synthetic_demo")
+  qualityScore        Int?                     @map("quality_score")
+  qualityScoreVersion String?                  @map("quality_score_version")
+  publishedById       String?                  @map("published_by_id")
+  unpublishedAt       DateTime?                @map("unpublished_at")
+  unpublishReason     String?                  @map("unpublish_reason")
+  createdAt           DateTime                 @default(now()) @map("created_at")
+  updatedAt           DateTime                 @updatedAt @map("updated_at")
+
+  behaviorEvents    BehaviorEvent[]
+  reviews           ObservationReview[]
+  qualityScores     ObservationQualityScore[]
+  publications      ObservationPublication[]
+  timelineEntries   EvidenceTimelineEntry[]
+  profileStatements DogEvidenceProfileStatement[]
+  mediaAssets       MediaAsset[]
+  professionalNotes ShelterProfessionalNote[]
+
+  @@index([studentId])
+  @@index([dogId])
+  @@index([missionId])
+  @@index([parentSessionId])
+  @@index([status])
+  @@map("observation_session")
+}
+
+model BehaviorEvent {
+  id              String                     @id @default(cuid())
+  sessionId       String                     @map("session_id")
+  session         ObservationSession         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  timestampSecond Int                        @map("timestamp_second")
+  behaviorCode    ObservationBehaviorCode    @map("behavior_code")
+  sequenceNumber  Int                        @default(0) @map("sequence_number")
+  durationSec     Int?                       @map("duration_sec")
+  confidence      Float
+  confidenceLevel ObservationConfidenceLevel @default(medium) @map("confidence_level")
+  observerNote    String?                    @map("observer_note")
+  contextCode     String?                    @map("context_code")
+  evidenceType    ObservationEvidenceType    @default(direct_observation) @map("evidence_type")
+  mediaAssetId    String?                    @map("media_asset_id")
+  mediaAsset      MediaAsset?                @relation(fields: [mediaAssetId], references: [id])
+  createdAt       DateTime                   @default(now()) @map("created_at")
+  updatedAt       DateTime                   @updatedAt @map("updated_at")
+
+  @@unique([sessionId, sequenceNumber])
+  @@index([sessionId])
+  @@map("behavior_event")
+}
+
+model ObservationMission {
+  id                 String                   @id @default(cuid())
+  courseId           String?                  @map("course_id")
+  classroomId        String?                  @map("classroom_id")
+  teacherId          String                   @map("teacher_id")
+  studentId          String                   @map("student_id")
+  shelterId          String                   @map("shelter_id")
+  shelter            Shelter                  @relation(fields: [shelterId], references: [shelterId])
+  dogId              String                   @map("dog_id")
+  dog                Dog                      @relation(fields: [dogId], references: [dogId])
+  assignedBy         String                   @map("assigned_by")
+  shelterConfirmerId String?                  @map("shelter_confirmer_id")
+  title              String
+  scientificPurpose  String                   @map("scientific_purpose")
+  researchQuestion   String?                  @map("research_question")
+  allowedZone        String                   @map("allowed_zone")
+  scheduledStart     DateTime                 @map("scheduled_start")
+  scheduledEnd       DateTime                 @map("scheduled_end")
+  maximumDurationSec Int                      @default(300) @map("maximum_duration_sec")
+  protocolVersion    String                   @default("SL-OBS-1") @map("protocol_version")
+  status             ObservationMissionStatus @default(draft)
+  cancellationReason String?                  @map("cancellation_reason")
+  syntheticDemo      Boolean                  @default(false) @map("synthetic_demo")
+  createdAt          DateTime                 @default(now()) @map("created_at")
+  updatedAt          DateTime                 @updatedAt @map("updated_at")
+
+  sessions ObservationSession[]
+
+  @@index([studentId, status])
+  @@index([teacherId, status])
+  @@index([shelterId, status])
+  @@index([dogId])
+  @@map("observation_mission")
+}
+
+model ObservationReview {
+  id                      String                    @id @default(cuid())
+  sessionId               String                    @map("session_id")
+  session                 ObservationSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  reviewerId              String                    @map("reviewer_id")
+  reviewerRole            ObservationReviewerRole   @map("reviewer_role")
+  decision                ObservationReviewDecision
+  reasonCode              String?                   @map("reason_code")
+  reasonText              String?                   @map("reason_text")
+  reviewedSessionVersion  Int                       @map("reviewed_session_version")
+  rubricJson              Json                      @default("{}") @map("rubric_json")
+  professionalContextNote String?                   @map("professional_context_note")
+  idempotencyKey          String                    @unique @map("idempotency_key")
+  createdAt               DateTime                  @default(now()) @map("created_at")
+
+  @@index([sessionId, reviewerRole])
+  @@map("observation_review")
+}
+
+model ObservationQualityScore {
+  id              String             @id @default(cuid())
+  sessionId       String             @map("session_id")
+  session         ObservationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  score           Int
+  dimensionsJson  Json               @map("dimensions_json")
+  explanationJson Json               @map("explanation_json")
+  scoreVersion    String             @map("score_version")
+  createdAt       DateTime           @default(now()) @map("created_at")
+
+  @@unique([sessionId, scoreVersion])
+  @@map("observation_quality_score")
+}
+
+model ObservationPublication {
+  id                String             @id @default(cuid())
+  sessionId         String             @map("session_id")
+  session           ObservationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  versionIdentifier String             @map("version_identifier")
+  publishedById     String             @map("published_by_id")
+  publishedAt       DateTime           @map("published_at")
+  unpublishedById   String?            @map("unpublished_by_id")
+  unpublishedAt     DateTime?          @map("unpublished_at")
+  unpublishReason   String?            @map("unpublish_reason")
+  visibilityJson    Json               @default("{}") @map("visibility_json")
+  snapshotJson      Json               @map("snapshot_json")
+  sourceTraceJson   Json               @map("source_trace_json")
+  idempotencyKey    String             @unique @map("idempotency_key")
+  createdAt         DateTime           @default(now()) @map("created_at")
+
+  @@index([sessionId, publishedAt])
+  @@map("observation_publication")
+}
+
+model EvidenceTimelineEntry {
+  id                String                     @id @default(cuid())
+  dogId             String                     @map("dog_id")
+  dog               Dog                        @relation(fields: [dogId], references: [dogId])
+  sessionId         String?                    @map("session_id")
+  session           ObservationSession?        @relation(fields: [sessionId], references: [id])
+  eventDate         DateTime                   @map("event_date")
+  eventType         EvidenceTimelineEventType  @map("event_type")
+  sourceEntityType  String                     @map("source_entity_type")
+  sourceEntityId    String                     @map("source_entity_id")
+  sourceVersion     String                     @map("source_version")
+  visibility        EvidenceTimelineVisibility
+  verificationState EvidenceVerificationState  @map("verification_state")
+  actorRole         String                     @map("actor_role")
+  summary           String
+  evidenceLinks     String[]                   @map("evidence_links")
+  auditReference    String                     @map("audit_reference")
+  syntheticDemo     Boolean                    @default(false) @map("synthetic_demo")
+  createdAt         DateTime                   @default(now()) @map("created_at")
+
+  @@index([dogId, eventDate])
+  @@index([visibility, verificationState])
+  @@map("evidence_timeline_entry")
+}
+
+model DogEvidenceProfile {
+  id                String    @id @default(cuid())
+  dogId             String    @map("dog_id")
+  dog               Dog       @relation(fields: [dogId], references: [dogId])
+  version           Int
+  status            String    @default("draft")
+  evidenceCount     Int       @default(0) @map("evidence_count")
+  latestConfirmedAt DateTime? @map("latest_confirmed_at")
+  contextDiversity  Int       @default(0) @map("context_diversity")
+  completenessScore Int       @default(0) @map("completeness_score")
+  approvedById      String?   @map("approved_by_id")
+  approvedAt        DateTime? @map("approved_at")
+  syntheticDemo     Boolean   @default(false) @map("synthetic_demo")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  statements DogEvidenceProfileStatement[]
+
+  @@unique([dogId, version])
+  @@index([dogId, status])
+  @@map("dog_evidence_profile")
+}
+
+model DogEvidenceProfileStatement {
+  id                String              @id @default(cuid())
+  profileId         String              @map("profile_id")
+  profile           DogEvidenceProfile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  dimension         String
+  statement         String
+  evidenceSourceIds String[]            @map("evidence_source_ids")
+  evidenceDates     DateTime[]          @map("evidence_dates")
+  confirmationState String              @map("confirmation_state")
+  shelterApproved   Boolean             @default(false) @map("shelter_approved")
+  sessionId         String?             @map("session_id")
+  session           ObservationSession? @relation(fields: [sessionId], references: [id])
+  version           Int                 @default(1)
+  createdAt         DateTime            @default(now()) @map("created_at")
+
+  @@index([profileId, dimension])
+  @@map("dog_evidence_profile_statement")
+}
+
+model MediaAsset {
+  id              String                  @id @default(cuid())
+  sourceSessionId String                  @map("source_session_id")
+  sourceSession   ObservationSession      @relation(fields: [sourceSessionId], references: [id], onDelete: Cascade)
+  storageProvider String?                 @map("storage_provider")
+  storageKey      String?                 @map("storage_key")
+  checksumSha256  String                  @map("checksum_sha256")
+  mimeType        String                  @map("mime_type")
+  sizeBytes       Int                     @map("size_bytes")
+  captureTime     DateTime?               @map("capture_time")
+  uploaderRole    String                  @map("uploader_role")
+  privacyState    ObservationPrivacyState @default(pending) @map("privacy_state")
+  facePresent     Boolean?                @map("face_present")
+  studentPresent  Boolean?                @map("student_present")
+  reviewerId      String?                 @map("reviewer_id")
+  reviewReason    String?                 @map("review_reason")
+  syntheticDemo   Boolean                 @default(false) @map("synthetic_demo")
+  createdAt       DateTime                @default(now()) @map("created_at")
+
+  behaviorEvents BehaviorEvent[]
+
+  @@index([sourceSessionId, privacyState])
+  @@index([checksumSha256])
+  @@map("media_asset")
+}
+
+model PublishedAdoptionEvidence {
+  id                String               @id @default(cuid())
+  dogId             String               @map("dog_id")
+  dog               Dog                  @relation(fields: [dogId], references: [dogId])
+  evidenceType      AdoptionEvidenceType @map("evidence_type")
+  sourceEntityType  String               @map("source_entity_type")
+  sourceEntityId    String               @map("source_entity_id")
+  sourceVersion     String               @map("source_version")
+  publishedAt       DateTime             @map("published_at")
+  reviewerId        String               @map("reviewer_id")
+  reviewerRole      String               @map("reviewer_role")
+  confidence        String
+  context           String
+  evidenceDataJson  Json                 @default("{}") @map("evidence_data_json")
+  timelineEntryId   String               @map("timeline_entry_id")
+  verificationState String               @map("verification_state")
+  status            String               @default("published")
+  shelterApproved   Boolean              @default(false) @map("shelter_approved")
+  syntheticDemo     Boolean              @default(false) @map("synthetic_demo")
+  createdAt         DateTime             @default(now()) @map("created_at")
+
+  statementLinks AdoptionProfileStatementEvidence[]
+
+  @@unique([sourceEntityType, sourceEntityId, sourceVersion, evidenceType, timelineEntryId], map: "published_adoption_evidence_source_version_key")
+  @@index([dogId, evidenceType, publishedAt])
+  @@index([status, shelterApproved])
+  @@map("published_adoption_evidence")
+}
+
+model AdoptionProfile {
+  id                 String                @id @default(cuid())
+  dogId              String                @map("dog_id")
+  dog                Dog                   @relation(fields: [dogId], references: [dogId])
+  version            Int
+  status             AdoptionProfileStatus @default(published)
+  unknownInformation String[]              @map("unknown_information")
+  notYetTested       String[]              @map("not_yet_tested")
+  latestEvidenceAt   DateTime              @map("latest_evidence_at")
+  approvedById       String                @map("approved_by_id")
+  approvedAt         DateTime              @map("approved_at")
+  publishedAt        DateTime              @map("published_at")
+  generationMethod   String                @map("generation_method")
+  aiGenerated        Boolean               @default(false) @map("ai_generated")
+  syntheticDemo      Boolean               @default(false) @map("synthetic_demo")
+  createdAt          DateTime              @default(now()) @map("created_at")
+  updatedAt          DateTime              @updatedAt @map("updated_at")
+
+  statements        AdoptionProfileStatement[]
+  completenessScore EvidenceCompletenessScore?
+  gapAssessment     ProfileGapAssessment?
+
+  @@unique([dogId, version])
+  @@index([dogId, status])
+  @@map("adoption_profile")
+}
+
+model AdoptionProfileStatement {
+  id                 String          @id @default(cuid())
+  profileId          String          @map("profile_id")
+  profile            AdoptionProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  section            String
+  statement          String
+  timelineEntryIds   String[]        @map("timeline_entry_ids")
+  reviewerIds        String[]        @map("reviewer_ids")
+  confidence         String
+  verificationStates String[]        @map("verification_states")
+  createdAt          DateTime        @default(now()) @map("created_at")
+
+  evidenceLinks AdoptionProfileStatementEvidence[]
+
+  @@index([profileId, section])
+  @@map("adoption_profile_statement")
+}
+
+model AdoptionProfileStatementEvidence {
+  statementId String                    @map("statement_id")
+  evidenceId  String                    @map("evidence_id")
+  statement   AdoptionProfileStatement  @relation(fields: [statementId], references: [id], onDelete: Cascade)
+  evidence    PublishedAdoptionEvidence @relation(fields: [evidenceId], references: [id], onDelete: Restrict)
+  createdAt   DateTime                  @default(now()) @map("created_at")
+
+  @@id([statementId, evidenceId])
+  @@index([evidenceId])
+  @@map("adoption_profile_statement_evidence")
+}
+
+model EvidenceCompletenessScore {
+  id             String          @id @default(cuid())
+  dogId          String          @map("dog_id")
+  profileId      String          @unique @map("profile_id")
+  profile        AdoptionProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  total          Float
+  dimensionsJson Json            @map("dimensions_json")
+  formula        String
+  scoreVersion   String          @map("score_version")
+  syntheticDemo  Boolean         @default(false) @map("synthetic_demo")
+  calculatedAt   DateTime        @map("calculated_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  @@index([dogId, calculatedAt])
+  @@map("evidence_completeness_score")
+}
+
+model ProfileGapAssessment {
+  id            String          @id @default(cuid())
+  dogId         String          @map("dog_id")
+  profileId     String          @unique @map("profile_id")
+  profile       AdoptionProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  gapsJson      Json            @map("gaps_json")
+  gapVersion    String          @map("gap_version")
+  syntheticDemo Boolean         @default(false) @map("synthetic_demo")
+  calculatedAt  DateTime        @map("calculated_at")
+  createdAt     DateTime        @default(now()) @map("created_at")
+
+  @@index([dogId, calculatedAt])
+  @@map("profile_gap_assessment")
+}
+
+model AdoptionTimelineEvent {
+  id                 String                    @id @default(cuid())
+  dogId              String                    @map("dog_id")
+  dog                Dog                       @relation(fields: [dogId], references: [dogId])
+  eventType          AdoptionTimelineEventType @map("event_type")
+  eventDate          DateTime?                 @map("event_date")
+  state              AdoptionTimelineState
+  label              String
+  evidenceIds        String[]                  @map("evidence_ids")
+  sourceVersions     String[]                  @map("source_versions")
+  reviewerRoles      String[]                  @map("reviewer_roles")
+  verificationStates String[]                  @map("verification_states")
+  syntheticDemo      Boolean                   @default(false) @map("synthetic_demo")
+  createdAt          DateTime                  @default(now()) @map("created_at")
+
+  @@index([dogId, eventDate])
+  @@index([state, eventType])
+  @@map("adoption_timeline_event")
+}
+
+model ShelterProfessionalNote {
+  id         String                     @id @default(cuid())
+  dogId      String                     @map("dog_id")
+  dog        Dog                        @relation(fields: [dogId], references: [dogId])
+  sessionId  String?                    @map("session_id")
+  session    ObservationSession?        @relation(fields: [sessionId], references: [id])
+  authorId   String                     @map("author_id")
+  note       String
+  visibility EvidenceTimelineVisibility @default(internal)
+  createdAt  DateTime                   @default(now()) @map("created_at")
+
+  @@index([dogId, createdAt])
+  @@map("shelter_professional_note")
+}
+
+model BehaviorCodeDefinition {
+  code               String   @id
+  label              String
+  definition         String
+  active             Boolean  @default(true)
+  overlappingAllowed Boolean  @default(true) @map("overlapping_allowed")
+  version            Int      @default(1)
+  updatedById        String?  @map("updated_by_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@index([active])
+  @@map("behavior_code_definition")
+}
+
+model InquiryProject {
+  id                    String                      @id @default(cuid())
+  parentProjectId       String?                     @map("parent_project_id")
+  parentProject         InquiryProject?             @relation("InquiryProjectRevisions", fields: [parentProjectId], references: [id])
+  childProjects         InquiryProject[]            @relation("InquiryProjectRevisions")
+  revisionNumber        Int                         @default(1) @map("revision_number")
+  courseId              String?                     @map("course_id")
+  classroomId           String?                     @map("classroom_id")
+  researchGroupId       String?                     @map("research_group_id")
+  ownerStudentId        String                      @map("owner_student_id")
+  supervisingTeacherId  String                      @map("supervising_teacher_id")
+  shelterId             String?                     @map("shelter_id")
+  title                 String
+  inquiryType           InquiryType                 @map("inquiry_type")
+  status                InquiryStatus               @default(draft)
+  oneHealthDimensions   InquiryOneHealthDimension[] @map("one_health_dimensions")
+  oneHealthConnection   String                      @map("one_health_connection")
+  researchQuestion      String                      @map("research_question")
+  background            String
+  hypothesis            String
+  independentVariable   String                      @map("independent_variable")
+  dependentVariable     String                      @map("dependent_variable")
+  controlledVariables   String[]                    @map("controlled_variables")
+  evidenceScope         String                      @map("evidence_scope")
+  protocolVersion       String                      @default("SL-INQUIRY-1") @map("protocol_version")
+  dataClassification    String                      @default("student_private") @map("data_classification")
+  reflection            String                      @default("")
+  syntheticDemo         Boolean                     @default(false) @map("synthetic_demo")
+  rowVersion            Int                         @default(0) @map("row_version")
+  submittedSnapshotJson Json?                       @map("submitted_snapshot_json")
+  submittedAt           DateTime?                   @map("submitted_at")
+  teacherApprovedAt     DateTime?                   @map("teacher_approved_at")
+  shelterConfirmedAt    DateTime?                   @map("shelter_confirmed_at")
+  publishedAt           DateTime?                   @map("published_at")
+  createdAt             DateTime                    @default(now()) @map("created_at")
+  updatedAt             DateTime                    @updatedAt @map("updated_at")
+
+  learningStandards  InquiryProjectLearningStandard[]
+  evidenceLinks      InquiryEvidenceLink[]
+  researchDesigns    InquiryResearchDesign[]
+  datasets           InquiryDataset[]
+  analyses           InquiryAnalysisResult[]
+  cerStatements      InquiryCERStatement[]
+  systemMaps         InquirySystemMap[]
+  recommendations    InquiryRecommendation[]
+  reviews            InquiryProjectReview[]
+  competencyEvidence InquiryCompetencyEvidence[]
+  reportVersions     InquiryReportVersion[]
+
+  @@index([ownerStudentId, status])
+  @@index([supervisingTeacherId, status])
+  @@index([shelterId, status])
+  @@index([parentProjectId])
+  @@map("inquiry_project")
+}
+
+model InquiryProjectLearningStandard {
+  projectId  String           @map("project_id")
+  standardId String           @map("standard_id")
+  project    InquiryProject   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  standard   LearningStandard @relation(fields: [standardId], references: [id], onDelete: Restrict)
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  @@id([projectId, standardId])
+  @@map("inquiry_project_learning_standard")
+}
+
+model InquiryEvidenceLink {
+  id                    String                           @id @default(cuid())
+  projectId             String                           @map("project_id")
+  project               InquiryProject                   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  evidenceType          InquiryEvidenceType              @map("evidence_type")
+  sourceEntityId        String                           @map("source_entity_id")
+  sourceVersion         String                           @map("source_version")
+  verificationState     InquiryEvidenceVerificationState @map("verification_state")
+  usagePurpose          String                           @map("usage_purpose")
+  citationText          String                           @map("citation_text")
+  includedAt            DateTime                         @map("included_at")
+  includedBy            String                           @map("included_by")
+  privacyClassification InquiryPrivacyClassification     @map("privacy_classification")
+  createdAt             DateTime                         @default(now()) @map("created_at")
+
+  @@index([projectId, evidenceType])
+  @@index([sourceEntityId, sourceVersion])
+  @@map("inquiry_evidence_link")
+}
+
+model InquiryResearchDesign {
+  id                    String         @id @default(cuid())
+  projectId             String         @map("project_id")
+  project               InquiryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version               Int
+  populationOrSample    String         @map("population_or_sample")
+  observationUnit       String         @map("observation_unit")
+  samplingMethod        String         @map("sampling_method")
+  sampleSizePlanned     Int            @map("sample_size_planned")
+  timePeriod            String         @map("time_period")
+  measurementMethod     String         @map("measurement_method")
+  variablesJson         Json           @map("variables_json")
+  possibleConfounders   String[]       @map("possible_confounders")
+  ethicalLimits         String         @map("ethical_limits")
+  safetyLimits          String         @map("safety_limits")
+  privacyLimits         String         @map("privacy_limits")
+  analysisPlan          String         @map("analysis_plan")
+  teacherDesignDecision String         @map("teacher_design_decision")
+  teacherFeedback       String?        @map("teacher_feedback")
+  validationFlagsJson   Json           @map("validation_flags_json")
+  createdAt             DateTime       @default(now()) @map("created_at")
+
+  @@unique([projectId, version])
+  @@map("inquiry_research_design")
+}
+
+model InquiryDataset {
+  id            String         @id @default(cuid())
+  projectId     String         @map("project_id")
+  project       InquiryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name          String
+  columnsJson   Json           @map("columns_json")
+  syntheticDemo Boolean        @default(false) @map("synthetic_demo")
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  versions InquiryDatasetVersion[]
+
+  @@index([projectId])
+  @@map("inquiry_dataset")
+}
+
+model InquiryDatasetVersion {
+  id                   String         @id @default(cuid())
+  datasetId            String         @map("dataset_id")
+  dataset              InquiryDataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  version              Int
+  kind                 String
+  rowsJson             Json           @map("rows_json")
+  sourceProvenanceJson Json           @map("source_provenance_json")
+  immutable            Boolean        @default(true)
+  createdAt            DateTime       @default(now()) @map("created_at")
+
+  transformations InquiryDataTransformation[]
+
+  @@unique([datasetId, version])
+  @@map("inquiry_dataset_version")
+}
+
+model InquiryDataTransformation {
+  id                 String                @id @default(cuid())
+  datasetVersionId   String                @map("dataset_version_id")
+  datasetVersion     InquiryDatasetVersion @relation(fields: [datasetVersionId], references: [id], onDelete: Cascade)
+  action             String
+  columnName         String?               @map("column_name")
+  previousValueJson  Json?                 @map("previous_value_json")
+  newValueJson       Json?                 @map("new_value_json")
+  rowIndex           Int?                  @map("row_index")
+  reason             String?
+  formulaDescription String?               @map("formula_description")
+  actorId            String                @map("actor_id")
+  createdAt          DateTime              @default(now()) @map("created_at")
+
+  @@index([datasetVersionId, createdAt])
+  @@map("inquiry_data_transformation")
+}
+
+model InquiryAnalysisResult {
+  id                     String                @id @default(cuid())
+  projectId              String                @map("project_id")
+  project                InquiryProject        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  datasetVersionId       String                @map("dataset_version_id")
+  method                 InquiryAnalysisMethod
+  variables              String[]
+  filteredPopulation     String                @map("filtered_population")
+  numerator              Float
+  denominator            Float
+  calculatedValueJson    Json                  @map("calculated_value_json")
+  chartSpecificationJson Json                  @map("chart_specification_json")
+  sourceDatasetVersions  String[]              @map("source_dataset_versions")
+  interpretationNote     String                @map("interpretation_note")
+  limitationNote         String                @map("limitation_note")
+  validationFlagsJson    Json                  @map("validation_flags_json")
+  calculationVersion     String                @map("calculation_version")
+  generatedAt            DateTime              @map("generated_at")
+  createdAt              DateTime              @default(now()) @map("created_at")
+
+  @@index([projectId, generatedAt])
+  @@map("inquiry_analysis_result")
+}
+
+model InquiryCERStatement {
+  id                     String         @id @default(cuid())
+  projectId              String         @map("project_id")
+  project                InquiryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version                Int
+  claim                  String
+  evidenceLinkIds        String[]       @map("evidence_link_ids")
+  reasoning              String
+  confidenceLevel        String         @map("confidence_level")
+  alternativeExplanation String         @map("alternative_explanation")
+  limitation             String
+  teacherFeedback        String?        @map("teacher_feedback")
+  status                 String
+  validationFlagsJson    Json           @map("validation_flags_json")
+  createdAt              DateTime       @default(now()) @map("created_at")
+
+  @@unique([projectId, version])
+  @@map("inquiry_cer_statement")
+}
+
+model InquirySystemMap {
+  id        String         @id @default(cuid())
+  projectId String         @map("project_id")
+  project   InquiryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version   Int
+  nodesJson Json           @map("nodes_json")
+  edgesJson Json           @map("edges_json")
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  @@unique([projectId, version])
+  @@map("inquiry_system_map")
+}
+
+model InquiryRecommendation {
+  id                  String         @id @default(cuid())
+  projectId           String         @map("project_id")
+  project             InquiryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  recommendation      String
+  targetActor         String         @map("target_actor")
+  supportingEvidence  String[]       @map("supporting_evidence")
+  feasibility         String
+  expectedBenefit     String         @map("expected_benefit")
+  possibleRisk        String         @map("possible_risk")
+  requiredResources   String         @map("required_resources")
+  evaluationIndicator String         @map("evaluation_indicator")
+  studentScope        String         @map("student_scope")
+  status              String
+  evidenceStrength    String         @map("evidence_strength")
+  createdAt           DateTime       @default(now()) @map("created_at")
+
+  @@index([projectId, targetActor])
+  @@map("inquiry_recommendation")
+}
+
+model InquiryProjectReview {
+  id              String                @id @default(cuid())
+  projectId       String                @map("project_id")
+  project         InquiryProject        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  reviewerId      String                @map("reviewer_id")
+  reviewerRole    String                @map("reviewer_role")
+  stage           String
+  decision        InquiryReviewDecision
+  reason          String?
+  rubricJson      Json                  @default("{}") @map("rubric_json")
+  projectRevision Int                   @map("project_revision")
+  createdAt       DateTime              @default(now()) @map("created_at")
+
+  @@index([projectId, stage, createdAt])
+  @@map("inquiry_project_review")
+}
+
+model InquiryCompetencyEvidence {
+  id                String         @id @default(cuid())
+  projectId         String         @map("project_id")
+  project           InquiryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  competency        String
+  evidenceEntityIds String[]       @map("evidence_entity_ids")
+  teacherScore      Int?           @map("teacher_score")
+  teacherFeedback   String?        @map("teacher_feedback")
+  version           Int
+  syntheticDemo     Boolean        @default(false) @map("synthetic_demo")
+  createdAt         DateTime       @default(now()) @map("created_at")
+
+  @@unique([projectId, competency, version])
+  @@map("inquiry_competency_evidence")
+}
+
+model InquiryReportVersion {
+  id               String         @id @default(cuid())
+  projectId        String         @map("project_id")
+  project          InquiryProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  version          Int
+  reportJson       Json           @map("report_json")
+  evidenceAppendix Json           @map("evidence_appendix_json")
+  publicSafe       Boolean        @default(false) @map("public_safe")
+  createdAt        DateTime       @default(now()) @map("created_at")
+
+  @@unique([projectId, version])
+  @@map("inquiry_report_version")
+}
+
+model ImpactMetricDefinition {
+  id                  String   @id @default(cuid())
+  code                String   @unique
+  domain              String
+  label               String
+  description         String
+  formula             String
+  unit                String
+  version             String
+  sourceEntityTypes   String[] @map("source_entity_types")
+  interpretationLimit String   @map("interpretation_limit")
+  active              Boolean  @default(true)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  results ImpactMetricResult[]
+
+  @@index([domain, active])
+  @@map("impact_metric_definition")
+}
+
+model ImpactMetricRun {
+  id                String               @id @default(cuid())
+  version           String
+  evidenceStatus    ImpactEvidenceStatus @map("evidence_status")
+  calculatedAt      DateTime             @map("calculated_at")
+  periodStart       DateTime?            @map("period_start")
+  periodEnd         DateTime?            @map("period_end")
+  inputSnapshotHash String?              @map("input_snapshot_hash")
+  provenanceJson    Json                 @map("provenance_json")
+  warnings          String[]
+  createdAt         DateTime             @default(now()) @map("created_at")
+
+  results ImpactMetricResult[]
+
+  @@index([version, calculatedAt])
+  @@map("impact_metric_run")
+}
+
+model ImpactMetricResult {
+  id              String                 @id @default(cuid())
+  definitionId    String                 @map("definition_id")
+  definition      ImpactMetricDefinition @relation(fields: [definitionId], references: [id])
+  runId           String                 @map("run_id")
+  run             ImpactMetricRun        @relation(fields: [runId], references: [id], onDelete: Cascade)
+  value           Float
+  numerator       Float
+  denominator     Float
+  confidenceLevel ImpactConfidenceLevel  @map("confidence_level")
+  evidenceStatus  ImpactEvidenceStatus   @map("evidence_status")
+  syntheticDemo   Boolean                @default(false) @map("synthetic_demo")
+  provenanceJson  Json                   @map("provenance_json")
+  limitations     String[]
+  dimensionsJson  Json                   @default("{}") @map("dimensions_json")
+  createdAt       DateTime               @default(now()) @map("created_at")
+
+  @@unique([definitionId, runId])
+  @@index([evidenceStatus, createdAt])
+  @@map("impact_metric_result")
+}
+
+model CompetitionScoreMapping {
+  id             String               @id @default(cuid())
+  mappingVersion String               @map("mapping_version")
+  dimension      String
+  criterionCode  String               @map("criterion_code")
+  feature        String
+  modulePath     String               @map("module_path")
+  evidence       String
+  points         Int
+  maxPoints      Int                  @map("max_points")
+  evidenceStatus ImpactEvidenceStatus @map("evidence_status")
+  createdAt      DateTime             @default(now()) @map("created_at")
+
+  @@unique([mappingVersion, criterionCode])
+  @@index([dimension, mappingVersion])
+  @@map("competition_score_mapping")
+}
+
+model GovernmentDataset {
+  datasetId              String                    @id @map("dataset_id")
+  name                   String
+  agency                 String
+  sourceUrl              String                    @map("source_url")
+  updateFrequency        String                    @map("update_frequency")
+  lastSyncedAt           DateTime?                 @map("last_synced_at")
+  lastSuccessfulSyncedAt DateTime?                 @map("last_successful_synced_at")
+  lastSyncAttemptedAt    DateTime?                 @map("last_sync_attempted_at")
+  lastSyncError          String?                   @map("last_sync_error")
+  syncCron               String                    @default("0 2 * * *") @map("sync_cron")
+  status                 DatasetStatus             @default(configured)
+  licenseNote            String                    @map("license_note")
+  lastCheckedAt          DateTime?                 @map("last_checked_at")
+  referenceStatus        DatasetReferenceStatus    @default(unverified) @map("reference_status")
+  verificationState      EvidenceVerificationState @default(UNVERIFIED) @map("verification_state")
+  attributionText        String?                   @map("attribution_text")
+  schemaVersion          String?                   @map("schema_version")
+  retrievalStatus        DatasetRetrievalStatus    @default(CONFIGURED) @map("retrieval_status")
+  validationStatus       DatasetValidationStatus   @default(PENDING) @map("validation_status")
+  active                 Boolean                   @default(false)
+  adapterKey             String?                   @map("adapter_key")
+  failureMessage         String?                   @map("failure_message")
+  createdAt              DateTime                  @default(now()) @map("created_at")
+  updatedAt              DateTime                  @updatedAt @map("updated_at")
+
+  quizQuestions               QuizQuestion[]
+  learningStandards           LearningStandard[]
+  questions                   Question[]                                     @relation("QuestionSourceDataset")
+  curriculumResources         CurriculumResource[]
+  snapshots                   GovernmentDatasetSnapshot[]
+  syncRuns                    GovernmentDatasetSyncRun[]
+  fieldMappings               GovernmentDatasetFieldMapping[]
+  usages                      GovernmentDatasetUsage[]
+  attributions                GovernmentDatasetAttribution[]
+  questionMappings            QuestionGovernmentDataset[]
+  generationBlueprintMappings QuestionGenerationBlueprintGovernmentDataset[]
+
+  @@map("government_dataset")
+}
+
+model GovernmentDatasetSnapshot {
+  id                String                    @id @default(cuid())
+  datasetId         String                    @map("dataset_id")
+  dataset           GovernmentDataset         @relation(fields: [datasetId], references: [datasetId], onDelete: Cascade)
+  snapshotVersion   Int                       @map("snapshot_version")
+  schemaVersion     String                    @map("schema_version")
+  verificationState EvidenceVerificationState @map("verification_state")
+  retrievedAt       DateTime                  @map("retrieved_at")
+  recordCount       Int                       @map("record_count")
+  contentHash       String                    @map("content_hash")
+  sourceMetadata    Json                      @default("{}") @map("source_metadata")
+  normalizedData    Json                      @default("[]") @map("normalized_data")
+  isLastSuccessful  Boolean                   @default(false) @map("is_last_successful")
+  createdAt         DateTime                  @default(now()) @map("created_at")
+
+  syncRuns GovernmentDatasetSyncRun[]
+  usages   GovernmentDatasetUsage[]
+
+  @@unique([datasetId, contentHash])
+  @@index([datasetId, isLastSuccessful])
+  @@map("government_dataset_snapshot")
+}
+
+model GovernmentDatasetSyncRun {
+  id                 String                     @id @default(cuid())
+  datasetId          String                     @map("dataset_id")
+  dataset            GovernmentDataset          @relation(fields: [datasetId], references: [datasetId], onDelete: Cascade)
+  snapshotId         String?                    @map("snapshot_id")
+  snapshot           GovernmentDatasetSnapshot? @relation(fields: [snapshotId], references: [id])
+  adapterKey         String                     @map("adapter_key")
+  status             DatasetSyncRunStatus
+  correlationId      String                     @map("correlation_id")
+  startedAt          DateTime                   @map("started_at")
+  completedAt        DateTime?                  @map("completed_at")
+  previewCount       Int                        @default(0) @map("preview_count")
+  importedCount      Int                        @default(0) @map("imported_count")
+  duplicateCount     Int                        @default(0) @map("duplicate_count")
+  failureMessage     String?                    @map("failure_message")
+  previousSnapshotId String?                    @map("previous_snapshot_id")
+  createdAt          DateTime                   @default(now()) @map("created_at")
+
+  @@index([datasetId, startedAt])
+  @@map("government_dataset_sync_run")
+}
+
+model GovernmentDatasetFieldMapping {
+  id              String            @id @default(cuid())
+  datasetId       String            @map("dataset_id")
+  dataset         GovernmentDataset @relation(fields: [datasetId], references: [datasetId], onDelete: Cascade)
+  sourceField     String            @map("source_field")
+  normalizedField String            @map("normalized_field")
+  dataType        String            @map("data_type")
+  required        Boolean           @default(false)
+  transformation  String?
+  version         Int               @default(1)
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  @@unique([datasetId, normalizedField, version])
+  @@map("government_dataset_field_mapping")
+}
+
+model GovernmentDatasetUsage {
+  id          String                     @id @default(cuid())
+  datasetId   String                     @map("dataset_id")
+  dataset     GovernmentDataset          @relation(fields: [datasetId], references: [datasetId], onDelete: Cascade)
+  snapshotId  String?                    @map("snapshot_id")
+  snapshot    GovernmentDatasetSnapshot? @relation(fields: [snapshotId], references: [id])
+  usageModule DatasetUsageModule         @map("usage_module")
+  entityType  String                     @map("entity_type")
+  entityId    String                     @map("entity_id")
+  purpose     String
+  version     Int                        @default(1)
+  active      Boolean                    @default(true)
+  createdAt   DateTime                   @default(now()) @map("created_at")
+
+  @@unique([datasetId, usageModule, entityType, entityId, version])
+  @@index([usageModule, active])
+  @@map("government_dataset_usage")
+}
+
+model GovernmentDatasetAttribution {
+  id              String            @id @default(cuid())
+  datasetId       String            @map("dataset_id")
+  dataset         GovernmentDataset @relation(fields: [datasetId], references: [datasetId], onDelete: Cascade)
+  attributionText String            @map("attribution_text")
+  licenseNote     String            @map("license_note")
+  sourceUrl       String            @map("source_url")
+  validFrom       DateTime          @map("valid_from")
+  validUntil      DateTime?         @map("valid_until")
+  version         Int               @default(1)
+  createdAt       DateTime          @default(now()) @map("created_at")
+
+  @@unique([datasetId, version])
+  @@map("government_dataset_attribution")
+}
+
+model QuestionGovernmentDataset {
+  questionId   String            @map("question_id")
+  datasetId    String            @map("dataset_id")
+  question     Question          @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  dataset      GovernmentDataset @relation(fields: [datasetId], references: [datasetId], onDelete: Cascade)
+  usageNote    String            @map("usage_note")
+  snapshotHash String?           @map("snapshot_hash")
+
+  @@id([questionId, datasetId])
+  @@map("question_government_dataset")
+}
+
+model CurriculumResource {
+  id                        String                     @id @default(cuid())
+  title                     String
+  resourceType              CurriculumResourceType     @map("resource_type")
+  providerName              String                     @map("provider_name")
+  sourceAgency              String?                    @map("source_agency")
+  sourceUrl                 String                     @map("source_url")
+  governmentDatasetId       String?                    @map("government_dataset_id")
+  governmentDataset         GovernmentDataset?         @relation(fields: [governmentDatasetId], references: [datasetId])
+  externalResourceId        String?                    @map("external_resource_id")
+  subject                   String
+  educationLevel            String                     @map("education_level")
+  gradeBand                 String?                    @map("grade_band")
+  topicTags                 String[]                   @map("topic_tags")
+  learningContentCodes      String[]                   @map("learning_content_codes")
+  learningPerformanceCodes  String[]                   @map("learning_performance_codes")
+  coreCompetencyCodes       String[]                   @map("core_competency_codes")
+  durationMinutes           Int?                       @map("duration_minutes")
+  language                  String
+  description               String
+  copyrightNote             String                     @map("copyright_note")
+  licenseNote               String                     @map("license_note")
+  verificationStatus        ResourceVerificationStatus @default(unverified) @map("verification_status")
+  evidenceVerificationState EvidenceVerificationState  @default(UNVERIFIED) @map("evidence_verification_state")
+  verificationNote          String?                    @map("verification_note")
+  rejectionReason           String?                    @map("rejection_reason")
+  verifiedAt                DateTime?                  @map("verified_at")
+  verifiedById              String?                    @map("verified_by")
+  verifiedBy                User?                      @relation("ResourceVerifiedBy", fields: [verifiedById], references: [id])
+  lastCheckedAt             DateTime?                  @map("last_checked_at")
+  availabilityStatus        ResourceAvailabilityStatus @default(active) @map("availability_status")
+  createdAt                 DateTime                   @default(now()) @map("created_at")
+  updatedAt                 DateTime                   @updatedAt @map("updated_at")
+
+  moduleMappings                       CurriculumResourceLearningModule[]
+  standardMappings                     CurriculumResourceLearningStandard[]
+  blueprintMappings                    CurriculumResourceQuizBlueprint[]
+  weekMappings                         CurriculumResourceCourseWeek[]
+  questionMappings                     CurriculumResourceQuestion[]
+  studentProgress                      StudentResourceProgress[]
+  questionGenerationBlueprintResources QuestionGenerationBlueprintResource[]
+  remediationRecommendations           RemediationRecommendation[]
+
+  @@unique([providerName, externalResourceId])
+  @@index([verificationStatus])
+  @@index([availabilityStatus])
+  @@index([governmentDatasetId])
+  @@map("curriculum_resource")
+}
+
+model CoursePlan {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  title          String
+  educationLevel String   @map("education_level")
+  gradeBand      String?  @map("grade_band")
+  description    String
+  status         String   @default("draft")
+  version        Int      @default(1)
+  createdById    String?  @map("created_by")
+  createdBy      User?    @relation("CoursePlanCreatedBy", fields: [createdById], references: [id])
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  weeks                 CourseWeek[]
+  teacherAuthorizations TeacherCourseAuthorization[]
+  questionDrafts        QuestionDraft[]
+
+  @@map("course_plan")
+}
+
+model TeacherCourseAuthorization {
+  teacherId    String     @map("teacher_id")
+  coursePlanId String     @map("course_plan_id")
+  grantedById  String     @map("granted_by_id")
+  active       Boolean    @default(true)
+  teacher      User       @relation("TeacherCourseAuthorizationTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  coursePlan   CoursePlan @relation(fields: [coursePlanId], references: [id], onDelete: Cascade)
+  grantedBy    User       @relation("TeacherCourseAuthorizationGrantedBy", fields: [grantedById], references: [id])
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@id([teacherId, coursePlanId])
+  @@index([coursePlanId, active])
+  @@map("teacher_course_authorization")
+}
+
+model CourseWeek {
+  id             String          @id @default(cuid())
+  coursePlanId   String          @map("course_plan_id")
+  coursePlan     CoursePlan      @relation(fields: [coursePlanId], references: [id], onDelete: Cascade)
+  weekNumber     Int             @map("week_number")
+  title          String
+  focus          String
+  moduleId       String?         @map("module_id")
+  module         LearningModule? @relation(fields: [moduleId], references: [id])
+  learningGoals  String[]        @map("learning_goals")
+  assessmentNote String?         @map("assessment_note")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  resourceMappings CurriculumResourceCourseWeek[]
+
+  @@unique([coursePlanId, weekNumber])
+  @@index([moduleId])
+  @@map("course_week")
+}
+
+model CurriculumResourceLearningModule {
+  resourceId          String                  @map("resource_id")
+  moduleId            String                  @map("module_id")
+  resource            CurriculumResource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  module              LearningModule          @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  requiredOrOptional  ResourceRequirementType @map("required_or_optional")
+  displayOrder        Int                     @map("display_order")
+  teacherNote         String?                 @map("teacher_note")
+  startTimeSec        Int?                    @map("start_time_sec")
+  endTimeSec          Int?                    @map("end_time_sec")
+  remediationPriority Int                     @default(0) @map("remediation_priority")
+  mappingStatus       ResourceMappingStatus   @default(draft) @map("mapping_status")
+
+  @@id([resourceId, moduleId])
+  @@map("curriculum_resource_learning_module")
+}
+
+model CurriculumResourceLearningStandard {
+  resourceId          String                  @map("resource_id")
+  standardId          String                  @map("standard_id")
+  resource            CurriculumResource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  standard            LearningStandard        @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  requiredOrOptional  ResourceRequirementType @map("required_or_optional")
+  displayOrder        Int                     @map("display_order")
+  teacherNote         String?                 @map("teacher_note")
+  startTimeSec        Int?                    @map("start_time_sec")
+  endTimeSec          Int?                    @map("end_time_sec")
+  remediationPriority Int                     @default(0) @map("remediation_priority")
+  mappingStatus       ResourceMappingStatus   @default(draft) @map("mapping_status")
+
+  @@id([resourceId, standardId])
+  @@map("curriculum_resource_learning_standard")
+}
+
+model CurriculumResourceQuizBlueprint {
+  resourceId          String                  @map("resource_id")
+  quizBlueprintId     String                  @map("quiz_blueprint_id")
+  resource            CurriculumResource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  quizBlueprint       QuizBlueprint           @relation(fields: [quizBlueprintId], references: [id], onDelete: Cascade)
+  requiredOrOptional  ResourceRequirementType @map("required_or_optional")
+  displayOrder        Int                     @map("display_order")
+  teacherNote         String?                 @map("teacher_note")
+  startTimeSec        Int?                    @map("start_time_sec")
+  endTimeSec          Int?                    @map("end_time_sec")
+  remediationPriority Int                     @default(0) @map("remediation_priority")
+  mappingStatus       ResourceMappingStatus   @default(draft) @map("mapping_status")
+
+  @@id([resourceId, quizBlueprintId])
+  @@map("curriculum_resource_quiz_blueprint")
+}
+
+model CurriculumResourceCourseWeek {
+  resourceId          String                  @map("resource_id")
+  courseWeekId        String                  @map("course_week_id")
+  resource            CurriculumResource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  courseWeek          CourseWeek              @relation(fields: [courseWeekId], references: [id], onDelete: Cascade)
+  requiredOrOptional  ResourceRequirementType @map("required_or_optional")
+  displayOrder        Int                     @map("display_order")
+  teacherNote         String?                 @map("teacher_note")
+  startTimeSec        Int?                    @map("start_time_sec")
+  endTimeSec          Int?                    @map("end_time_sec")
+  remediationPriority Int                     @default(0) @map("remediation_priority")
+  mappingStatus       ResourceMappingStatus   @default(draft) @map("mapping_status")
+
+  @@id([resourceId, courseWeekId])
+  @@map("curriculum_resource_course_week")
+}
+
+model CurriculumResourceQuestion {
+  resourceId          String                  @map("resource_id")
+  questionId          String                  @map("question_id")
+  resource            CurriculumResource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  question            Question                @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  requiredOrOptional  ResourceRequirementType @map("required_or_optional")
+  displayOrder        Int                     @map("display_order")
+  teacherNote         String?                 @map("teacher_note")
+  startTimeSec        Int?                    @map("start_time_sec")
+  endTimeSec          Int?                    @map("end_time_sec")
+  remediationPriority Int                     @default(0) @map("remediation_priority")
+  mappingStatus       ResourceMappingStatus   @default(draft) @map("mapping_status")
+
+  @@id([resourceId, questionId])
+  @@map("curriculum_resource_question")
+}
+
+model ResourceImportRun {
+  id               String                 @id @default(cuid())
+  provider         ResourceImportProvider
+  status           ResourceImportStatus
+  previewCount     Int                    @default(0) @map("preview_count")
+  importedCount    Int                    @default(0) @map("imported_count")
+  duplicateCount   Int                    @default(0) @map("duplicate_count")
+  failedRecords    Json                   @default("[]") @map("failed_records")
+  summaryJson      Json                   @default("{}") @map("summary_json")
+  startedAt        DateTime               @default(now()) @map("started_at")
+  completedAt      DateTime?              @map("completed_at")
+  lastSyncMetadata Json                   @default("{}") @map("last_sync_metadata")
+
+  @@map("resource_import_run")
+}
+
+model QuestionGenerationBlueprint {
+  id                            String                            @id @default(cuid())
+  code                          String
+  title                         String
+  moduleId                      String                            @map("module_id")
+  module                        LearningModule                    @relation(fields: [moduleId], references: [id])
+  educationLevel                String                            @map("education_level")
+  gradeBand                     String?                           @map("grade_band")
+  questionType                  QuestionType                      @map("question_type")
+  bloomLevel                    BloomLevel                        @map("bloom_level")
+  difficulty                    QuestionDifficulty
+  numberOfQuestions             Int                               @map("number_of_questions")
+  requiredResourceCount         Int                               @map("required_resource_count")
+  requiredLearningStandardCount Int                               @map("required_learning_standard_count")
+  scenarioContext               String                            @map("scenario_context")
+  prohibitedContent             String[]                          @map("prohibited_content")
+  promptVersion                 String                            @default("shelterlab-s6-v1") @map("prompt_version")
+  requiresGovernmentData        Boolean                           @default(false) @map("requires_government_data")
+  qualityRulesJson              Json                              @map("quality_rules_json")
+  status                        QuestionGenerationBlueprintStatus @default(draft)
+  version                       Int                               @default(1)
+  createdById                   String                            @map("created_by")
+  reviewedById                  String?                           @map("reviewed_by")
+  createdBy                     User                              @relation("QuestionGenerationBlueprintCreatedBy", fields: [createdById], references: [id])
+  reviewedBy                    User?                             @relation("QuestionGenerationBlueprintReviewedBy", fields: [reviewedById], references: [id])
+  createdAt                     DateTime                          @default(now()) @map("created_at")
+  updatedAt                     DateTime                          @updatedAt @map("updated_at")
+
+  drafts           QuestionDraft[]
+  resourceMappings QuestionGenerationBlueprintResource[]
+  standardMappings QuestionGenerationBlueprintStandard[]
+  datasetMappings  QuestionGenerationBlueprintGovernmentDataset[]
+
+  @@unique([code, version])
+  @@index([moduleId])
+  @@map("question_generation_blueprint")
+}
+
+model QuestionGenerationBlueprintResource {
+  blueprintId String                      @map("blueprint_id")
+  resourceId  String                      @map("resource_id")
+  blueprint   QuestionGenerationBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  resource    CurriculumResource          @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime                    @default(now()) @map("created_at")
+
+  @@id([blueprintId, resourceId])
+  @@map("question_generation_blueprint_resource")
+}
+
+model QuestionGenerationBlueprintStandard {
+  blueprintId String                      @map("blueprint_id")
+  standardId  String                      @map("standard_id")
+  blueprint   QuestionGenerationBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  standard    LearningStandard            @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  createdAt   DateTime                    @default(now()) @map("created_at")
+
+  @@id([blueprintId, standardId])
+  @@map("question_generation_blueprint_standard")
+}
+
+model QuestionGenerationBlueprintGovernmentDataset {
+  blueprintId String                      @map("blueprint_id")
+  datasetId   String                      @map("dataset_id")
+  blueprint   QuestionGenerationBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  dataset     GovernmentDataset           @relation(fields: [datasetId], references: [datasetId], onDelete: Cascade)
+  createdAt   DateTime                    @default(now()) @map("created_at")
+
+  @@id([blueprintId, datasetId])
+  @@map("question_generation_blueprint_government_dataset")
+}
+
+model QuestionDraft {
+  id                        String                      @id @default(cuid())
+  generationBlueprintId     String                      @map("generation_blueprint_id")
+  generationBlueprint       QuestionGenerationBlueprint @relation(fields: [generationBlueprintId], references: [id])
+  coursePlanId              String                      @map("course_plan_id")
+  coursePlan                CoursePlan                  @relation(fields: [coursePlanId], references: [id])
+  moduleId                  String                      @map("module_id")
+  version                   Int                         @default(1)
+  parentDraftId             String?                     @map("parent_draft_id")
+  parentDraft               QuestionDraft?              @relation("QuestionDraftVersions", fields: [parentDraftId], references: [id])
+  childVersions             QuestionDraft[]             @relation("QuestionDraftVersions")
+  prompt                    String
+  questionType              QuestionType                @map("question_type")
+  optionsJson               Json                        @map("options_json")
+  correctOptionKeys         String[]                    @map("correct_option_keys")
+  explanation               String
+  sourceResourceIds         String[]                    @map("source_resource_ids")
+  sourceExcerptNotes        String?                     @map("source_excerpt_notes")
+  learningStandardIds       String[]                    @map("learning_standard_ids")
+  governmentDatasetIds      String[]                    @default([]) @map("government_dataset_ids")
+  generationMethod          QuestionGenerationMethod    @map("generation_method")
+  modelName                 String?                     @map("model_name")
+  modelVersion              String?                     @map("model_version")
+  providerName              String?                     @map("provider_name")
+  providerVersion           String?                     @map("provider_version")
+  promptVersion             String?                     @map("prompt_version")
+  generationTimestamp       DateTime?                   @map("generation_timestamp")
+  factualityCheckStatus     DraftCheckStatus            @default(pending) @map("factuality_check_status")
+  sourceAlignmentStatus     DraftCheckStatus            @default(pending) @map("source_alignment_status")
+  teacherReviewStatus       QuestionDraftStatus         @default(ai_draft) @map("teacher_review_status")
+  teacherRevisionNotes      String?                     @map("teacher_revision_notes")
+  riskFlagsJson             Json                        @default("[]") @map("risk_flags_json")
+  similarityFlagsJson       Json                        @default("[]") @map("similarity_flags_json")
+  unsupportedClaimFlagsJson Json                        @default("[]") @map("unsupported_claim_flags_json")
+  bloomLevel                BloomLevel                  @map("bloom_level")
+  difficulty                QuestionDifficulty
+  confidenceNote            String                      @map("confidence_note")
+  createdById               String                      @map("created_by")
+  reviewedById              String?                     @map("reviewed_by")
+  publishedById             String?                     @map("published_by")
+  publishedQuestionId       String?                     @map("published_question_id")
+  createdBy                 User                        @relation("QuestionDraftCreatedBy", fields: [createdById], references: [id])
+  reviewedBy                User?                       @relation("QuestionDraftReviewedBy", fields: [reviewedById], references: [id])
+  publishedBy               User?                       @relation("QuestionDraftPublishedBy", fields: [publishedById], references: [id])
+  publishedQuestion         Question?                   @relation("PublishedQuestionDraft", fields: [publishedQuestionId], references: [id])
+  createdAt                 DateTime                    @default(now()) @map("created_at")
+  updatedAt                 DateTime                    @updatedAt @map("updated_at")
+  approvedAt                DateTime?                   @map("approved_at")
+  publishedAt               DateTime?                   @map("published_at")
+
+  @@index([generationBlueprintId])
+  @@index([coursePlanId])
+  @@index([parentDraftId])
+  @@index([teacherReviewStatus])
+  @@map("question_draft")
+}
+
+model StudentResourceProgress {
+  id            String             @id @default(cuid())
+  studentId     String             @map("student_id")
+  resourceId    String             @map("resource_id")
+  moduleCode    String             @map("module_code")
+  openedAt      DateTime?          @map("opened_at")
+  completedAt   DateTime?          @map("completed_at")
+  progressState String             @default("assigned") @map("progress_state")
+  student       User               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resource      CurriculumResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+
+  @@unique([studentId, resourceId])
+  @@index([studentId, moduleCode])
+  @@map("student_resource_progress")
+}
+
+model AuditLog {
+  id                String       @id @default(cuid())
+  actorId           String       @map("actor_id")
+  actor             User         @relation("ActorAuditLogs", fields: [actorId], references: [id])
+  entityType        String       @map("entity_type")
+  entityId          String       @map("entity_id")
+  observationId     String?      @map("observation_id")
+  observation       Observation? @relation(fields: [observationId], references: [observationId])
+  action            String
+  actorRole         String?      @map("actor_role")
+  organizationScope String?      @map("organization_scope")
+  courseScope       String?      @map("course_scope")
+  correlationId     String?      @map("correlation_id")
+  fromStatus        String?      @map("from_status")
+  toStatus          String?      @map("to_status")
+  changes           Json         @default("{}")
+  previousState     Json?        @map("previous_state")
+  newState          Json?        @map("new_state")
+  reason            String?
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@map("audit_log")
+}
+
+model AIProviderConfiguration {
+  id            String   @id @default(cuid())
+  providerKey   String   @unique @map("provider_key")
+  displayName   String   @map("display_name")
+  mode          String
+  enabled       Boolean  @default(false)
+  configuration Json     @default("{}")
+  updatedById   String?  @map("updated_by_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_provider_configuration")
+}
+
+model RemediationRecommendation {
+  id             String             @id @default(cuid())
+  attemptId      String             @map("attempt_id")
+  attempt        QuizAttempt        @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  moduleCode     String             @map("module_code")
+  standardIds    String[]           @map("standard_ids")
+  competencyTags String[]           @map("competency_tags")
+  resourceId     String             @map("resource_id")
+  resource       CurriculumResource @relation(fields: [resourceId], references: [id])
+  priority       Int
+  provenanceJson Json               @default("{}") @map("provenance_json")
+  assignedAt     DateTime           @default(now()) @map("assigned_at")
+  completedAt    DateTime?          @map("completed_at")
+
+  @@unique([attemptId, resourceId])
+  @@index([attemptId, moduleCode])
+  @@map("remediation_recommendation")
+}
+
+// Authenticated classroom accounts are isolated from historical demo User records.
+enum LearningRole {
+  student
+  teacher
+}
+enum LearningWeekStatus {
+  locked
+  in_progress
+  pending
+  completed
+}
+model LearningAccount {
+  id String @id @default(cuid())
+  email String @unique
+  passwordHash String
+  displayName String
+  role LearningRole
+  createdAt DateTime @default(now())
+  sessions LearningSession[]
+  classes LearningClass[]
+  enrollment LearningEnrollment?
+  @@map("learning_accounts")
+}
+model LearningSession {
+  tokenHash String @id
+  accountId String
+  account LearningAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  @@index([accountId])
+  @@index([expiresAt])
+  @@map("learning_sessions")
+}
+model LearningAuthAttempt {
+  key String @id
+  count Int
+  expiresAt DateTime
+  @@index([expiresAt])
+  @@map("learning_auth_attempts")
+}
+model LearningClass {
+  id String @id @default(cuid())
+  teacherId String @unique
+  teacher LearningAccount @relation(fields: [teacherId], references: [id])
+  schoolId String
+  schoolName String
+  county String
+  grade String
+  studentCount Int
+  plannedWeeks Int
+  joinCode String @unique
+  revision Int @default(0)
+  createdAt DateTime @default(now())
+  enrollments LearningEnrollment[]
+  @@map("learning_classes")
+}
+model LearningEnrollment {
+  id String @id @default(cuid())
+  studentId String @unique
+  student LearningAccount @relation(fields: [studentId], references: [id])
+  classId String
+  classroom LearningClass @relation(fields: [classId], references: [id])
+  generation Int @default(0)
+  createdAt DateTime @default(now())
+  weeks LearningWeek[]
+  @@index([classId])
+  @@map("learning_enrollments")
+}
+model LearningWeek {
+  id String @id @default(cuid())
+  enrollmentId String
+  enrollment LearningEnrollment @relation(fields: [enrollmentId], references: [id])
+  week Int
+  status LearningWeekStatus @default(locked)
+  version Int @default(0)
+  questionSet Json?
+  answers Json?
+  submittedAt DateTime?
+  reviewedAt DateTime?
+  reviewedBy String?
+  feedback String @default("")
+  @@unique([enrollmentId, week])
+  @@index([status, submittedAt])
+  @@map("learning_weeks")
+}
+model LearningAudit {
+  id String @id @default(cuid())
+  actorId String
+  classId String
+  studentId String?
+  action String
+  details Json
+  createdAt DateTime @default(now())
+  @@index([classId, createdAt])
+  @@map("learning_audits")
+}

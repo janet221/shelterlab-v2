@@ -1,0 +1,10 @@
+"use client";
+import { useState } from "react";
+import { api, buttonClass, fieldClass } from "@/app/_components/classroom-ui";
+export default function AuthForm() {
+  const [register, setRegister] = useState(false), [error, setError] = useState(""), [busy, setBusy] = useState(false);
+  return <section className="rounded-3xl border bg-white p-6"><div className="mb-5 flex gap-4"><button className={!register ? "font-bold underline" : ""} onClick={() => { setRegister(false); setError(""); }}>登入</button><button className={register ? "font-bold underline" : ""} onClick={() => { setRegister(true); setError(""); }}>建立帳號</button></div><form className="space-y-4" onSubmit={async event => { event.preventDefault(); setBusy(true); setError(""); const form = new FormData(event.currentTarget); try { const result = await api<{ destination: string }>(`/api/auth/${register ? "register" : "login"}`, { email: form.get("email"), password: form.get("password"), ...(register ? { displayName: form.get("displayName"), role: form.get("role") } : {}) }); window.location.href = result.destination; } catch (e) { setError((e as Error).message); } finally { setBusy(false); } }}>
+    {register && <><label className="block">稱呼（可使用暱稱）<input name="displayName" required maxLength={60} className={fieldClass} autoComplete="nickname" /></label><label className="block">角色<select name="role" className={fieldClass}><option value="student">學生</option><option value="teacher">教師</option></select></label></>}
+    <label className="block">電子郵件帳號<input className={fieldClass} name="email" type="email" autoComplete="username" required maxLength={254} /></label><label className="block">密碼<input className={fieldClass} name="password" type="password" minLength={12} maxLength={128} autoComplete={register ? "new-password" : "current-password"} required /></label><p className="text-xs text-stone-600">至少 12 個字元，可使用長句密碼。不收集學生住址。</p><p role="alert" className="text-red-800">{error}</p><button disabled={busy} className={buttonClass}>{busy ? "處理中…" : register ? "建立帳號並登入" : "登入"}</button>
+  </form></section>;
+}
