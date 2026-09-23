@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   return endpoint(async () => {
     assertSameOrigin(request);
     const input = await body(request, requestSchema);
-    if (!invitationCodeMatches(process.env.TEACHER_INVITATION_CODE, input.invitationCode)) {
+    if (!invitationCodeMatches(input.invitationCode)) {
       throw new RequestError(422, "教師邀請碼不正確。");
     }
     const supabase = createAdminSupabaseClient();

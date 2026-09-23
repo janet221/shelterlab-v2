@@ -3,7 +3,7 @@ import { PublicPageShell } from "@/app/_components/public-shell";
 
 export const metadata: Metadata = {
   title: "政府開放資料與引用資源",
-  description: "ShelterLab 課程使用的政府開放資料、官方資訊、教育資源與研究引用清冊。",
+  description: "ShelterLab 課程使用的政府開放資料、官方資訊與民間教育資源清冊。",
 };
 
 type Resource = {
@@ -58,16 +58,6 @@ const educationResources: Resource[] = [
   { title: "遊蕩犬貓怎麼管《上》", provider: "公共電視", url: "https://www.youtube.com/watch?v=eHWNR-rstjc", note: "遊蕩犬貓與野生動物衝突的公共議題影音。" },
 ];
 
-const researchReferences: Resource[] = [
-  { title: "The Animal Welfare Science of Working Dogs", provider: "Cobb et al.", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11240373/", note: "工作犬福利科學與照護證據。" },
-  { title: "Working Dog Training for the Twenty-First Century", provider: "Hall et al.", url: "https://www.frontiersin.org/articles/10.3389/fvets.2021.646022/full", note: "工作犬訓練、學習與福利的研究回顧。" },
-  { title: "Dog keeping in Taiwan", provider: "Hsu et al.", url: "https://scholar.lib.ntnu.edu.tw/en/publications/dog-keeping-in-taiwan-its-contribution-to-the-problem-of-free-roa-2/", note: "臺灣飼犬行為與遊蕩犬議題的研究背景。" },
-  { title: "What's in a Name? Effect of Breed Perceptions and Labeling", provider: "Gunter et al.", url: "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0146857", note: "品種標籤如何影響認知與認養判斷。" },
-  { title: "A canine identity crisis", provider: "Gunter et al.", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC6107223/", note: "視覺品種辨識、分類與個體差異的研究。" },
-  { title: "Trends in Animal Shelter Management, Adoption, and Animal Death in Taiwan", provider: "Yan et al.", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC10177604/", note: "臺灣收容管理、認養與死亡趨勢的研究。" },
-  { title: "Teaching Critical Thinking", provider: "Holmes, Wieman & Bonn", url: "https://arxiv.org/abs/1508.04870", note: "實證思辨、反覆練習與回饋設計的教學研究。" },
-];
-
 function ResourceSection({ id, eyebrow, title, description, resources }: { id: string; eyebrow: string; title: string; description: string; resources: Resource[] }) {
   return (
     <section id={id} className="scroll-mt-28" aria-labelledby={`${id}-title`}>
@@ -99,9 +89,9 @@ export default function GovernmentDataPage() {
           <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#8f7c5e]">資料透明與引用責任</p>
             <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-tight text-[#332a22] sm:text-5xl">政府開放資料與引用資源</h1>
-            <p className="mt-6 max-w-3xl text-base leading-8 text-[#65594d] sm:text-lg">ShelterLab 將資料來源、用途與限制放在同一個脈絡中。以下清冊涵蓋課程目前引用的政府開放資料、官方法規與服務資訊、民間教育資源及研究文獻；連結均導向原始提供者。</p>
+            <p className="mt-6 max-w-3xl text-base leading-8 text-[#65594d] sm:text-lg">ShelterLab 將資料來源、用途與限制放在同一個脈絡中。以下清冊涵蓋課程目前引用的政府開放資料、官方法規與服務資訊，以及民間教育資源；連結均導向原始提供者。</p>
             <nav className="mt-8 flex flex-wrap gap-3 text-sm font-bold" aria-label="資源分類">
-              {[['政府開放資料', '#datasets'], ['官方資訊', '#official'], ['教育與民間資源', '#education'], ['研究文獻', '#research']].map(([label, href]) => <a key={href} href={href} className="rounded-full border border-[#d7c49f] bg-[#fffdf8] px-4 py-2 text-[#5f5142] hover:bg-[#f4e4bd]">{label}</a>)}
+              {[['政府開放資料', '#datasets'], ['官方資訊', '#official'], ['教育與民間資源', '#education']].map(([label, href]) => <a key={href} href={href} className="rounded-full border border-[#d7c49f] bg-[#fffdf8] px-4 py-2 text-[#5f5142] hover:bg-[#f4e4bd]">{label}</a>)}
             </nav>
           </div>
         </header>
@@ -110,16 +100,6 @@ export default function GovernmentDataPage() {
           <ResourceSection id="datasets" eyebrow="政府資料" title="政府開放資料來源清冊" description="資料集用於建立閱讀欄位、比較案例與查證來源的學習情境。數字只能回答其欄位、期間與統計單位能支持的問題，不能直接替個體補寫原因。" resources={openDatasets} />
           <ResourceSection id="official" eyebrow="官方來源" title="官方法規、政策與服務資訊" description="這些來源支撐課程中的責任、政策、通報與行動安全內容。地方參與資格可能更新，採取行動前仍應向主責機關再次確認。" resources={officialReferences} />
           <ResourceSection id="education" eyebrow="教育資源" title="教育與民間引用資源" description="影音與閱讀材料以原站外部連結提供。ShelterLab 不鏡像、不轉錄，也不以民間文章取代正式法規或政府原始資料。" resources={educationResources} />
-          <ResourceSection id="research" eyebrow="研究引用" title="研究文獻" description="研究文獻用來建立品種標籤、工作犬福利、臺灣收容與思辨教學的背景。課程採摘要式引用，完整方法與限制請回到原文閱讀。" resources={researchReferences} />
-
-          <aside className="rounded-3xl border border-[#d8c59e] bg-[#f5ead4] p-6 sm:p-8" aria-label="資料使用原則">
-            <h2 className="text-xl font-bold text-[#3f352c]">資料使用原則</h2>
-            <ul className="mt-5 grid gap-3 text-sm leading-7 text-[#65594d] sm:grid-cols-3">
-              <li className="rounded-2xl bg-white/75 p-4"><strong className="block text-[#4e4032]">保留來源</strong>每一項資料與教材都連回原始提供者。</li>
-              <li className="rounded-2xl bg-white/75 p-4"><strong className="block text-[#4e4032]">說明限制</strong>不把相關當因果，也不以缺漏欄位補寫個體故事。</li>
-              <li className="rounded-2xl bg-white/75 p-4"><strong className="block text-[#4e4032]">行動前查證</strong>服務、資格與政策可能變動，參與前需再次確認。</li>
-            </ul>
-          </aside>
         </div>
       </div>
     </PublicPageShell>

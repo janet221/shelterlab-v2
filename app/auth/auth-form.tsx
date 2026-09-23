@@ -32,12 +32,13 @@ async function registerTeacher(email: string, password: string, invitationCode: 
   if (!response.ok) throw new Error(result.error || "目前無法建立教師帳號，請稍後再試。");
 }
 
-export default function AuthForm({ role }: { role: AccountRole }) {
-  const [mode, setMode] = useState<Mode>("login");
+export default function AuthForm({ role, initialMode = "login" }: { role: AccountRole; initialMode?: Mode }) {
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [recovery, setRecovery] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [successToast, setSuccessToast] = useState("");
   const roleLabel = role === "teacher" ? "教師" : "學生";
 
   function changeMode(nextMode: Mode) {
@@ -62,10 +63,11 @@ export default function AuthForm({ role }: { role: AccountRole }) {
         const validatedClass = await validateClassCode(String(form.get("classCode") || "").trim().toUpperCase());
         const { data, error: signUpError } = await supabase.auth.signUp({ email, password, options: { data: { class_code: validatedClass.classCode, class_id: validatedClass.classId } } });
         if (signUpError) throw signUpError;
+        setSuccessToast("已成功加入班級");
         if (!data.session) {
           setNotice("帳號已建立。請前往信箱完成驗證後，再使用 Email 與密碼登入。"); formElement.reset(); return;
         }
-        window.location.assign("/student"); return;
+        window.setTimeout(() => window.location.assign("/student"), 1200); return;
       }
 
       const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
@@ -93,6 +95,7 @@ export default function AuthForm({ role }: { role: AccountRole }) {
   }
 
   return <section className="rounded-[2rem] border border-[#e3cfaa] bg-[#fffdf8] p-5 shadow-[0_24px_70px_-40px_rgba(111,78,34,0.32)] sm:p-7">
+    {successToast && <div role="status" className="fixed right-5 top-24 z-[100] flex max-w-sm items-center gap-3 rounded-2xl border border-[#c9b9a2] bg-[#f7f1e8] px-5 py-4 font-bold text-[#51473e] shadow-xl"><span aria-hidden="true" className="grid h-7 w-7 place-items-center rounded-full bg-[#87958e] text-sm text-white">✓</span><span>{successToast}</span><button type="button" className="ml-2 text-[#776b61]" aria-label="關閉成功提示" onClick={() => setSuccessToast("")}>×</button></div>}
     <div className="grid grid-cols-2 rounded-full bg-[#f3eadb] p-1" role="tablist" aria-label="帳號操作">
       {(["login", "signup"] as const).map((tab) => { const selected = mode === tab && !recovery; return <button type="button" role="tab" aria-selected={selected} className={`rounded-full px-4 py-2.5 text-sm font-bold transition-all ${selected ? "bg-white text-[#5f5142] shadow-sm" : "text-[#7f705e] hover:text-[#3c3024]"}`} onClick={() => changeMode(tab)} key={tab}>{tab === "login" ? "登入" : "建立帳號"}</button>; })}
     </div>

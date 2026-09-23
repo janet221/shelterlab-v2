@@ -92,11 +92,22 @@ export default function SettingsForm() {
         <label className="block">年級<select name="grade" defaultValue={dashboard.classroom?.grade || "高一"} className={fieldClass}>{["高一", "高二", "高三"].map((grade) => <option key={grade}>{grade}</option>)}</select></label>
         <label className="block">班級人數<input type="number" name="studentCount" min={1} max={200} defaultValue={dashboard.classroom?.studentCount || 30} required className={fieldClass} /></label>
         <label className="block">班級程式碼<input name="classCode" minLength={8} maxLength={64} pattern="[A-Za-z0-9][A-Za-z0-9-]{7,63}" defaultValue={dashboard.classroom?.joinCode || ""} required autoComplete="off" spellCheck={false} className={`${fieldClass} uppercase`} placeholder="例如 SHELTER-2026" /></label>
-        <p className="text-xs text-stone-500">8–64 個英文字母、數字或連字號。學生註冊與登入時會使用此代碼，且不可與其他班級重複。</p>
+        <p className="text-xs text-stone-500">8–64 個英文字母、數字或連字號。學生首次註冊時會使用此代碼，且不可與其他班級重複。</p>
         <label className="block">課程週數<input value="6 週" readOnly className={fieldClass} /></label>
         <p className="text-xs">ShelterLab 採固定六週闖關；學生完成前一週並經教師通過後，才會解鎖下一週。</p>
         <button disabled={busy || !school} className={buttonClass}>{busy ? "儲存中…" : "儲存並載入在地設定"}</button>
       </form>
+
+      {dashboard.classroom && <section className="mt-8 rounded-3xl border border-[#d8cfc3] bg-[#fffdf8] p-6 shadow-sm" aria-labelledby="class-members-title">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#e6ddd2] pb-5">
+          <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8f7c5e]">班級管理</p><h2 id="class-members-title" className="mt-2 text-2xl font-bold text-[#3f352c]">目前已加入的學生</h2></div>
+          <div className="rounded-2xl bg-[#eee8df] px-5 py-3 text-center"><strong className="block text-2xl text-[#5d5145]">{dashboard.classroom.enrollments.length}</strong><span className="text-xs text-[#776b61]">學生總人數</span></div>
+        </div>
+        <div className="mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-[#ded2c2] bg-[#f7f1e8] px-4 py-3 text-sm"><span className="font-bold text-[#65594d]">班級代碼</span><code className="rounded-lg bg-white px-3 py-1.5 font-bold tracking-wider text-[#4e4032]">{dashboard.classroom.joinCode}</code></div>
+        {dashboard.classroom.enrollments.length ? <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+          {dashboard.classroom.enrollments.map((item, index) => <li key={item.student.id} className="flex items-center gap-4 rounded-2xl border border-[#e3dbd0] bg-white px-4 py-3"><span aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#87958e] font-bold text-white">{index + 1}</span><span><strong className="block text-[#3f352c]">{item.student.displayName}</strong><small className="text-[#83776b]">帳號 {item.student.id.slice(0, 8)}</small></span></li>)}
+        </ul> : <p className="mt-5 rounded-2xl border border-dashed border-[#d8cfc3] px-5 py-6 text-center text-sm text-[#776b61]">目前尚無學生加入。請將上方班級代碼提供給學生註冊。</p>}
+      </section>}
 
       {dashboard.classroom && <section className="mt-8 rounded-2xl border-2 border-red-300 bg-red-50 p-6" aria-labelledby="danger-zone-title">
         <p className="text-sm font-bold uppercase tracking-widest text-red-700">Danger Zone</p>

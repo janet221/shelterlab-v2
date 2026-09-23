@@ -52,10 +52,10 @@ export async function saveSettings(_teacherId: string, input: z.infer<typeof set
 }
 export async function studentProgress(studentId: string) {
   const db = await client(), student = await profile(studentId);
-  const classroom = checked(await db.from("classes").select("name,school_name,county").eq("id", student.class_id).single());
+  const classroom = checked(await db.from("classes").select("name,school_name,county,class_code").eq("id", student.class_id).single());
   if (!classroom) throw new RequestError(404, "找不到學生所屬班級。");
   const weeks = checked(await db.from("student_progress").select("*").eq("student_id", studentId).order("week_number")) as ProgressRow[];
-  return { enrolled: true as const, generation: student.progress_generation, isCourseCompleted: student.is_course_completed, courseCompletedAt: student.course_completed_at, schoolName: classroom.school_name || classroom.name, county: classroom.county, plannedWeeks: 6, weeks: weeks.map(mapWeek) };
+  return { enrolled: true as const, generation: student.progress_generation, isCourseCompleted: student.is_course_completed, courseCompletedAt: student.course_completed_at, schoolName: classroom.school_name || classroom.name, classCode: classroom.class_code, county: classroom.county, plannedWeeks: 6, weeks: weeks.map(mapWeek) };
 }
 export async function studentWeek(studentId: string, week: number) {
   if (!Number.isInteger(week) || week < 1 || week > 6) throw new RequestError(404, "找不到週次。");

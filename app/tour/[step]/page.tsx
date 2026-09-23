@@ -62,8 +62,11 @@ export default async function TourStepPage({ params }: { params: Promise<{ step:
               <p className="mt-7 text-lg leading-8 text-[#5e5041]">{current.summary}</p>
               <p className="mt-4 leading-8 text-[#6f604f]">{current.detail}</p>
 
-              {current.sequence === 1 && current.evidenceHref && (
-                <Link className="mt-8 inline-flex min-h-12 items-center rounded-full border border-[#dec692] bg-[#ebd197] px-6 py-3 text-sm font-bold text-[#30251b] transition hover:bg-[#f4e4bd] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#9c8761]" href={current.evidenceHref}>{current.evidenceLabel} →</Link>
+              {current.sequence === 1 && (
+                <div className="mt-8 flex flex-wrap gap-3" aria-label="選擇登入身分">
+                  <Link className="inline-flex min-h-12 items-center rounded-full bg-[#7f918d] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#697c77] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7f918d]" href="/auth?role=student">我是學生 →</Link>
+                  <Link className="inline-flex min-h-12 items-center rounded-full bg-[#aa9175] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#92785f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#aa9175]" href="/auth?role=teacher&mode=signup">我是老師 →</Link>
+                </div>
               )}
 
               <section className="mb-8 mt-16" aria-label="導覽進度">
