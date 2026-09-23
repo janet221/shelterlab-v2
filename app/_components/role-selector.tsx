@@ -48,23 +48,38 @@ export function RoleSelector({ initialRole = null, source = "start" }: { initial
         {publicRoleProfiles.map((profile) => {
           const selected = selectedRole === profile.id;
           const visual = roleVisuals[profile.id];
+          const cardClassName = `min-h-[17rem] rounded-3xl border p-4 text-left transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8f8175] ${selected ? `scale-[1.02] ${visual.border} bg-white shadow-[0_18px_50px_-30px_rgba(87,76,67,0.4)]` : `border-[#ded7cc] bg-white/95 hover:-translate-y-1 ${visual.hover} hover:shadow-lg`}`;
+          const cardContent = (
+            <>
+              <RoleIllustration role={profile.id} selected={selected} />
+              <span className="mt-4 block text-xl font-bold text-[#3c3024]">{profile.title}</span>
+              <span className="mt-2 block text-sm leading-6 text-[#766858]">{profile.description}</span>
+            </>
+          );
+
+          if (source === "start") {
+            return (
+              <Link className={cardClassName} href={profile.primaryHref} key={profile.id}>
+                {cardContent}
+              </Link>
+            );
+          }
+
           return (
             <button
               key={profile.id}
               aria-pressed={selected}
-              className={`min-h-[17rem] rounded-3xl border p-4 text-left transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8f8175] ${selected ? `scale-[1.02] ${visual.border} bg-white shadow-[0_18px_50px_-30px_rgba(87,76,67,0.4)]` : `border-[#ded7cc] bg-white/95 hover:-translate-y-1 ${visual.hover} hover:shadow-lg`}`}
+              className={cardClassName}
               onClick={() => selectRole(profile.id)}
               type="button"
             >
-              <RoleIllustration role={profile.id} selected={selected} />
-              <span className="mt-4 block text-xl font-bold text-[#3c3024]">{profile.title}</span>
-              <span className="mt-2 block text-sm leading-6 text-[#766858]">{profile.description}</span>
+              {cardContent}
             </button>
           );
         })}
       </div>
 
-      {selectedProfile && (
+      {source === "demo" && selectedProfile && (
         <div className="rounded-3xl border border-[#e3cfaa] bg-[#fffdf8] p-6 shadow-[0_24px_70px_-45px_rgba(111,78,34,0.5)] sm:p-8" aria-live="polite">
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8f7c5e]">{source === "demo" ? "示範視角" : "角色導覽"}</p>
           <h2 className="mt-3 text-3xl font-bold text-[#332a22]">{selectedProfile.title}</h2>

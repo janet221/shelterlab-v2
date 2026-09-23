@@ -63,4 +63,17 @@ describe("前五週寶物跨週應用", () => {
     expect(studentMap).toContain("<ToolInventory progress={progress} />");
     expect(studentMap).toContain("班級代碼：");
   });
+
+  it("六週完整互動內容與班級送審流程同時保留", () => {
+    const weekPage = read("app/student/week/[week]/page.tsx");
+    const submission = read("app/student/week/[week]/_components/week-submission.tsx");
+
+    for (const component of ["WeekOneExperience", "WeekTwoExperience", "WeekThreeExperience", "WeekFourExperience", "WeekFiveExperience", "WeekSixExperience"]) {
+      expect(weekPage).toContain(component);
+    }
+    expect(weekPage).toContain("studentWeek(account.id, weekNumber)");
+    expect(weekPage).toContain("<WeekSubmission week={weekNumber} />");
+    expect(submission).toContain('id="classroom-submission"');
+    expect(submission).toContain("送出完整闖關成果，等待教師審核");
+  });
 });

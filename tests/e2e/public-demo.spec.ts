@@ -1,35 +1,31 @@
 import { expect, test } from "@playwright/test";
 
-test("role selection restores exactly three interactive role cards", async ({ page }) => {
+test("start page shows exactly three directly linked role cards without role navigation", async ({ page }) => {
   await page.goto("/start");
   const roles = page.getByRole("region", { name: "角色選擇" });
-  await expect(roles.getByRole("button")).toHaveCount(3);
-  await expect(roles.getByRole("link")).toHaveCount(0);
+  await expect(roles.getByRole("button")).toHaveCount(0);
+  await expect(roles.getByRole("link")).toHaveCount(3);
+  await expect(page.getByText("角色導覽", { exact: true })).toHaveCount(0);
   await expect(page.getByText("我是評審或合作夥伴")).toHaveCount(0);
   await expect(page.getByText(/角色導覽不代表正式登入或/)).toHaveCount(0);
 });
 
-for (const [name, destination, action] of [
-  ["我是學生", "student", "進入學生登入／註冊"],
-  ["我是教師", "teacher", "進入教師登入／註冊"],
-  ["我是收容所人員", "shelter", "進入動保夥伴工作台"]
+for (const [name, destination] of [
+  ["我是學生", "student"],
+  ["我是教師", "teacher"],
+  ["我是收容所人員", "shelter"]
 ]) {
-  test(`${name} reveals its details and correct entry`, async ({ page }) => {
+  test(`${name} card opens its correct entry directly`, async ({ page }) => {
     await page.goto("/start");
-    await page.getByRole("button", { name: new RegExp(name) }).click();
-    await expect(page).toHaveURL(new RegExp(`/start\\?role=${destination}$`));
-    await page.getByRole("link", { name: new RegExp(action) }).click();
+    await page.getByRole("link", { name: new RegExp(name) }).click();
     await expect(page).toHaveURL(destination === "shelter" ? /\/shelter$/ : new RegExp(`/auth\\?role=${destination}$`));
     if (destination !== "shelter") await expect(page.getByRole("heading", { name: "登入／註冊專區" })).toBeVisible();
   });
 }
 
-test("keyboard activation reveals the student entry", async ({ page }) => {
+test("keyboard activation opens the student entry directly", async ({ page }) => {
   await page.goto("/start");
-  await page.getByRole("button", { name: /我是學生/ }).focus();
-  await page.keyboard.press("Enter");
-  await expect(page).toHaveURL(/\/start\?role=student$/);
-  await page.getByRole("link", { name: /進入學生登入／註冊/ }).focus();
+  await page.getByRole("link", { name: /我是學生/ }).focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/auth\?role=student$/);
   await expect(page.getByRole("heading", { name: "登入／註冊專區" })).toBeVisible();

@@ -3,17 +3,13 @@ import { Suspense } from "react";
 import { PublicPageShell } from "@/app/_components/public-shell";
 import { RoleSelector } from "@/app/_components/role-selector";
 import { PublicGridBackground, publicGridOverlay } from "@/app/_components/public-grid-background";
-import { isPublicRoleId, type PublicRoleId } from "@/lib/public-site/roles";
 
 export const metadata: Metadata = {
   title: "開始體驗",
   description: "選擇視角，進入 ShelterLab 的體驗。"
 };
 
-export default async function StartPage({ searchParams }: { searchParams: Promise<{ role?: string }> }) {
-  const { role } = await searchParams;
-  const initialRole: PublicRoleId | null = isPublicRoleId(role) ? role : null;
-
+export default function StartPage() {
   return (
     <PublicPageShell>
       <PublicGridBackground />
@@ -24,7 +20,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
               【請選擇參與視角】
             </h1>
             <p className="mt-8 text-lg leading-relaxed text-[#5D5753]">
-              點選角色查看專屬功能與學習路徑。學生與教師可從角色詳情進入對應的登入／註冊介面。
+              點選角色即可進入對應的登入／註冊介面或動保夥伴工作臺。
             </p>
             
           </div>
@@ -32,7 +28,7 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
 
         <section className="mx-auto max-w-7xl px-5 pb-24 lg:px-8">
           <Suspense fallback={<div className="h-64 animate-pulse bg-white/50 rounded-3xl" />}>
-            <RoleSelector initialRole={initialRole} />
+            <RoleSelector />
           </Suspense>
         </section>
       </main>
