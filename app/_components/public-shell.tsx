@@ -64,7 +64,7 @@ export function PublicHeader({ inverse = false }: { inverse?: boolean }) {
       className={
         inverse 
           ? "relative z-20 border-b border-white/25" 
-          : "border-b border-[#e3b85a]/10 bg-[#f9f6ee]/80 backdrop-blur-md sticky top-0 z-50"
+          : "border-b border-[#dec692]/30 bg-[#f9f6ee]/80 backdrop-blur-md sticky top-0 z-50"
       }
     >
       {/* 🛠️ 透過 w-full 與左右全開的布局，讓左側 Logo 完全打破限制往最左邊靠攏 */}
@@ -87,7 +87,7 @@ export function PublicHeader({ inverse = false }: { inverse?: boolean }) {
                   ? `rounded-full px-4 py-1.5 sm:px-5 sm:py-2 font-bold shadow-xs transition transform hover:-translate-y-0.5 ${
                       inverse 
                         ? "border border-white bg-white text-slate-950" 
-                        : "bg-[#e3b85a] text-white hover:bg-[#d4a746]"
+                        : "border border-[#dec692] bg-[#ebd197] text-[#332a22] hover:bg-[#f4e4bd]"
                     }`
                   : `rounded-md px-2 py-1.5 sm:px-3 sm:py-2 transition ${
                       inverse ? "hover:bg-white/10" : "hover:bg-[#ebd197]/30 hover:text-[#7c5f2b]"

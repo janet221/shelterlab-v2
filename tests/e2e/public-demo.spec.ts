@@ -63,6 +63,21 @@ test("public surfaces use the gold and cream theme without green utility colors"
   }
 });
 
+test("student and teacher authentication request the correct verification codes", async ({ page }) => {
+  await page.goto("/auth?role=student");
+  await expect(page.locator('input[name="classCode"]')).toBeVisible();
+  await page.getByRole("tab", { name: "建立帳號" }).click();
+  await expect(page.locator('input[name="classCode"]')).toBeVisible();
+  await expect(page.getByLabel("教師邀請碼")).toHaveCount(0);
+
+  await page.goto("/auth?role=teacher");
+  await expect(page.locator('input[name="classCode"]')).toHaveCount(0);
+  await expect(page.getByLabel("教師邀請碼")).toHaveCount(0);
+  await page.getByRole("tab", { name: "建立帳號" }).click();
+  await expect(page.getByLabel("教師邀請碼")).toBeVisible();
+  await expect(page.locator('input[name="classCode"]')).toHaveCount(0);
+});
+
 test("role and tour cards fit mobile screens", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   for (const path of ["/start", "/tour/welcome"]) {

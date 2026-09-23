@@ -6,9 +6,9 @@ import { useEffect, useMemo, useState } from "react";
 import { getPublicRoleProfile, isPublicRoleId, publicRoleProfiles, type PublicRoleId } from "@/lib/public-site/roles";
 
 const roleVisuals = {
-  student: { fill: "bg-[#d9b45b]", soft: "bg-[#fbf3df]", bars: [28, 48, 36] },
-  teacher: { fill: "bg-[#b8893e]", soft: "bg-[#f6ead0]", bars: [44, 30, 52] },
-  shelter: { fill: "bg-[#8b6a3f]", soft: "bg-[#efe2ca]", bars: [34, 54, 44] }
+  student: { fill: "bg-[#7f918d]", soft: "bg-[#e9eeeb]", border: "border-[#7f918d]", hover: "hover:border-[#9caaa6]", bars: [28, 48, 36] },
+  teacher: { fill: "bg-[#aa9175]", soft: "bg-[#f1ece4]", border: "border-[#aa9175]", hover: "hover:border-[#bba991]", bars: [44, 30, 52] },
+  shelter: { fill: "bg-[#a7847e]", soft: "bg-[#f1e8e6]", border: "border-[#a7847e]", hover: "hover:border-[#b89c97]", bars: [34, 54, 44] }
 } as const;
 
 function RoleIllustration({ role, selected }: { role: PublicRoleId; selected: boolean }) {
@@ -47,11 +47,12 @@ export function RoleSelector({ initialRole = null, source = "start" }: { initial
       <div className="grid gap-5 md:grid-cols-3">
         {publicRoleProfiles.map((profile) => {
           const selected = selectedRole === profile.id;
+          const visual = roleVisuals[profile.id];
           return (
             <button
               key={profile.id}
               aria-pressed={selected}
-              className={`min-h-[17rem] rounded-3xl border p-4 text-left transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b8893e] ${selected ? "scale-[1.02] border-[#b8893e] bg-white shadow-[0_18px_50px_-30px_rgba(111,78,34,0.5)]" : "border-[#e7d8ba] bg-white/95 hover:-translate-y-1 hover:border-[#d9b45b] hover:shadow-lg"}`}
+              className={`min-h-[17rem] rounded-3xl border p-4 text-left transition-all duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8f8175] ${selected ? `scale-[1.02] ${visual.border} bg-white shadow-[0_18px_50px_-30px_rgba(87,76,67,0.4)]` : `border-[#ded7cc] bg-white/95 hover:-translate-y-1 ${visual.hover} hover:shadow-lg`}`}
               onClick={() => selectRole(profile.id)}
               type="button"
             >
@@ -67,16 +68,16 @@ export function RoleSelector({ initialRole = null, source = "start" }: { initial
         <div className="rounded-3xl border border-[#e3cfaa] bg-[#fffdf8] p-6 shadow-[0_24px_70px_-45px_rgba(111,78,34,0.5)] sm:p-8" aria-live="polite">
           <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#a37b35]">{source === "demo" ? "示範視角" : "角色導覽"}</p>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8f7c5e]">{source === "demo" ? "示範視角" : "角色導覽"}</p>
               <h2 className="mt-3 text-3xl font-bold text-[#332a22]">{selectedProfile.title}</h2>
               <p className="mt-4 max-w-2xl text-base leading-7 text-[#665848]">{selectedProfile.description}</p>
               <ul className="mt-6 grid gap-3 sm:grid-cols-2">
                 {selectedProfile.capabilities.map((capability) => <li className="rounded-xl border border-[#eadcbc] bg-[#fbf4e5] px-4 py-3 text-sm font-medium text-[#665848]" key={capability}>{capability}</li>)}
               </ul>
               <ol className="mt-6 grid gap-4 sm:grid-cols-3">
-                {selectedProfile.journey.map((step, index) => <li className="rounded-xl border border-[#e7d8ba] bg-white p-4 text-sm" key={step}><span className="mb-2 block font-mono text-xs text-[#a37b35]">{String(index + 1).padStart(2, "0")}</span><strong className="text-[#3c3024]">{step}</strong></li>)}
+                {selectedProfile.journey.map((step, index) => <li className="rounded-xl border border-[#e7d8ba] bg-white p-4 text-sm" key={step}><span className="mb-2 block font-mono text-xs text-[#8f7c5e]">{String(index + 1).padStart(2, "0")}</span><strong className="text-[#3c3024]">{step}</strong></li>)}
               </ol>
-              <Link className="mt-8 inline-flex min-h-12 items-center rounded-full bg-[#c99d45] px-7 py-3 text-sm font-bold text-[#30251b] shadow-sm transition hover:bg-[#ddb85f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8f6725]" href={selectedProfile.primaryHref}>{selectedProfile.primaryCta} →</Link>
+              <Link className={`mt-8 inline-flex min-h-12 items-center rounded-full px-7 py-3 text-sm font-bold text-white shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8f8175] ${roleVisuals[selectedProfile.id].fill} hover:brightness-90`} href={selectedProfile.primaryHref}>{selectedProfile.primaryCta} →</Link>
             </div>
             <aside className="rounded-2xl border border-[#e7d8ba] bg-[#f8edda] p-6">
               <p className="text-xs font-bold uppercase tracking-widest text-[#9b793d]">預覽儀表板</p>

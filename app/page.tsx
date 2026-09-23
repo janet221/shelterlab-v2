@@ -39,12 +39,12 @@ const curriculum = [
   ["生命教育", "理解個體需求、長期照護與福利", "責任盤點、情境反思"],
   ["公民參與", "比較政策、理解利害關係與資源限制", "方案分析、動保行動提案"]
 ];
-const button = "inline-flex min-h-12 items-center justify-center rounded-full px-7 py-3 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b8893e]";
+const button = "inline-flex min-h-12 items-center justify-center rounded-full px-7 py-3 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#9c8761]";
 const heading = "text-2xl font-bold leading-relaxed tracking-tight sm:text-3xl";
 
 function LearningTable({ label, headers, rows }: { label: string; headers: string[]; rows: string[][] }) {
   return (
-    <div className="mt-8 overflow-x-auto rounded-2xl border border-[#e5d3ae] bg-[#fffdf8] shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b8893e]" role="region" aria-label={label} tabIndex={0}>
+    <div className="mt-8 overflow-x-auto rounded-2xl border border-[#e5d3ae] bg-[#fffdf8] shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9c8761]" role="region" aria-label={label} tabIndex={0}>
       <table className="w-full min-w-[680px] text-left text-sm leading-7 sm:text-base">
         <caption className="sr-only">{label}</caption>
         <thead className="bg-[#f3e3bf] text-[#4a3824]"><tr>{headers.map((header) => <th key={header} scope="col" className="px-6 py-5 font-bold">{header}</th>)}</tr></thead>
@@ -84,11 +84,11 @@ export default function HomePage() {
           <section aria-labelledby="map-title"><h2 id="map-title" className={heading}>六週學習地圖｜從理解處境，到規劃行動</h2><LearningTable label="六週學習地圖" headers={["週次", "探究主題", "帶著一個問題出發"]} rows={weeks} /></section>
           <section aria-labelledby="goals-title">
             <h2 id="goals-title" className={heading}>我們希望學生學會的四件事</h2>
-            <ol className="mt-8 grid gap-5 md:grid-cols-2">{goals.map(([title, description], index) => <li key={title} className="rounded-3xl border border-[#e5d3ae] bg-[#fffdf8] p-6 shadow-sm sm:p-8"><span aria-hidden="true" className="text-sm font-bold tracking-widest text-[#ad8138]">0{index + 1}</span><h3 className="mt-4 text-xl font-bold leading-8">{title}</h3><p className="mt-3 leading-8 text-stone-600">{description}</p></li>)}</ol>
+            <ol className="mt-8 grid gap-5 md:grid-cols-2">{goals.map(([title, description], index) => <li key={title} className="rounded-3xl border border-[#e5d3ae] bg-[#fffdf8] p-6 shadow-sm sm:p-8"><span aria-hidden="true" className="text-sm font-bold tracking-widest text-[#8f7c5e]">0{index + 1}</span><h3 className="mt-4 text-xl font-bold leading-8">{title}</h3><p className="mt-3 leading-8 text-stone-600">{description}</p></li>)}</ol>
           </section>
           <section aria-labelledby="connections-title">
             <h2 id="connections-title" className={heading}>從課堂出發，連結真實世界</h2>
-            <ul className="mt-8 grid gap-6 lg:grid-cols-3">{connections.map(([title, description]) => <li key={title} className="border-t-4 border-[#d7ae55] pt-6"><h3 className="text-lg font-bold leading-8">{title}</h3><p className="mt-3 leading-8 text-stone-600">{description}</p></li>)}</ul>
+            <ul className="mt-8 grid gap-6 lg:grid-cols-3">{connections.map(([title, description]) => <li key={title} className="border-t-4 border-[#dec692] pt-6"><h3 className="text-lg font-bold leading-8">{title}</h3><p className="mt-3 leading-8 text-stone-600">{description}</p></li>)}</ul>
           </section>
           <section aria-labelledby="outcomes-title" className="rounded-3xl border border-[#e3cfaa] bg-[#f6ead0] p-6 sm:p-10">
             <h2 id="outcomes-title" className={heading}>讓學習成果看得見</h2><p className="mt-5 leading-8 text-stone-600">學生帶走的不只是測驗答案，而是一段可以回顧的思考歷程：</p>

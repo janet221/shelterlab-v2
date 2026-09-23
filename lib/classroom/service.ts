@@ -5,7 +5,7 @@ import { RequestError } from "./http";
 import { buildQuestionSet, countyData } from "./coa";
 import type { QuestionSet, SubmittedAnswer } from "./data-types";
 
-export const settingsSchema = z.object({ classId: z.string().uuid().optional(), schoolId: z.string().min(1).max(40), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.literal(6) }).strict();
+export const settingsSchema = z.object({ classId: z.string().uuid().optional(), classCode: z.string().trim().min(8).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()), schoolId: z.string().min(1).max(40), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.literal(6) }).strict();
 export const submissionSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), answers: z.array(z.object({ questionId: z.string().max(40), text: z.string().trim().min(10).max(3000), selectedAnimalIds: z.array(z.string().max(60)).min(1).max(4) }).strict()).length(3) }).strict();
 export const reviewSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), decision: z.literal("approve"), feedback: z.string().trim().max(3000) }).strict();
 export const resetSchema = z.object({ classId: z.string().uuid(), confirmation: z.literal("RESET"), targets: z.array(z.object({ studentId: z.string().uuid(), generation: z.number().int().nonnegative() }).strict()).min(1).max(200) }).strict();
@@ -23,6 +23,7 @@ function checked<T>({ data, error }: { data: T; error: { code?: string } | null 
     if (error.code === "42501") throw new RequestError(403, "您沒有此班級或學生的操作權限。");
     if (error.code === "40001") throw new RequestError(409, "進度已變更，請重新整理後再操作。");
     if (error.code === "23514") throw new RequestError(409, "目前狀態不允許此操作，請確認前一週已完成並重新整理。");
+    if (error.code === "23505") throw new RequestError(409, "這個班級代碼已被使用，請設定另一組代碼。");
     if (error.code === "22023" || error.code === "22P02") throw new RequestError(400, "提交資料不完整，請重新確認。");
     throw new RequestError(503, "資料服務暫時無法使用，請確認 Step 4 資料庫遷移已套用。");
   }
@@ -46,7 +47,7 @@ export async function saveSettings(_teacherId: string, input: z.infer<typeof set
   const school = schools.find(s => s.id === input.schoolId);
   if (!school || school.county !== input.county) throw new RequestError(400, "學校與縣市不符，請重新選擇學校。");
   const db = await client();
-  const id = checked(await db.rpc("shelterlab_save_class", { p_class_id: input.classId ?? null, p_school_id: school.id, p_school_name: school.name, p_county: school.county, p_grade: input.grade, p_student_count: input.studentCount }));
+  const id = checked(await db.rpc("shelterlab_save_class", { p_class_id: input.classId ?? null, p_school_id: school.id, p_school_name: school.name, p_county: school.county, p_grade: input.grade, p_student_count: input.studentCount, p_class_code: input.classCode }));
   return { id };
 }
 export async function studentProgress(studentId: string) {

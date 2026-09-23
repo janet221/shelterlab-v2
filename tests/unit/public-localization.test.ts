@@ -50,14 +50,14 @@ describe("Release 1.0.2 role-based public experience", () => {
 
   it("defines the three direct public roles and routes", () => {
     expect(publicRoleProfiles).toHaveLength(3);
-    expect(getPublicRoleProfile("student")).toMatchObject({ title: "我是學生", primaryHref: "/student" });
-    expect(getPublicRoleProfile("teacher")).toMatchObject({ title: "我是教師", primaryHref: "/teacher" });
+    expect(getPublicRoleProfile("student")).toMatchObject({ title: "我是學生", primaryHref: "/auth?role=student" });
+    expect(getPublicRoleProfile("teacher")).toMatchObject({ title: "我是教師", primaryHref: "/auth?role=teacher" });
     expect(getPublicRoleProfile("shelter")).toMatchObject({ title: "我是收容所人員", primaryHref: "/shelter" });
   });
 
   it("keeps the approved homepage and synthetic-demo notice copy", () => {
-    expect(read("app/page.tsx")).toContain("讓每一位青少年的觀察，都成為提升動物認養品質的關鍵數據資產");
-    expect(read("app/page.tsx")).toContain("構建一個橫跨校園、政府機關與收容所的數位協作生態系");
+    expect(read("app/page.tsx")).toContain("ShelterLab｜青少年動物科學探究實驗室");
+    expect(read("app/page.tsx")).toContain("讓關心有依據，讓行動有方向");
     expect(syntheticDemoNotice).toBe("競賽原型｜合成示範資料｜尚未宣稱正式合作或實證認養成效");
   });
 

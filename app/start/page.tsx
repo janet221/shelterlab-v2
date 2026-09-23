@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PublicPageShell } from "@/app/_components/public-shell";
 import { RoleSelector } from "@/app/_components/role-selector";
+import { PublicGridBackground, publicGridOverlay } from "@/app/_components/public-grid-background";
 import { isPublicRoleId, type PublicRoleId } from "@/lib/public-site/roles";
 
 export const metadata: Metadata = {
@@ -15,17 +16,8 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
 
   return (
     <PublicPageShell>
-      {/* 背景層：固定在最底層，與其他頁面使用同一張背景圖 */}
-      <div 
-        className="fixed inset-0 -z-10 h-full w-full bg-cover bg-center bg-no-repeat"
-        style={{ 
-          backgroundImage: "url('/b.jpg')",
-          backgroundColor: '#F7F4F0' 
-        }}
-      />
-
-      {/* 內容層：調整 bg 的透明度 (例如 /70)，讓背景顯露更多 */}
-      <main className="min-h-screen bg-[linear-gradient(180deg,rgba(255,250,240,0.82),rgba(247,239,223,0.94))]">
+      <PublicGridBackground />
+      <main className={`min-h-screen ${publicGridOverlay}`}>
         <div className="mx-auto max-w-7xl px-5 pt-20 pb-16 lg:px-8">
           <div className="max-w-2xl">
             <h1 className="text-5xl font-bold tracking-tight text-[#332D28]">

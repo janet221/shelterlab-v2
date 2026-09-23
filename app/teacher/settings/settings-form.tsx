@@ -57,7 +57,7 @@ export default function SettingsForm() {
   }
 
   return <>
-    {toast && <div className={`fixed right-5 top-20 z-[100] max-w-sm rounded-2xl border px-5 py-4 shadow-xl ${toast.kind === "error" ? "border-red-300 bg-red-50 text-red-900" : "border-teal-300 bg-teal-50 text-teal-950"}`} role={toast.kind === "error" ? "alert" : "status"}>
+    {toast && <div className={`fixed right-5 top-20 z-[100] max-w-sm rounded-2xl border px-5 py-4 shadow-xl ${toast.kind === "error" ? "border-red-300 bg-red-50 text-red-900" : "border-[#d8c8ab] bg-[#fff8ea] text-[#5d5145]"}`} role={toast.kind === "error" ? "alert" : "status"}>
       <div className="flex items-start gap-4"><p>{toast.message}</p><button className="font-bold" aria-label="關閉通知" onClick={() => setToast(null)}>×</button></div>
     </div>}
 
@@ -70,6 +70,7 @@ export default function SettingsForm() {
         try {
           await api("/api/classroom/settings", {
             ...(dashboard.classroom ? { classId: dashboard.classroom.id } : {}),
+            classCode: String(form.get("classCode") || "").trim().toUpperCase(),
             schoolId,
             county: school?.county,
             grade: form.get("grade"),
@@ -90,6 +91,8 @@ export default function SettingsForm() {
         <p id="county-note" className="text-xs">由學校名錄鎖定，後端會再次核對。</p>
         <label className="block">年級<select name="grade" defaultValue={dashboard.classroom?.grade || "高一"} className={fieldClass}>{["高一", "高二", "高三"].map((grade) => <option key={grade}>{grade}</option>)}</select></label>
         <label className="block">班級人數<input type="number" name="studentCount" min={1} max={200} defaultValue={dashboard.classroom?.studentCount || 30} required className={fieldClass} /></label>
+        <label className="block">班級程式碼<input name="classCode" minLength={8} maxLength={64} pattern="[A-Za-z0-9][A-Za-z0-9-]{7,63}" defaultValue={dashboard.classroom?.joinCode || ""} required autoComplete="off" spellCheck={false} className={`${fieldClass} uppercase`} placeholder="例如 SHELTER-2026" /></label>
+        <p className="text-xs text-stone-500">8–64 個英文字母、數字或連字號。學生註冊與登入時會使用此代碼，且不可與其他班級重複。</p>
         <label className="block">課程週數<input value="6 週" readOnly className={fieldClass} /></label>
         <p className="text-xs">ShelterLab 採固定六週闖關；學生完成前一週並經教師通過後，才會解鎖下一週。</p>
         <button disabled={busy || !school} className={buttonClass}>{busy ? "儲存中…" : "儲存並載入在地設定"}</button>

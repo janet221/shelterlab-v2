@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PublicFooter, PublicHeader } from "@/app/_components/public-shell";
+import { PublicGridBackground, publicGridOverlay } from "@/app/_components/public-grid-background";
 import { getPublicTourStep, publicTourSteps } from "@/lib/public-demo/engine";
 
 export function generateStaticParams() {
@@ -24,9 +25,9 @@ export default async function TourStepPage({ params }: { params: Promise<{ step:
   const next = publicTourSteps[index + 1];
 
   return (
-    <div className="relative min-h-screen bg-[#f7f1e6] text-[#4a3f35]">
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(227,184,90,0.22),transparent_38%),linear-gradient(180deg,#fffaf0_0%,#f6eddc_100%)]" />
-      <div className="flex min-h-screen flex-col bg-white/15">
+    <div className="relative min-h-screen text-[#4a3f35]">
+      <PublicGridBackground />
+      <div className={`flex min-h-screen flex-col ${publicGridOverlay}`}>
         <PublicHeader />
         <main className="mx-auto w-full max-w-6xl flex-grow px-4 py-8 sm:px-6 lg:px-8">
           <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
@@ -44,9 +45,9 @@ export default async function TourStepPage({ params }: { params: Promise<{ step:
                       <Link
                         href={`/tour/${item.slug}`}
                         aria-current={item.slug === current.slug ? "step" : undefined}
-                        className={`block rounded-xl px-3 py-3 text-sm leading-6 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b8893e] ${item.slug === current.slug ? "border border-[#d8b866] bg-[#f8edcf] font-bold text-[#4b3926]" : "text-[#6f604f] hover:bg-[#fff7e5]"}`}
+                        className={`block rounded-xl px-3 py-3 text-sm leading-6 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9c8761] ${item.slug === current.slug ? "border border-[#d8c59e] bg-[#f8f0df] font-bold text-[#4b3926]" : "text-[#6f604f] hover:bg-[#fff7e5]"}`}
                       >
-                        <span className="mr-2 font-mono font-bold text-[#b8893e]">{String(item.sequence).padStart(2, "0")}</span>
+                        <span className="mr-2 font-mono font-bold text-[#8f7c5e]">{String(item.sequence).padStart(2, "0")}</span>
                         {item.title}
                       </Link>
                     </li>
@@ -56,23 +57,23 @@ export default async function TourStepPage({ params }: { params: Promise<{ step:
             </aside>
 
             <article className="rounded-3xl border border-[#e3cfaa] bg-[#fffdf8] p-7 shadow-[0_28px_80px_-55px_rgba(93,65,28,0.55)] sm:p-12">
-              <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#a37b35]">{current.eyebrow}</span>
+              <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#8f7c5e]">{current.eyebrow}</span>
               <h2 className="mt-4 text-3xl font-bold leading-tight text-[#332a22] sm:text-4xl">{current.title}</h2>
               <p className="mt-7 text-lg leading-8 text-[#5e5041]">{current.summary}</p>
               <p className="mt-4 leading-8 text-[#6f604f]">{current.detail}</p>
 
               {current.sequence === 1 && current.evidenceHref && (
-                <Link className="mt-8 inline-flex min-h-12 items-center rounded-full bg-[#c99d45] px-6 py-3 text-sm font-bold text-[#30251b] transition hover:bg-[#ddb85f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8f6725]" href={current.evidenceHref}>{current.evidenceLabel} →</Link>
+                <Link className="mt-8 inline-flex min-h-12 items-center rounded-full border border-[#dec692] bg-[#ebd197] px-6 py-3 text-sm font-bold text-[#30251b] transition hover:bg-[#f4e4bd] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#9c8761]" href={current.evidenceHref}>{current.evidenceLabel} →</Link>
               )}
 
               <section className="mb-8 mt-16" aria-label="導覽進度">
                 <div className="mb-3 flex items-center justify-between text-xs font-mono text-[#95784d]"><span>實作步驟</span><span>{current.sequence} / {publicTourSteps.length}</span></div>
-                <div className="flex gap-1.5">{publicTourSteps.map((item) => <span key={item.slug} className={`h-1.5 flex-1 rounded-full ${item.sequence <= current.sequence ? "bg-[#c99d45]" : "bg-[#eadfc9]"}`} />)}</div>
+                <div className="flex gap-1.5">{publicTourSteps.map((item) => <span key={item.slug} className={`h-1.5 flex-1 rounded-full ${item.sequence <= current.sequence ? "bg-[#b49a68]" : "bg-[#eadfc9]"}`} />)}</div>
               </section>
 
               <nav aria-label="步驟切換" className="flex items-center justify-between gap-4 border-t border-[#ead9b7] pt-8">
                 {previous ? <Link className="rounded-full border border-[#d8bd88] px-5 py-2.5 text-sm font-bold text-[#66503a] transition hover:bg-[#fbf1dd]" href={`/tour/${previous.slug}`}>← 上一步</Link> : <span />}
-                {next ? <Link className="rounded-full bg-[#3f3124] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#5c4733]" href={`/tour/${next.slug}`}>下一步 →</Link> : <Link className="rounded-full bg-[#c99d45] px-5 py-2.5 text-sm font-bold text-[#30251b] transition hover:bg-[#ddb85f]" href="/start">開始體驗 →</Link>}
+                {next ? <Link className="rounded-full bg-[#6f6257] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#594e45]" href={`/tour/${next.slug}`}>下一步 →</Link> : <Link className="rounded-full border border-[#dec692] bg-[#ebd197] px-5 py-2.5 text-sm font-bold text-[#30251b] transition hover:bg-[#f4e4bd]" href="/start">開始體驗 →</Link>}
               </nav>
             </article>
           </div>

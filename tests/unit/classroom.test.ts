@@ -58,15 +58,16 @@ describe("authoritative COA classroom evidence", () => {
     expect(() => validateAnswers(set, answers.map(a => ({ ...a, selectedAnimalIds: ["fake"] })))).toThrow();
     expect(() => validateAnswers(set, answers.map(a => ({ ...a, selectedAnimalIds: ["a", "a"] })))).toThrow();
   });
-  it("accepts exactly the five settings and rejects address or privilege fields", () => {
-    const data = { schoolId: "120303", county: "高雄市", grade: "高一", studentCount: 30, plannedWeeks: 6 };
+  it("accepts the teacher class code settings and rejects address or privilege fields", () => {
+    const data = { classCode: "SHELTER-2026", schoolId: "120303", county: "高雄市", grade: "高一", studentCount: 30, plannedWeeks: 6 };
     expect(settingsSchema.safeParse(data).success).toBe(true); expect(settingsSchema.safeParse({ ...data, address: "不應收集" }).success).toBe(false);
+    expect(settingsSchema.safeParse({ ...data, classCode: "短碼" }).success).toBe(false);
     expect(submissionSchema.safeParse({ version: 0, generation: 0, status: "completed", answers: [] }).success).toBe(false);
   });
   it("uses the approved six-week labels and rejects shortened courses", () => {
     expect(courseWeekLabel(1)).toBe("第一週｜角色與處境");
     expect(courseWeekLabel(6)).toBe("第六週｜現場與行動");
-    expect(settingsSchema.safeParse({ schoolId: "120303", county: "高雄市", grade: "高一", studentCount: 30, plannedWeeks: 5 }).success).toBe(false);
+    expect(settingsSchema.safeParse({ classCode: "SHELTER-2026", schoolId: "120303", county: "高雄市", grade: "高一", studentCount: 30, plannedWeeks: 5 }).success).toBe(false);
   });
 });
 describe("account security boundaries", () => {
