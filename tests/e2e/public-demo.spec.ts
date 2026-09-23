@@ -69,11 +69,14 @@ test("public surfaces use the gold and cream theme without green utility colors"
 test("student and teacher authentication request the correct verification codes", async ({ page }) => {
   await page.goto("/auth?role=student");
   await expect(page.locator('div[style*="b.jpg"]')).toBeVisible();
+  await expect(page.getByTestId("auth-content")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(page.locator("footer")).not.toBeInViewport();
   await expect(page.locator('input[name="classCode"]')).toHaveCount(0);
   await page.getByRole("tab", { name: "建立帳號" }).click();
   await expect(page.locator('input[name="classCode"]')).toBeVisible();
   await expect(page.getByText("請使用教師提供的班級代碼建立帳號，系統會將學習紀錄連結至正確班級。")).toHaveCount(0);
-  await expect(page.getByText("請向授課教師索取；註冊時也會核對帳號所屬班級。")).toBeVisible();
+  await expect(page.getByText("請向授課教師索取班級代碼以加入班級。")).toBeVisible();
+  await expect(page.getByText("建議使用 12 字元以上，或一段您容易記憶的長句子")).toHaveCount(0);
   await expect(page.getByLabel("教師邀請碼")).toHaveCount(0);
 
   await page.goto("/auth?role=teacher");
@@ -81,6 +84,10 @@ test("student and teacher authentication request the correct verification codes"
   await expect(page.getByLabel("教師邀請碼")).toHaveCount(0);
   await page.getByRole("tab", { name: "建立帳號" }).click();
   await expect(page.getByLabel("教師邀請碼")).toBeVisible();
+  await expect(page.getByLabel("教師邀請碼")).toHaveAttribute("placeholder", "請輸入管理單位提供的邀請碼");
+  await expect(page.getByText("教師帳號需使用管理單位提供的邀請碼驗證。", { exact: false })).toHaveCount(0);
+  await expect(page.getByText("邀請碼僅用於驗證教師身分，不會成為學生的班級代碼。")).toHaveCount(0);
+  await expect(page.getByText("建議使用 12 字元以上，或一段您容易記憶的長句子")).toHaveCount(0);
   await expect(page.locator('input[name="classCode"]')).toHaveCount(0);
 
   await page.goto("/auth?role=teacher&mode=signup");
