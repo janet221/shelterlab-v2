@@ -39,15 +39,15 @@ const curriculum = [
   ["生命教育", "理解個體需求、長期照護與福利", "責任盤點、情境反思"],
   ["公民參與", "比較政策、理解利害關係與資源限制", "方案分析、動保行動提案"]
 ];
-const button = "inline-flex min-h-12 items-center justify-center rounded-full px-7 py-3 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-700";
+const button = "inline-flex min-h-12 items-center justify-center rounded-full px-7 py-3 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b8893e]";
 const heading = "text-2xl font-bold leading-relaxed tracking-tight sm:text-3xl";
 
 function LearningTable({ label, headers, rows }: { label: string; headers: string[]; rows: string[][] }) {
   return (
-    <div className="mt-8 overflow-x-auto rounded-2xl border border-stone-200 bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-700" role="region" aria-label={label} tabIndex={0}>
+    <div className="mt-8 overflow-x-auto rounded-2xl border border-[#e5d3ae] bg-[#fffdf8] shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#b8893e]" role="region" aria-label={label} tabIndex={0}>
       <table className="w-full min-w-[680px] text-left text-sm leading-7 sm:text-base">
         <caption className="sr-only">{label}</caption>
-        <thead className="bg-[#e9eee7] text-[#314b40]"><tr>{headers.map((header) => <th key={header} scope="col" className="px-6 py-5 font-bold">{header}</th>)}</tr></thead>
+        <thead className="bg-[#f3e3bf] text-[#4a3824]"><tr>{headers.map((header) => <th key={header} scope="col" className="px-6 py-5 font-bold">{header}</th>)}</tr></thead>
         <tbody className="divide-y divide-stone-200">{rows.map(([title, practice, question]) => <tr key={title} className="align-top even:bg-stone-50/70"><th scope="row" className="w-1/4 px-6 py-5 font-semibold text-stone-800">{title}</th><td className="w-2/5 px-6 py-5 text-stone-600">{practice}</td><td className="px-6 py-5 text-stone-700">{question}</td></tr>)}</tbody>
       </table>
     </div>
@@ -57,7 +57,7 @@ function LearningTable({ label, headers, rows }: { label: string; headers: strin
 export default function HomePage() {
   return (
     <PublicPageShell>
-      <div className="bg-[#f7f4ef] text-[#403b33]">
+      <div className="bg-[linear-gradient(180deg,#fffaf0_0%,#f7f0e4_48%,#fffaf2_100%)] text-[#403b33]">
         <section className="relative isolate overflow-hidden bg-[#332a22] text-white">
           <Image src="/Shelter-Dog.png" alt="在戶外奔跑的犬隻" fill priority sizes="100vw" className="-z-20 object-cover object-center" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#211f19]/95 via-[#211f19]/80 to-[#211f19]/30" />
@@ -84,18 +84,18 @@ export default function HomePage() {
           <section aria-labelledby="map-title"><h2 id="map-title" className={heading}>六週學習地圖｜從理解處境，到規劃行動</h2><LearningTable label="六週學習地圖" headers={["週次", "探究主題", "帶著一個問題出發"]} rows={weeks} /></section>
           <section aria-labelledby="goals-title">
             <h2 id="goals-title" className={heading}>我們希望學生學會的四件事</h2>
-            <ol className="mt-8 grid gap-5 md:grid-cols-2">{goals.map(([title, description], index) => <li key={title} className="rounded-3xl border border-stone-200 bg-white p-6 sm:p-8"><span aria-hidden="true" className="text-sm font-bold tracking-widest text-teal-700">0{index + 1}</span><h3 className="mt-4 text-xl font-bold leading-8">{title}</h3><p className="mt-3 leading-8 text-stone-600">{description}</p></li>)}</ol>
+            <ol className="mt-8 grid gap-5 md:grid-cols-2">{goals.map(([title, description], index) => <li key={title} className="rounded-3xl border border-[#e5d3ae] bg-[#fffdf8] p-6 shadow-sm sm:p-8"><span aria-hidden="true" className="text-sm font-bold tracking-widest text-[#ad8138]">0{index + 1}</span><h3 className="mt-4 text-xl font-bold leading-8">{title}</h3><p className="mt-3 leading-8 text-stone-600">{description}</p></li>)}</ol>
           </section>
           <section aria-labelledby="connections-title">
             <h2 id="connections-title" className={heading}>從課堂出發，連結真實世界</h2>
-            <ul className="mt-8 grid gap-6 lg:grid-cols-3">{connections.map(([title, description]) => <li key={title} className="border-t-4 border-[#9ba995] pt-6"><h3 className="text-lg font-bold leading-8">{title}</h3><p className="mt-3 leading-8 text-stone-600">{description}</p></li>)}</ul>
+            <ul className="mt-8 grid gap-6 lg:grid-cols-3">{connections.map(([title, description]) => <li key={title} className="border-t-4 border-[#d7ae55] pt-6"><h3 className="text-lg font-bold leading-8">{title}</h3><p className="mt-3 leading-8 text-stone-600">{description}</p></li>)}</ul>
           </section>
-          <section aria-labelledby="outcomes-title" className="rounded-3xl bg-[#e9eee7] p-6 sm:p-10">
+          <section aria-labelledby="outcomes-title" className="rounded-3xl border border-[#e3cfaa] bg-[#f6ead0] p-6 sm:p-10">
             <h2 id="outcomes-title" className={heading}>讓學習成果看得見</h2><p className="mt-5 leading-8 text-stone-600">學生帶走的不只是測驗答案，而是一段可以回顧的思考歷程：</p>
-            <ul className="mt-7 grid gap-5 md:grid-cols-2">{outcomes.map(([title, question]) => <li key={title} className="rounded-2xl bg-white/80 p-5 leading-8"><strong className="text-[#314b40]">{title}：</strong>{question}</li>)}</ul>
+            <ul className="mt-7 grid gap-5 md:grid-cols-2">{outcomes.map(([title, question]) => <li key={title} className="rounded-2xl bg-white/85 p-5 leading-8"><strong className="text-[#6f4f20]">{title}：</strong>{question}</li>)}</ul>
           </section>
           <section aria-labelledby="curriculum-title"><h2 id="curriculum-title" className={heading}>連結高中探究與實作</h2><LearningTable label="連結高中探究與實作" headers={["學習面向", "課程中的練習", "可整理的學習成果"]} rows={curriculum} /></section>
-          <section aria-labelledby="cta-title" className="rounded-3xl bg-[#344b40] px-6 py-12 text-center text-white sm:px-12 sm:py-16">
+          <section aria-labelledby="cta-title" className="rounded-3xl bg-[#4a3828] px-6 py-12 text-center text-white shadow-xl sm:px-12 sm:py-16">
             <h2 id="cta-title" className={heading}>讓下一份關心，多一點理解與準備</h2><p className="mt-6 text-lg text-[#ebd197]">改變可以從一個更好的問題開始。</p><p className="mx-auto mt-4 max-w-2xl leading-8 text-stone-100">走進 ShelterLab，練習用證據理解動物議題，用同理看見不同處境，再找到自己能負責完成的一步。</p>
             <div className="mt-8 flex flex-wrap justify-center gap-4"><Link href="/tour/welcome" className={`${button} border border-white/60 hover:bg-white/10`}>如何運作</Link><Link href="/start" className={`${button} bg-[#ebd197] text-[#332a22] hover:bg-white`}>開始體驗</Link></div>
           </section>

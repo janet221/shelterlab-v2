@@ -22,12 +22,16 @@ html {
 
 :root {
   color-scheme: light;
+  --shelterlab-gold: #c99d45;
+  --shelterlab-gold-dark: #8f6725;
+  --shelterlab-cream: #fffaf0;
+  --shelterlab-ink: #3c3024;
 }
 
 body {
   margin: 0;
-  background:transparent !important;
-  color: #111827;
+  background: #fffaf0;
+  color: #3c3024;
   /* 🚀 2. 使用剛剛定義好的字體名稱 */
   font-family: 'NotoSerifTC', serif !important;
   letter-spacing: 0;

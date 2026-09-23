@@ -6,7 +6,7 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 type Mode = "login" | "signup";
 type ClassCodeResult = { classId: string; classCode: string; error?: string };
 
-const fieldClass = "mt-2 w-full rounded-2xl border border-stone-300 bg-white px-4 py-3.5 text-stone-900 shadow-sm outline-none transition placeholder:text-stone-400 focus:border-teal-700 focus:ring-4 focus:ring-teal-700/10 disabled:bg-stone-100";
+const fieldClass = "mt-2 w-full rounded-2xl border border-[#dbc69f] bg-[#fffdf8] px-4 py-3.5 text-[#332a22] shadow-sm outline-none transition placeholder:text-[#a99b89] focus:border-[#b8893e] focus:ring-4 focus:ring-[#d9b45b]/20 disabled:bg-[#f3eadc]";
 
 function authErrorMessage(message: string) {
   const normalized = message.toLowerCase();
@@ -107,29 +107,29 @@ export default function AuthForm() {
     }
   }
 
-  return <section className="rounded-[2rem] border border-stone-200 bg-white p-5 shadow-[0_24px_70px_-40px_rgba(15,118,110,0.45)] sm:p-7">
-    <div className="grid grid-cols-2 rounded-full bg-stone-100 p-1" role="tablist" aria-label="帳號操作">
-      {(["login", "signup"] as const).map((tab) => { const selected = mode === tab && !recovery; return <button type="button" role="tab" aria-selected={selected} className={`rounded-full px-4 py-2.5 text-sm font-bold transition-all ${selected ? "bg-white text-teal-900 shadow-sm" : "text-stone-500 hover:text-stone-800"}`} onClick={() => changeMode(tab)} key={tab}>{tab === "login" ? "登入" : "建立帳號"}</button>; })}
+  return <section className="rounded-[2rem] border border-[#e3cfaa] bg-[#fffdf8] p-5 shadow-[0_24px_70px_-40px_rgba(111,78,34,0.45)] sm:p-7">
+    <div className="grid grid-cols-2 rounded-full bg-[#f3e7d0] p-1" role="tablist" aria-label="帳號操作">
+      {(["login", "signup"] as const).map((tab) => { const selected = mode === tab && !recovery; return <button type="button" role="tab" aria-selected={selected} className={`rounded-full px-4 py-2.5 text-sm font-bold transition-all ${selected ? "bg-white text-[#5f451e] shadow-sm" : "text-[#7f705e] hover:text-[#3c3024]"}`} onClick={() => changeMode(tab)} key={tab}>{tab === "login" ? "登入" : "建立帳號"}</button>; })}
     </div>
     {recovery ? <form className="mt-7 space-y-5" onSubmit={sendRecoveryEmail}>
       <div><h2 className="text-xl font-bold text-stone-900">重設密碼</h2><p className="mt-2 text-sm leading-6 text-stone-600">輸入註冊用電子郵件，我們會寄送安全的密碼重設連結。</p></div>
       <label className="block text-sm font-bold text-stone-700">電子郵件<input className={fieldClass} name="email" type="email" autoComplete="email" required maxLength={254} /></label>
       <Status error={error} notice={notice} />
-      <button disabled={busy} className="w-full rounded-2xl bg-teal-800 px-5 py-3.5 font-bold text-white transition hover:bg-teal-900 disabled:cursor-not-allowed disabled:opacity-60">{busy ? "寄送中…" : "發送重設信"}</button>
-      <button type="button" className="w-full text-sm font-bold text-teal-800 underline-offset-4 hover:underline" onClick={() => changeMode("login")}>返回登入</button>
+      <button disabled={busy} className="w-full rounded-2xl bg-[#c99d45] px-5 py-3.5 font-bold text-[#30251b] transition hover:bg-[#ddb85f] disabled:cursor-not-allowed disabled:opacity-60">{busy ? "寄送中…" : "發送重設信"}</button>
+      <button type="button" className="w-full text-sm font-bold text-[#8f6725] underline-offset-4 hover:underline" onClick={() => changeMode("login")}>返回登入</button>
     </form> : <form className="mt-7 space-y-5" onSubmit={submitAuth}>
-      {mode === "signup" && <p className="rounded-2xl bg-teal-50 px-4 py-3 text-sm leading-6 text-teal-950">學生與教師使用個人帳號保存學習紀錄。請輸入教師提供的班級代碼後完成註冊，即可展開第一週探究任務。</p>}
+      {mode === "signup" && <p className="rounded-2xl border border-[#ead7ae] bg-[#fbf1dc] px-4 py-3 text-sm leading-6 text-[#5d4729]">學生與教師使用個人帳號保存學習紀錄。請輸入教師提供的班級代碼後完成註冊，即可展開第一週探究任務。</p>}
       <label className="block text-sm font-bold text-stone-700">Email<input className={fieldClass} name="email" type="email" autoComplete="email" required maxLength={254} /></label>
-      <label className="block text-sm font-bold text-stone-700"><span className="flex items-end justify-between gap-4"><span>密碼</span>{mode === "login" && <button type="button" className="text-xs font-bold text-teal-800 underline-offset-4 hover:underline" onClick={() => { setRecovery(true); setError(""); setNotice(""); }}>忘記密碼？</button>}</span><input className={fieldClass} name="password" type="password" minLength={mode === "signup" ? 8 : undefined} maxLength={128} autoComplete={mode === "signup" ? "new-password" : "current-password"} required />{mode === "signup" && <span className="mt-2 block text-xs font-normal text-stone-500">建議使用 12 字元以上，或一段您容易記憶的長句子</span>}</label>
+      <label className="block text-sm font-bold text-stone-700"><span className="flex items-end justify-between gap-4"><span>密碼</span>{mode === "login" && <button type="button" className="text-xs font-bold text-[#8f6725] underline-offset-4 hover:underline" onClick={() => { setRecovery(true); setError(""); setNotice(""); }}>忘記密碼？</button>}</span><input className={fieldClass} name="password" type="password" minLength={mode === "signup" ? 8 : undefined} maxLength={128} autoComplete={mode === "signup" ? "new-password" : "current-password"} required />{mode === "signup" && <span className="mt-2 block text-xs font-normal text-stone-500">建議使用 12 字元以上，或一段您容易記憶的長句子</span>}</label>
       {mode === "signup" && <label className="block text-sm font-bold text-stone-700">班級代碼<input className={`${fieldClass} uppercase`} name="classCode" required maxLength={64} autoComplete="off" placeholder="SHELTER-2026" spellCheck={false} /></label>}
       <Status error={error} notice={notice} />
-      <button disabled={busy} className="w-full rounded-2xl bg-teal-800 px-5 py-3.5 font-bold text-white transition hover:bg-teal-900 disabled:cursor-not-allowed disabled:opacity-60">{busy ? "處理中…" : mode === "signup" ? "建立帳號" : "登入"}</button>
+      <button disabled={busy} className="w-full rounded-2xl bg-[#c99d45] px-5 py-3.5 font-bold text-[#30251b] transition hover:bg-[#ddb85f] disabled:cursor-not-allowed disabled:opacity-60">{busy ? "處理中…" : mode === "signup" ? "建立帳號" : "登入"}</button>
     </form>}
   </section>;
 }
 
 function Status({ error, notice }: { error: string; notice: string }) {
   if (error) return <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800">{error}</p>;
-  if (notice) return <p role="status" className="rounded-xl bg-teal-50 px-4 py-3 text-sm font-medium text-teal-900">{notice}</p>;
+  if (notice) return <p role="status" className="rounded-xl bg-[#fbf1dc] px-4 py-3 text-sm font-medium text-[#5d4729]">{notice}</p>;
   return null;
 }

@@ -12,13 +12,14 @@ test("landing presents the six-week curriculum and working entry points", async 
   await expect(page).toHaveURL(/\/start$/);
 });
 
-test("public navigation offers five current destinations", async ({ page }) => {
+test("public navigation keeps authentication inside the start experience", async ({ page }) => {
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: "主要導覽" });
-  await expect(nav.getByRole("link")).toHaveCount(5);
-  for (const [name, href] of [["首頁", "/"], ["專案願景", "/#vision"], ["如何運作", "/tour/welcome"], ["登入／註冊", "/auth"], ["開始體驗", "/start"]]) {
+  await expect(nav.getByRole("link")).toHaveCount(4);
+  for (const [name, href] of [["首頁", "/"], ["專案願景", "/#vision"], ["如何運作", "/tour/welcome"], ["開始體驗", "/start"]]) {
     await expect(nav.getByRole("link", { name, exact: true })).toHaveAttribute("href", href);
   }
+  await expect(nav.getByRole("link", { name: "登入／註冊" })).toHaveCount(0);
 });
 
 test("landing and tables fit mobile, tablet, desktop and large monitors", async ({ page }) => {

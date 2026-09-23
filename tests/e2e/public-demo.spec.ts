@@ -1,28 +1,35 @@
 import { expect, test } from "@playwright/test";
 
-test("role selection contains exactly three direct workspace links", async ({ page }) => {
+test("role selection restores exactly three interactive role cards", async ({ page }) => {
   await page.goto("/start");
   const roles = page.getByRole("region", { name: "角色選擇" });
-  await expect(roles.getByRole("link")).toHaveCount(3);
-  for (const [name, href] of [["我是學生", "/student"], ["我是教師", "/teacher"], ["我是收容所人員", "/shelter"]]) {
-    await expect(roles.getByRole("link", { name: new RegExp(name) })).toHaveAttribute("href", href);
-  }
+  await expect(roles.getByRole("button")).toHaveCount(3);
+  await expect(roles.getByRole("link")).toHaveCount(0);
   await expect(page.getByText("我是評審或合作夥伴")).toHaveCount(0);
   await expect(page.getByText(/角色導覽不代表正式登入或/)).toHaveCount(0);
 });
 
-for (const [name, destination] of [["我是學生", "student"], ["我是教師", "teacher"], ["我是收容所人員", "shelter"]]) {
-  test(`${name} enters its workspace or login with one click`, async ({ page }) => {
+for (const [name, destination, action] of [
+  ["我是學生", "student", "進入學生登入／註冊"],
+  ["我是教師", "teacher", "進入教師登入／註冊"],
+  ["我是收容所人員", "shelter", "進入動保夥伴工作台"]
+]) {
+  test(`${name} reveals its details and correct entry`, async ({ page }) => {
     await page.goto("/start");
-    await page.getByRole("link", { name: new RegExp(name) }).click();
+    await page.getByRole("button", { name: new RegExp(name) }).click();
+    await expect(page).toHaveURL(new RegExp(`/start\\?role=${destination}$`));
+    await page.getByRole("link", { name: new RegExp(action) }).click();
     await expect(page).toHaveURL(destination === "shelter" ? /\/shelter$/ : new RegExp(`/auth\\?role=${destination}$`));
     if (destination !== "shelter") await expect(page.getByRole("heading", { name: "登入／註冊專區" })).toBeVisible();
   });
 }
 
-test("keyboard activation directly enters the student login", async ({ page }) => {
+test("keyboard activation reveals the student entry", async ({ page }) => {
   await page.goto("/start");
-  await page.getByRole("link", { name: /我是學生/ }).focus();
+  await page.getByRole("button", { name: /我是學生/ }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/start\?role=student$/);
+  await page.getByRole("link", { name: /進入學生登入／註冊/ }).focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/auth\?role=student$/);
   await expect(page.getByRole("heading", { name: "登入／註冊專區" })).toBeVisible();
@@ -38,22 +45,22 @@ test("legacy demo URLs redirect and judge routes are removed", async ({ page, re
   expect(await (await request.get("/sitemap.xml")).text()).not.toContain("/competition/judge");
 });
 
-test("eight-step guide only offers a setup action on step one", async ({ page }) => {
+test("eight-step guide shows one active step and only step one has a setup action", async ({ page }) => {
   await page.goto("/tour");
   await expect(page).toHaveURL(/\/tour\/welcome$/);
-  const cards = page.getByRole("region", { name: "八步驟學習流程" }).getByRole("article");
-  await expect(cards).toHaveCount(8);
-  await expect(cards.first().getByRole("link")).toHaveText("進入系統設置 →");
-  await expect(cards.first().getByRole("link")).toHaveAttribute("href", "/auth");
-  for (let index = 1; index < 8; index++) {
-    await expect(cards.nth(index).getByRole("link")).toHaveCount(0);
-    await expect(cards.nth(index).getByRole("button")).toHaveCount(0);
-  }
+  await expect(page.getByRole("article")).toHaveCount(1);
+  await expect(page.getByRole("article").getByRole("link", { name: "進入系統設置 →" })).toHaveAttribute("href", "/auth");
   await page.getByRole("navigation", { name: "實作步驟清單" }).getByRole("link").nth(7).click();
-  await expect(page.locator("#step-8")).toBeInViewport();
-  await page.goto("/tour/welcome");
-  await cards.first().getByRole("link").click();
-  await expect(page).toHaveURL(/\/auth$/);
+  await expect(page).toHaveURL(/\/tour\/final-vision$/);
+  await expect(page.getByRole("heading", { name: "第八步：學期結案與證據總覽" })).toBeVisible();
+  await expect(page.getByRole("article").getByRole("link", { name: /進入系統設置/ })).toHaveCount(0);
+});
+
+test("public surfaces use the gold and cream theme without green utility colors", async ({ page }) => {
+  for (const path of ["/", "/start", "/tour/welcome", "/auth?role=student"]) {
+    await page.goto(path);
+    await expect(page.locator('[class*="teal"], [class*="emerald"], [class*="green"]')).toHaveCount(0);
+  }
 });
 
 test("role and tour cards fit mobile screens", async ({ page }) => {

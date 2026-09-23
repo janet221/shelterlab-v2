@@ -25,14 +25,14 @@ export default async function StartPage({ searchParams }: { searchParams: Promis
       />
 
       {/* 內容層：調整 bg 的透明度 (例如 /70)，讓背景顯露更多 */}
-      <main className="min-h-screen bg-[#F7F4F0]/70">
+      <main className="min-h-screen bg-[linear-gradient(180deg,rgba(255,250,240,0.82),rgba(247,239,223,0.94))]">
         <div className="mx-auto max-w-7xl px-5 pt-20 pb-16 lg:px-8">
           <div className="max-w-2xl">
             <h1 className="text-5xl font-bold tracking-tight text-[#332D28]">
               【請選擇參與視角】
             </h1>
             <p className="mt-8 text-lg leading-relaxed text-[#5D5753]">
-              點選角色直接進入對應工作區。學生與教師可使用登入／註冊專區保存學習進度。
+              點選角色查看專屬功能與學習路徑。學生與教師可從角色詳情進入對應的登入／註冊介面。
             </p>
             
           </div>

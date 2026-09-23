@@ -1,3 +1,19 @@
 import { PublicPageShell } from "@/app/_components/public-shell";
 import AuthForm from "./auth-form";
-export default function AuthPage() { return <PublicPageShell><main className="mx-auto max-w-lg px-5 py-12 sm:py-16"><p className="font-bold text-teal-800">ShelterLab 學習帳號</p><h1 className="mt-2 text-3xl font-bold text-stone-900">登入／註冊專區</h1><div className="mt-7"><AuthForm /></div></main></PublicPageShell>; }
+
+export default async function AuthPage({ searchParams }: { searchParams: Promise<{ role?: string }> }) {
+  const { role } = await searchParams;
+  const roleLabel = role === "teacher" ? "教師" : role === "student" ? "學生" : "學習帳號";
+  return (
+    <PublicPageShell>
+      <main className="min-h-[70vh] bg-[radial-gradient(circle_at_top,rgba(227,184,90,0.2),transparent_42%),linear-gradient(180deg,#fffaf0,#f6eddc)] px-5 py-12 sm:py-16">
+        <div className="mx-auto max-w-lg">
+          <p className="font-bold tracking-wide text-[#9b7130]">ShelterLab · {roleLabel}</p>
+          <h1 className="mt-2 text-3xl font-bold text-[#332a22]">登入／註冊專區</h1>
+          <p className="mt-3 leading-7 text-[#6f604f]">登入後保存課程進度與學習紀錄；第一次使用可直接建立帳號。</p>
+          <div className="mt-7"><AuthForm /></div>
+        </div>
+      </main>
+    </PublicPageShell>
+  );
+}

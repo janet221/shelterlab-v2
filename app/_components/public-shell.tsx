@@ -20,7 +20,6 @@ const primaryNav = [
   ["首頁", "/"],
   ["專案願景", "/#vision"],
   ["如何運作", "/tour/welcome"],
-  ["登入／註冊", "/auth"],
   ["開始體驗", "/start"]
   
 ] as const;
@@ -119,10 +118,6 @@ export function PublicFooter() {
           <Brand inverse />
           <p className="mt-4 max-w-md text-xs leading-6 text-[#cdbfae]/80">
             ShelterLab 是青少年動物科學教育的領航平台，透過整合政府開放資料與收容所行為科學數據，賦能下一代以公民科學家的身份，實踐證據治理，為動物共融城市貢獻科學力量。
-          </p>
-          {/* 免責聲明：保留專業嚴謹感 */}
-          <p className="mt-4 text-xs font-semibold leading-5 text-[#ebd197]">
-            競賽原型展示｜所有內容均使用模擬資料｜尚未與收容所進行實質合作或宣稱任何認養成效
           </p>
         </div>
 
