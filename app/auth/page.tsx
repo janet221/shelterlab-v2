@@ -7,7 +7,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
   const accountRole = role === "teacher" ? "teacher" : "student";
   const roleLabel = accountRole === "teacher" ? "教師" : "學生";
   return (
-    <PublicPageShell>
+    <PublicPageShell hideFooter>
       <div className="relative isolate">
         <PublicGridBackground />
         <section data-testid="auth-shell" className="min-h-[calc(100svh-4.5rem)] px-5 py-12 sm:py-16">

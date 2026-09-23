@@ -58,26 +58,26 @@ export default function HomePage() {
   return (
     <PublicPageShell>
       <div className="bg-[linear-gradient(180deg,#fffaf0_0%,#f7f0e4_48%,#fffaf2_100%)] text-[#403b33]">
-        <section id="top" className="relative isolate overflow-hidden bg-[#332a22] text-white">
-          <Image src="/Shelter-Dog.png" alt="在戶外奔跑的犬隻" fill priority sizes="100vw" className="-z-20 object-cover object-center" />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#211f19]/88 via-[#211f19]/68 to-[#211f19]/26" />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#211f19]/52 via-[#211f19]/10 to-[#211f19]/22" />
-          <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24 lg:py-28">
-            <div data-testid="hero-panel" className="max-w-4xl rounded-[2rem] border border-white/20 bg-[#191713]/80 p-6 shadow-[0_28px_90px_-34px_rgba(0,0,0,0.82)] backdrop-blur-lg sm:p-9 lg:p-12">
-              <header>
-                <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#f0d99f] sm:text-sm">六週數位探究課程 · Evidence-led learning</p>
-                <h1 className="mt-5 max-w-4xl text-balance text-4xl font-bold leading-[1.18] tracking-[-0.035em] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] sm:text-5xl lg:text-6xl">ShelterLab｜青少年動物科學探究實驗室</h1>
-              </header>
-
-              <div className="mt-8 max-w-3xl border-l-4 border-[#e7c77f] pl-5 sm:mt-10 sm:pl-7">
-                <p className="text-xl font-bold leading-relaxed text-[#f5dda7] sm:text-2xl lg:text-3xl">從看見一隻犬，到理解牠身後的世界。</p>
-                <p className="mt-5 max-w-2xl text-sm leading-7 text-[#fffaf0] sm:text-base sm:leading-8">連結校園學習、政府開放資料與收容所實務，讓青少年透過六週數位課程，練習閱讀證據、辨識偏見、理解不同立場，並提出負責任的動保行動。</p>
-                <blockquote className="mt-6 rounded-2xl border border-white/15 bg-black/20 px-5 py-4 text-sm leading-7 text-white/90 sm:text-base sm:leading-8">從「我想幫助牠」開始，進一步思考：<strong className="mt-1 block text-[#f5dda7]">我知道什麼？還需要查證什麼？怎麼做才真正有幫助？</strong></blockquote>
-              </div>
-
-              <div className="mt-8 flex flex-col gap-3 border-t border-white/20 pt-7 sm:flex-row sm:flex-wrap sm:gap-4">
-                <Link href="/start" className={`${button} w-full bg-[#f6d98c] px-8 py-4 text-base text-[#30251b] shadow-[0_12px_30px_-12px_rgba(246,217,140,0.65)] hover:-translate-y-1 hover:bg-[#fff0bd] hover:shadow-[0_16px_36px_-12px_rgba(246,217,140,0.8)] sm:w-auto`}>開始六週探索</Link>
-                <Link href="#vision" className={`${button} w-full border border-white/70 bg-white/10 px-8 py-4 text-base text-white shadow-lg shadow-black/15 hover:-translate-y-1 hover:border-white hover:bg-white/20 sm:w-auto`}>了解專案細節</Link>
+        <section id="top" data-testid="version2-hero" className="relative h-[90vh] w-full overflow-hidden">
+          <Image src="/Shelter-Dog.png" alt="Shelter Dog running" fill priority sizes="100vw" className="object-cover object-center" />
+          <div className="absolute bottom-0 left-0 z-10 w-full bg-gradient-to-t from-[#332a22]/90 via-[#332a22]/30 to-transparent px-10 pb-20 pt-32 md:px-20">
+            <div className="mx-auto flex h-full max-w-7xl flex-col items-start justify-end">
+              <span className="mb-4 inline-block rounded-full border border-[#ebd197]/50 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.3em] text-[#ebd197]">
+                One Health Education Initiative
+              </span>
+              <h1 className="max-w-[850px] text-4xl font-extrabold leading-[1.15] tracking-tight text-white drop-shadow-md md:text-5xl lg:text-6xl">
+                ShelterLab:青少年科學實驗室
+                <span className="mt-5 block text-xl font-medium leading-snug text-[#ebd197] drop-shadow-sm md:text-2xl lg:text-3xl">
+                  校園+政府+收容所的動物科學資訊協作平台
+                </span>
+              </h1>
+              <p className="mt-6 max-w-[500px] text-base font-normal leading-relaxed text-white/80 drop-shadow-sm md:text-lg">
+                透過數位協作，將收容所轉化為真實的科學探究場域。讓每一位青少年的觀察，都成為提升動物認養品質的關鍵數據資產。
+              </p>
+              <div className="mt-8">
+                <Link className="inline-block rounded-full bg-[#ebd197] px-8 py-3 text-sm font-bold tracking-wider text-[#332a22] shadow-xl transition hover:bg-white md:text-base" href="/#vision">
+                  了解專案願景
+                </Link>
               </div>
             </div>
           </div>

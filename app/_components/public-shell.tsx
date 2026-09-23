@@ -5,13 +5,13 @@ import Image from "next/image";
 
 export const githubUrl = "https://github.com/oysunny752-maker/shelterlab";
 // @/app/_components/public-shell.tsx
-export function PublicPageShell({ children }: { children: React.ReactNode }) {
+export function PublicPageShell({ children, hideFooter = false }: { children: React.ReactNode; hideFooter?: boolean }) {
   // 移除 bg-[#f9f6ee]
   return (
     <div className="min-h-screen text-[#4a3f35]">
       <PublicHeader />
       <main>{children}</main>
-      <PublicFooter />
+      {!hideFooter && <PublicFooter />}
     </div>
   );
 }
