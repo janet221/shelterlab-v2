@@ -24,15 +24,6 @@ const primaryNav = [
   
 ] as const;
 
-const footerLinks = [
-  ["隱私權", "/privacy"],
-  ["研究聲明", "/research-notice"],
-  ["GitHub", githubUrl],
-  ["聯絡我們", "/contact"],
-  ["政府開放資料", "/government-data"],
-  ["技術文件", githubUrl]
-] as const;
-
 /* =========================================================================
    🎯 BRAND 元件：極致貼左調整
    ========================================================================= */
@@ -117,31 +108,21 @@ export function PublicFooter() {
         <div>
           <Brand inverse />
           <p className="mt-4 max-w-md text-xs leading-6 text-[#cdbfae]/80">
-            ShelterLab 是青少年動物科學教育的領航平台，透過整合政府開放資料與收容所行為科學數據，賦能下一代以公民科學家的身份，實踐證據治理，為動物共融城市貢獻科學力量。
+            ShelterLab 連結校園學習、政府開放資料與收容實務，引導青少年閱讀證據、辨識偏見、理解不同立場，讓關心轉化為有依據的判斷與能負責完成的行動。
           </p>
         </div>
 
         {/* 導覽列 */}
         <nav className="grid content-start gap-2.5 text-sm" aria-label="核心功能">
           <strong className="mb-1 text-[#ebd197] font-bold">探索實驗室</strong>
-          <Link className="hover:text-white transition-colors" href="/start">立即開始體驗</Link>
-          <Link className="hover:text-white transition-colors" href="/tour/welcome">協作流程說明</Link>
-          <Link className="hover:text-white transition-colors" href="/demo">系統示範展示</Link>
+          <Link className="hover:text-white transition-colors" href="/#vision">專案願景</Link>
+          <Link className="hover:text-white transition-colors" href="/tour/welcome">如何運作</Link>
+          <Link className="hover:text-white transition-colors" href="/start">開始體驗</Link>
         </nav>
 
         <nav className="grid content-start gap-2.5 text-sm" aria-label="補充資訊">
           <strong className="mb-1 text-[#ebd197] font-bold">延伸資源</strong>
-          {footerLinks.map(([label, href]) =>
-            href.startsWith("http") ? (
-              <a className="hover:text-white transition-colors" href={href} key={label} rel="noreferrer" target="_blank">
-                {label}
-              </a>
-            ) : (
-              <Link className="hover:text-white transition-colors" href={href} key={label}>
-                {label}
-              </Link>
-            )
-          )}
+          <Link className="hover:text-white transition-colors" href="/government-data">政府開放資料</Link>
         </nav>
       </div>
 

@@ -65,9 +65,11 @@ test("public surfaces use the gold and cream theme without green utility colors"
 
 test("student and teacher authentication request the correct verification codes", async ({ page }) => {
   await page.goto("/auth?role=student");
-  await expect(page.locator('input[name="classCode"]')).toBeVisible();
+  await expect(page.locator('input[name="classCode"]')).toHaveCount(0);
   await page.getByRole("tab", { name: "建立帳號" }).click();
   await expect(page.locator('input[name="classCode"]')).toBeVisible();
+  await expect(page.getByText("請使用教師提供的班級代碼建立帳號，系統會將學習紀錄連結至正確班級。")).toHaveCount(0);
+  await expect(page.getByText("請向授課教師索取；註冊時也會核對帳號所屬班級。")).toBeVisible();
   await expect(page.getByLabel("教師邀請碼")).toHaveCount(0);
 
   await page.goto("/auth?role=teacher");

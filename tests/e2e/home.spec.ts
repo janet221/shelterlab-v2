@@ -22,6 +22,31 @@ test("public navigation keeps authentication inside the start experience", async
   await expect(nav.getByRole("link", { name: "登入／註冊" })).toHaveCount(0);
 });
 
+test("footer mirrors the primary journey and keeps one resource link", async ({ page }) => {
+  await page.goto("/");
+  const footer = page.locator("footer");
+  const journey = footer.getByRole("navigation", { name: "核心功能" });
+  await expect(journey.getByRole("link")).toHaveCount(3);
+  await expect(journey.getByRole("link", { name: "專案願景", exact: true })).toHaveAttribute("href", "/#vision");
+  await expect(journey.getByRole("link", { name: "如何運作", exact: true })).toHaveAttribute("href", "/tour/welcome");
+  await expect(journey.getByRole("link", { name: "開始體驗", exact: true })).toHaveAttribute("href", "/start");
+  const resources = footer.getByRole("navigation", { name: "補充資訊" });
+  await expect(resources.getByRole("link")).toHaveCount(1);
+  await expect(resources.getByRole("link", { name: "政府開放資料", exact: true })).toHaveAttribute("href", "/government-data");
+});
+
+test("government data page lists datasets and cited resources", async ({ page }) => {
+  await page.goto("/government-data");
+  await expect(page.getByRole("heading", { level: 1, name: "政府開放資料與引用資源" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "政府開放資料來源清冊" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "教育與民間引用資源" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "研究文獻" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "前往來源 ↗" })).toHaveCount(42);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
 test("landing and tables fit mobile, tablet, desktop and large monitors", async ({ page }) => {
   for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
     await page.setViewportSize(viewport);

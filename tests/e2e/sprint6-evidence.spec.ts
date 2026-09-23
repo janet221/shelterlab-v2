@@ -10,8 +10,8 @@ test("teacher follows source to independently governed publication evidence", as
 
   await page.getByRole("link", { name: "Source browser", exact: true }).click();
   await expect(page.getByRole("heading", { name: "政府開放資料來源清冊" })).toBeVisible();
-  await expect(page.getByText("合成示範資料（SYNTHETIC_DEMO）", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("尚未驗證（UNVERIFIED）", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "官方法規、政策與服務資訊" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "教育與民間引用資源" })).toBeVisible();
 
   await page.goto("/teacher/curriculum/coverage");
   await expect(page.getByRole("heading", { name: "Competency coverage matrix" })).toBeVisible();

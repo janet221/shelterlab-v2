@@ -1,67 +1,127 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { sprint6DatasetRegistry } from "@/lib/government-data/sprint6-fixtures";
-import { publicLabel } from "@/lib/public-site/locale";
+import { PublicPageShell } from "@/app/_components/public-shell";
 
-export const metadata: Metadata = { title: "政府開放資料來源", description: "ShelterLab 政府開放資料驗證狀態與用途清冊。" };
-
-const stateStyle: Record<string, string> = {
-  VERIFIED: "border-emerald-300 bg-emerald-50 text-emerald-800",
-  METADATA_VERIFIED: "border-cyan-300 bg-cyan-50 text-cyan-800",
-  SYNTHETIC_DEMO: "border-blue-300 bg-blue-50 text-blue-800",
-  UNVERIFIED: "border-amber-300 bg-amber-50 text-amber-900",
-  UNAVAILABLE: "border-rose-300 bg-rose-50 text-rose-800"
+export const metadata: Metadata = {
+  title: "政府開放資料與引用資源",
+  description: "ShelterLab 課程使用的政府開放資料、官方資訊、教育資源與研究引用清冊。",
 };
 
-const retrievalLabel: Record<string, string> = { SUCCESS: "同步成功", READY: "可供使用", FAILED: "同步失敗" };
-const moduleLabel: Record<string, string> = {
-  QUESTION_GENERATION: "題目產生",
-  REMEDIATION: "學習補強",
-  COMPETITION_EVIDENCE: "競賽證據",
-  CURRICULUM_DISCOVERY: "課程探索",
-  LEARNING_RESOURCE_MAPPING: "學習資源對應",
-  INQUIRY_CONTEXT: "探究資料脈絡",
-  COMPETENCY_CONTEXT: "素養資料脈絡"
+type Resource = {
+  title: string;
+  provider: string;
+  url: string;
+  note: string;
+  status?: "使用中" | "中繼資料" | "背景引用";
 };
+
+const openDatasets: Resource[] = [
+  { title: "動物認領養", provider: "農業部動物保護司", url: "https://data.gov.tw/dataset/85903", note: "提供公開待認養動物個案欄位，作為六週課程的資料判讀與個案比較素材。", status: "使用中" },
+  { title: "全國公立動物收容所收容處理情形統計表", provider: "農業部", url: "https://data.gov.tw/dataset/41236", note: "提供縣市與月份層級的入所、認領養及處理統計，用於政策與資料限制討論。", status: "使用中" },
+  { title: "全國公立動物收容所收容處理情形統計表二", provider: "農業部", url: "https://data.nat.gov.tw/dataset/73396", note: "提供容量、月底在養與入所來源等欄位，用於理解收容現場需求。", status: "使用中" },
+  { title: "全國公立動物收容所資料", provider: "農業部", url: "https://data.gov.tw/dataset/134284", note: "提供公立收容所與動物之家基本資料，支援資源地圖及官方單位連結。", status: "使用中" },
+  { title: "一般高級中等學校名錄", provider: "教育部統計處", url: "https://data.gov.tw/dataset/6089", note: "用於確認學校與縣市，協助篩選同縣市動保資源；不推算未提供的距離。", status: "使用中" },
+  { title: "國家教育研究院愛學網", provider: "國家教育研究院", url: "https://data.gov.tw/dataset/6318", note: "僅使用教材中繼資料與官方外部連結，不下載、鏡像或重新散布影片。", status: "中繼資料" },
+  { title: "各級學校縣市別學生人數", provider: "教育部統計處", url: "https://data.gov.tw/dataset/40121", note: "提供縣市層級教育背景資料，用於探究情境與素養脈絡。", status: "背景引用" },
+  { title: "國家教育研究院全國中小學題庫網", provider: "國家教育研究院", url: "https://data.gov.tw/dataset/29027", note: "保留歷史索引與中繼資料；原網站已停止更新，不提供題目內容或答案。", status: "中繼資料" },
+  { title: "國中教育會考各科試題通過率", provider: "教育部國民及學前教育署", url: "https://data.gov.tw/dataset/15391", note: "作為資料治理與教育統計背景清冊，目前不直接參與學生評量。", status: "背景引用" },
+];
+
+const officialReferences: Resource[] = [
+  { title: "動物保護法", provider: "全國法規資料庫", url: "https://law.moj.gov.tw/LawClass/LawAll.aspx?PCode=M0060027", note: "飼主責任、動物福利與公共政策討論的法規依據。" },
+  { title: "政府部門執勤犬照護管理規則", provider: "農業部", url: "https://law.moa.gov.tw/LawContent.aspx?id=GL000669&media=print", note: "工作犬照護與角色差異課程的官方規範。" },
+  { title: "合法寵物業者名單", provider: "農業部寵物登記管理資訊網", url: "https://www.pet.gov.tw/Web/BusinessList.aspx", note: "供學生練習查核犬隻來源與業者合法性。" },
+  { title: "犬貓寵物登記新制", provider: "農業部", url: "https://animal.moa.gov.tw/Frontend/Know/Detail/LT00000867?parentID=Tab0000003", note: "寵物登記、飼主責任與制度變動的官方說明。" },
+  { title: "113 年全國遊蕩犬數量推估結果", provider: "農業部", url: "https://animal.moa.gov.tw/Frontend/News/Detail/N0000000001599", note: "遊蕩犬數量、估計方法與資料限制的官方背景。" },
+  { title: "遊蕩犬族群控制與收容管理政策回應", provider: "農業部", url: "https://animal.moa.gov.tw/Frontend/News/Detail/N0000000001995", note: "源頭管理、收容與政策選擇的官方說明。" },
+  { title: "115 年遊蕩犬社區管理計畫", provider: "農業部", url: "https://animal.moa.gov.tw/Frontend/News/Detail/N0000000002234", note: "社區管理與跨單位行動規劃的政策資料。" },
+  { title: "動物保護影音與教材專區", provider: "農業部", url: "https://animal.moa.gov.tw/Frontend/Know/PageTabList?TabID=31B05CB46007226417F0F5FB8A80096E", note: "動物保護與責任飼養的官方教育素材入口。" },
+  { title: "1959 動物保護專線服務範圍", provider: "農業部", url: "https://animal.moa.gov.tw/Frontend/Know/Detail/LT00000758?parentID=Tab0000023", note: "救援、通報與一般協助情境的判斷依據。" },
+  { title: "110 報案服務", provider: "內政部警政署", url: "https://www.npa.gov.tw/ch/app/artwebsite/view?module=artwebsite&id=1048&serno=e3ad2889-4dee-41cf-aef8-9b9d26dc6950", note: "正在發生的治安或交通危險情境之官方資訊。" },
+  { title: "119 緊急救援服務", provider: "內政部消防署", url: "https://www.nfa.gov.tw/cht/index.php?code=list&ids=66", note: "緊急救援情境與安全優先原則的官方資訊。" },
+  { title: "學生服務學習", provider: "臺北市動物保護處", url: "https://www.tcapo.gov.taipei/cp.aspx?n=64E92A82C8BB7529", note: "學生參與條件、服務方式與安全規範的地方官方來源。" },
+  { title: "動物之家志工", provider: "新北市政府農業局", url: "https://www.agriculture.ntpc.gov.tw/information.php?p_id=58", note: "志工服務條件與聯絡方式的地方官方來源。" },
+  { title: "動保志工服務", provider: "臺中市動物保護防疫處", url: "https://www.animal.taichung.gov.tw/1521448/1521512/1521541/1533995", note: "志工服務與參與規範的地方官方來源。" },
+  { title: "公共政策網路參與提案", provider: "國家發展委員會", url: "https://join.gov.tw/idea/detail/4690bfc9-7b75-4f50-9039-ab46ccf09e1e", note: "用於辨識公共提案、政府回應與正式法規之間的差異。" },
+];
+
+const educationResources: Resource[] = [
+  { title: "校犬是我們的家人", provider: "國家教育研究院愛學網", url: "https://stv.naer.edu.tw/watch/344572", note: "第一週角色、生活處境與照護責任的影音素材。" },
+  { title: "兒少論壇：愛護飼養的動物", provider: "國家教育研究院愛學網", url: "https://stv.naer.edu.tw/watch/257479", note: "第二週認養承諾與家庭責任盤點的影音素材。" },
+  { title: "牠想要一個家", provider: "國家教育研究院愛學網", url: "https://stv.naer.edu.tw/watch/257495", note: "第三週認養流程、品種標籤與個體差異的影音素材。" },
+  { title: "生物多樣性", provider: "國家教育研究院愛學網", url: "https://stv.naer.edu.tw/watch/1735", note: "棲地、個體差異與未記錄環境變項的延伸教材。" },
+  { title: "家庭中的寵物與青少年", provider: "關懷生命協會", url: "https://www.lca.org.tw/education/29/21187", note: "人、家庭與動物之間雙向照護關係的民間教育閱讀。" },
+  { title: "飼主法律義務", provider: "法律百科", url: "https://www.legis-pedia.com/article/environment-hygiene/996", note: "搭配正式法規閱讀的公民法律教育資源。" },
+  { title: "流浪犬政策爭議解析", provider: "獨立評論＠天下", url: "https://opinion.cw.com.tw/blog/profile/52/article/15711", note: "政策立場、論證與證據比較的延伸閱讀。" },
+  { title: "零撲殺上路六年專題", provider: "報導者", url: "https://www.twreporter.org/topics/6-years-after-no-kill-policy-adopted", note: "收容政策、現場壓力與制度脈絡的深度報導。" },
+  { title: "遊蕩犬與野生動物衝突", provider: "報導者", url: "https://www.twreporter.org/a/6-years-after-no-kill-policy-adopted-conflict-with-wildlife", note: "動物福利、生態保育與公共選擇的多方觀點。" },
+  { title: "被遺忘的源頭管理", provider: "報導者", url: "https://www.twreporter.org/a/6-years-after-no-kill-policy-adopted-solutions", note: "遊蕩犬源頭、責任照護與政策工具的延伸報導。" },
+  { title: "遊蕩犬貓怎麼管《上》", provider: "公共電視", url: "https://www.youtube.com/watch?v=eHWNR-rstjc", note: "遊蕩犬貓與野生動物衝突的公共議題影音。" },
+];
+
+const researchReferences: Resource[] = [
+  { title: "The Animal Welfare Science of Working Dogs", provider: "Cobb et al.", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11240373/", note: "工作犬福利科學與照護證據。" },
+  { title: "Working Dog Training for the Twenty-First Century", provider: "Hall et al.", url: "https://www.frontiersin.org/articles/10.3389/fvets.2021.646022/full", note: "工作犬訓練、學習與福利的研究回顧。" },
+  { title: "Dog keeping in Taiwan", provider: "Hsu et al.", url: "https://scholar.lib.ntnu.edu.tw/en/publications/dog-keeping-in-taiwan-its-contribution-to-the-problem-of-free-roa-2/", note: "臺灣飼犬行為與遊蕩犬議題的研究背景。" },
+  { title: "What's in a Name? Effect of Breed Perceptions and Labeling", provider: "Gunter et al.", url: "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0146857", note: "品種標籤如何影響認知與認養判斷。" },
+  { title: "A canine identity crisis", provider: "Gunter et al.", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC6107223/", note: "視覺品種辨識、分類與個體差異的研究。" },
+  { title: "Trends in Animal Shelter Management, Adoption, and Animal Death in Taiwan", provider: "Yan et al.", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC10177604/", note: "臺灣收容管理、認養與死亡趨勢的研究。" },
+  { title: "Teaching Critical Thinking", provider: "Holmes, Wieman & Bonn", url: "https://arxiv.org/abs/1508.04870", note: "實證思辨、反覆練習與回饋設計的教學研究。" },
+];
+
+function ResourceSection({ id, eyebrow, title, description, resources }: { id: string; eyebrow: string; title: string; description: string; resources: Resource[] }) {
+  return (
+    <section id={id} className="scroll-mt-28" aria-labelledby={`${id}-title`}>
+      <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#8f7c5e]">{eyebrow}</p>
+      <h2 id={`${id}-title`} className="mt-3 text-2xl font-bold text-[#3f352c] sm:text-3xl">{title}</h2>
+      <p className="mt-4 max-w-3xl leading-8 text-[#6f6257]">{description}</p>
+      <div className="mt-7 grid gap-4 md:grid-cols-2">
+        {resources.map((resource) => (
+          <article key={resource.url} className="rounded-2xl border border-[#dfd3c1] bg-[#fffdf8] p-5 shadow-[0_16px_45px_-38px_rgba(74,56,40,0.65)]">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-bold text-[#8a7562]">{resource.provider}</p>
+              {resource.status && <span className="rounded-full bg-[#eee8df] px-3 py-1 text-[11px] font-bold text-[#6f6257]">{resource.status}</span>}
+            </div>
+            <h3 className="mt-3 text-lg font-bold leading-7 text-[#3f352c]">{resource.title}</h3>
+            <p className="mt-3 text-sm leading-7 text-[#6f6257]">{resource.note}</p>
+            <a className="mt-5 inline-flex items-center text-sm font-bold text-[#766248] underline decoration-[#c9b58f] underline-offset-4 hover:text-[#4e4032]" href={resource.url} target="_blank" rel="noreferrer">前往來源 ↗</a>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default function GovernmentDataPage() {
   return (
-    <main className="mx-auto max-w-7xl p-6 lg:p-8">
-      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
-        <div>
-          <p className="text-sm font-semibold text-cyan-700">EDUOD · 教育開放資料</p>
-          <h1 className="mt-1 text-2xl font-semibold">政府開放資料來源清冊</h1>
-          <p className="mt-2 max-w-3xl text-sm text-slate-600">競賽示範使用已驗證的官方資料離線快照，並清楚區分即時資料、快取、驗證快照與合成示範資料。</p>
+    <PublicPageShell>
+      <div className="bg-[linear-gradient(180deg,#fffaf0_0%,#f7f0e4_55%,#fffaf2_100%)] text-[#403b33]">
+        <header className="border-b border-[#dfd3c1] bg-[#f1e8da]/75">
+          <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#8f7c5e]">資料透明與引用責任</p>
+            <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-tight text-[#332a22] sm:text-5xl">政府開放資料與引用資源</h1>
+            <p className="mt-6 max-w-3xl text-base leading-8 text-[#65594d] sm:text-lg">ShelterLab 將資料來源、用途與限制放在同一個脈絡中。以下清冊涵蓋課程目前引用的政府開放資料、官方法規與服務資訊、民間教育資源及研究文獻；連結均導向原始提供者。</p>
+            <nav className="mt-8 flex flex-wrap gap-3 text-sm font-bold" aria-label="資源分類">
+              {[['政府開放資料', '#datasets'], ['官方資訊', '#official'], ['教育與民間資源', '#education'], ['研究文獻', '#research']].map(([label, href]) => <a key={href} href={href} className="rounded-full border border-[#d7c49f] bg-[#fffdf8] px-4 py-2 text-[#5f5142] hover:bg-[#f4e4bd]">{label}</a>)}
+            </nav>
+          </div>
+        </header>
+
+        <div className="mx-auto max-w-6xl space-y-20 px-5 py-14 sm:px-8 sm:py-20">
+          <ResourceSection id="datasets" eyebrow="政府資料" title="政府開放資料來源清冊" description="資料集用於建立閱讀欄位、比較案例與查證來源的學習情境。數字只能回答其欄位、期間與統計單位能支持的問題，不能直接替個體補寫原因。" resources={openDatasets} />
+          <ResourceSection id="official" eyebrow="官方來源" title="官方法規、政策與服務資訊" description="這些來源支撐課程中的責任、政策、通報與行動安全內容。地方參與資格可能更新，採取行動前仍應向主責機關再次確認。" resources={officialReferences} />
+          <ResourceSection id="education" eyebrow="教育資源" title="教育與民間引用資源" description="影音與閱讀材料以原站外部連結提供。ShelterLab 不鏡像、不轉錄，也不以民間文章取代正式法規或政府原始資料。" resources={educationResources} />
+          <ResourceSection id="research" eyebrow="研究引用" title="研究文獻" description="研究文獻用來建立品種標籤、工作犬福利、臺灣收容與思辨教學的背景。課程採摘要式引用，完整方法與限制請回到原文閱讀。" resources={researchReferences} />
+
+          <aside className="rounded-3xl border border-[#d8c59e] bg-[#f5ead4] p-6 sm:p-8" aria-label="資料使用原則">
+            <h2 className="text-xl font-bold text-[#3f352c]">資料使用原則</h2>
+            <ul className="mt-5 grid gap-3 text-sm leading-7 text-[#65594d] sm:grid-cols-3">
+              <li className="rounded-2xl bg-white/75 p-4"><strong className="block text-[#4e4032]">保留來源</strong>每一項資料與教材都連回原始提供者。</li>
+              <li className="rounded-2xl bg-white/75 p-4"><strong className="block text-[#4e4032]">說明限制</strong>不把相關當因果，也不以缺漏欄位補寫個體故事。</li>
+              <li className="rounded-2xl bg-white/75 p-4"><strong className="block text-[#4e4032]">行動前查證</strong>服務、資格與政策可能變動，參與前需再次確認。</li>
+            </ul>
+          </aside>
         </div>
-        <Link className="border border-slate-300 bg-white px-4 py-2 text-sm font-medium" href="/competition/evidence">查看競賽證據</Link>
-      </header>
-
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-        <span className="text-slate-500">新資料來源的預設狀態：</span>
-        <span className={`border px-2 py-1 font-semibold ${stateStyle.UNVERIFIED}`}>{publicLabel("UNVERIFIED")}</span>
-        <span className="text-slate-500">中繼資料與實際資源通過驗證前，不得用於學習評量。</span>
       </div>
-
-      <div className="mt-6 overflow-x-auto border border-slate-200 bg-white">
-        <table className="w-full min-w-[980px] border-collapse text-sm">
-          <thead className="bg-slate-50 text-left text-xs text-slate-500">
-            <tr><th className="p-3">資料集</th><th className="p-3">提供機關</th><th className="p-3">驗證狀態</th><th className="p-3">轉接器</th><th className="p-3">取得狀態</th><th className="p-3">核准用途</th></tr>
-          </thead>
-          <tbody>
-            {sprint6DatasetRegistry.map((dataset) => (
-              <tr className="border-t border-slate-200 align-top" key={dataset.datasetId}>
-                <td className="p-3"><div className="font-mono text-xs text-slate-500">{dataset.datasetId}</div><div className="mt-1 font-medium">{dataset.name}</div><div className="mt-1 text-xs text-slate-500">更新頻率：{dataset.updateFrequency}</div></td>
-                <td className="p-3">{dataset.agency}</td>
-                <td className="p-3"><span className={`inline-block border px-2 py-1 text-xs font-semibold ${stateStyle[dataset.verificationState] ?? "border-slate-300"}`}>{publicLabel(dataset.verificationState)}</span></td>
-                <td className="p-3 font-mono text-xs">{dataset.adapterKey}</td>
-                <td className="p-3"><div>{retrievalLabel[dataset.retrievalStatus] ?? dataset.retrievalStatus}</div><div className="mt-1 text-xs text-slate-500">{dataset.active ? "已啟用" : "未啟用"}</div></td>
-                <td className="p-3 text-xs text-slate-600">{dataset.allowedUsageModules.length > 0 ? dataset.allowedUsageModules.map((item) => moduleLabel[item] ?? item).join(" · ") : dataset.verificationState === "VERIFIED" ? "已驗證，但需先核准明確產品用途" : "不得用於學習評量"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="mt-4 border-l-4 border-amber-400 bg-amber-50 p-3 text-sm text-amber-900">愛學網資源僅保存中繼資料與官方外部連結，不下載、鏡像、嵌入、轉錄或重新散布影片內容。</p>
-    </main>
+    </PublicPageShell>
   );
 }

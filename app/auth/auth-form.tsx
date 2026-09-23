@@ -63,18 +63,16 @@ export default function AuthForm({ role }: { role: AccountRole }) {
         const { data, error: signUpError } = await supabase.auth.signUp({ email, password, options: { data: { class_code: validatedClass.classCode, class_id: validatedClass.classId } } });
         if (signUpError) throw signUpError;
         if (!data.session) {
-          setNotice("帳號已建立。請前往信箱完成驗證後，再使用同一班級代碼登入。"); formElement.reset(); return;
+          setNotice("帳號已建立。請前往信箱完成驗證後，再使用 Email 與密碼登入。"); formElement.reset(); return;
         }
         window.location.assign("/student"); return;
       }
 
-      const validatedClass = role === "student" ? await validateClassCode(String(form.get("classCode") || "").trim().toUpperCase()) : null;
       const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
       if (loginError || !data.user) throw loginError || new Error("登入失敗");
-      const { data: profile, error: profileError } = await supabase.from("profiles").select("role,class_id").eq("id", data.user.id).single();
+      const { data: profile, error: profileError } = await supabase.from("profiles").select("role").eq("id", data.user.id).single();
       if (profileError || !profile) { await supabase.auth.signOut(); throw new Error("無法讀取帳號資料，請聯絡系統管理員。"); }
       if (profile.role !== role) { await supabase.auth.signOut(); throw new Error(`這不是${roleLabel}帳號，請從正確的角色入口登入。`); }
-      if (role === "student" && validatedClass?.classId !== profile.class_id) { await supabase.auth.signOut(); throw new Error("班級代碼與帳號所屬班級不符。"); }
       window.location.assign(role === "teacher" ? "/teacher/dashboard" : "/student");
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : "";
@@ -104,10 +102,10 @@ export default function AuthForm({ role }: { role: AccountRole }) {
       <Status error={error} notice={notice} /><button disabled={busy} className={primaryButtonClass}>{busy ? "寄送中…" : "發送重設信"}</button>
       <button type="button" className="w-full text-sm font-bold text-[#806b49] underline-offset-4 hover:underline" onClick={() => changeMode("login")}>返回登入</button>
     </form> : <form className="mt-7 space-y-5" onSubmit={submitAuth}>
-      {mode === "signup" && <p className="rounded-2xl border border-[#e1d2b8] bg-[#f8f1e5] px-4 py-3 text-sm leading-6 text-[#5d5145]">{role === "teacher" ? "教師帳號需使用管理單位提供的邀請碼驗證。註冊完成後，可在教師設定建立學生使用的班級代碼。" : "請使用教師提供的班級代碼建立帳號，系統會將學習紀錄連結至正確班級。"}</p>}
+      {mode === "signup" && role === "teacher" && <p className="rounded-2xl border border-[#e1d2b8] bg-[#f8f1e5] px-4 py-3 text-sm leading-6 text-[#5d5145]">教師帳號需使用管理單位提供的邀請碼驗證。註冊完成後，可在教師設定建立學生使用的班級代碼。</p>}
       <label className="block text-sm font-bold text-stone-700">Email<input className={fieldClass} name="email" type="email" autoComplete="email" required maxLength={254} /></label>
       <label className="block text-sm font-bold text-stone-700"><span className="flex items-end justify-between gap-4"><span>密碼</span>{mode === "login" && <button type="button" className="text-xs font-bold text-[#806b49] underline-offset-4 hover:underline" onClick={() => { setRecovery(true); setError(""); setNotice(""); }}>忘記密碼？</button>}</span><input className={fieldClass} name="password" type="password" minLength={mode === "signup" ? 8 : undefined} maxLength={128} autoComplete={mode === "signup" ? "new-password" : "current-password"} required />{mode === "signup" && <span className="mt-2 block text-xs font-normal text-stone-500">建議使用 12 字元以上，或一段您容易記憶的長句子</span>}</label>
-      {role === "student" && <label className="block text-sm font-bold text-stone-700">班級代碼<input className={`${fieldClass} uppercase`} name="classCode" required minLength={8} maxLength={64} pattern="[A-Za-z0-9][A-Za-z0-9-]{7,63}" autoComplete="off" placeholder="SHELTER-2026" spellCheck={false} /><span className="mt-2 block text-xs font-normal text-stone-500">請向授課教師索取；登入時也會核對帳號所屬班級。</span></label>}
+      {role === "student" && mode === "signup" && <label className="block text-sm font-bold text-stone-700">班級代碼<input className={`${fieldClass} uppercase`} name="classCode" required minLength={8} maxLength={64} pattern="[A-Za-z0-9][A-Za-z0-9-]{7,63}" autoComplete="off" placeholder="SHELTER-2026" spellCheck={false} /><span className="mt-2 block text-xs font-normal text-stone-500">請向授課教師索取；註冊時也會核對帳號所屬班級。</span></label>}
       {role === "teacher" && mode === "signup" && <label className="block text-sm font-bold text-stone-700">教師邀請碼<input className={fieldClass} name="invitationCode" type="password" required maxLength={128} autoComplete="off" placeholder="請輸入管理單位提供的邀請碼" /><span className="mt-2 block text-xs font-normal text-stone-500">邀請碼僅用於驗證教師身分，不會成為學生的班級代碼。</span></label>}
       <Status error={error} notice={notice} /><button disabled={busy} className={primaryButtonClass}>{busy ? "處理中…" : mode === "signup" ? `建立${roleLabel}帳號` : `${roleLabel}登入`}</button>
     </form>}
