@@ -66,25 +66,16 @@ export function RoleSelector({ initialRole = null, source = "start" }: { initial
 
       {selectedProfile && (
         <div className="rounded-3xl border border-[#e3cfaa] bg-[#fffdf8] p-6 shadow-[0_24px_70px_-45px_rgba(111,78,34,0.5)] sm:p-8" aria-live="polite">
-          <div className="grid gap-10 lg:grid-cols-[1fr_20rem]">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8f7c5e]">{source === "demo" ? "示範視角" : "角色導覽"}</p>
-              <h2 className="mt-3 text-3xl font-bold text-[#332a22]">{selectedProfile.title}</h2>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-[#665848]">{selectedProfile.description}</p>
-              <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-                {selectedProfile.capabilities.map((capability) => <li className="rounded-xl border border-[#eadcbc] bg-[#fbf4e5] px-4 py-3 text-sm font-medium text-[#665848]" key={capability}>{capability}</li>)}
-              </ul>
-              <ol className="mt-6 grid gap-4 sm:grid-cols-3">
-                {selectedProfile.journey.map((step, index) => <li className="rounded-xl border border-[#e7d8ba] bg-white p-4 text-sm" key={step}><span className="mb-2 block font-mono text-xs text-[#8f7c5e]">{String(index + 1).padStart(2, "0")}</span><strong className="text-[#3c3024]">{step}</strong></li>)}
-              </ol>
-              <Link className={`mt-8 inline-flex min-h-12 items-center rounded-full px-7 py-3 text-sm font-bold text-white shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8f8175] ${roleVisuals[selectedProfile.id].fill} hover:brightness-90`} href={selectedProfile.primaryHref}>{selectedProfile.primaryCta} →</Link>
-            </div>
-            <aside className="rounded-2xl border border-[#e7d8ba] bg-[#f8edda] p-6">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#9b793d]">預覽儀表板</p>
-              <h3 className="mt-2 text-lg font-bold text-[#332a22]">{selectedProfile.previewTitle}</h3>
-              <div className="mt-4 grid gap-2">{selectedProfile.previewStats.map((stat) => <div className="rounded-lg bg-white px-4 py-3 text-sm font-medium text-[#665848] shadow-sm" key={stat}>{stat}</div>)}</div>
-            </aside>
-          </div>
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8f7c5e]">{source === "demo" ? "示範視角" : "角色導覽"}</p>
+          <h2 className="mt-3 text-3xl font-bold text-[#332a22]">{selectedProfile.title}</h2>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-[#665848]">{selectedProfile.description}</p>
+          <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+            {selectedProfile.capabilities.map((capability) => <li className="rounded-xl border border-[#eadcbc] bg-[#fbf4e5] px-4 py-3 text-sm font-medium text-[#665848]" key={capability}>{capability}</li>)}
+          </ul>
+          <ol className="mt-6 grid gap-4 sm:grid-cols-3">
+            {selectedProfile.journey.map((step, index) => <li className="rounded-xl border border-[#e7d8ba] bg-white p-4 text-sm" key={step}><span className="mb-2 block font-mono text-xs text-[#8f7c5e]">{String(index + 1).padStart(2, "0")}</span><strong className="text-[#3c3024]">{step}</strong></li>)}
+          </ol>
+          <Link className={`mt-8 inline-flex min-h-12 items-center rounded-full px-7 py-3 text-sm font-bold text-white shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8f8175] ${roleVisuals[selectedProfile.id].fill} hover:brightness-90`} href={selectedProfile.primaryHref}>{selectedProfile.primaryCta} →</Link>
         </div>
       )}
     </section>

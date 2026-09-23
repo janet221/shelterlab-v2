@@ -55,6 +55,14 @@ describe("Release 1.0.2 role-based public experience", () => {
     expect(getPublicRoleProfile("shelter")).toMatchObject({ title: "我是收容所人員", primaryHref: "/shelter" });
   });
 
+  it("omits dashboard previews from role navigation", () => {
+    expect(read("app/_components/role-selector.tsx")).not.toContain("預覽儀表板");
+    for (const profile of publicRoleProfiles) {
+      expect(profile).not.toHaveProperty("previewTitle");
+      expect(profile).not.toHaveProperty("previewStats");
+    }
+  });
+
   it("keeps the approved homepage and synthetic-demo notice copy", () => {
     expect(read("app/page.tsx")).toContain("ShelterLab｜青少年動物科學探究實驗室");
     expect(read("app/page.tsx")).toContain("讓關心有依據，讓行動有方向");

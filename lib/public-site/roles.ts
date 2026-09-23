@@ -11,8 +11,6 @@ export type PublicRoleProfile = {
   primaryHref: string;
   capabilities: readonly string[];
   journey: readonly string[];
-  previewTitle: string;
-  previewStats: readonly string[];
   accent: "teal" | "amber" | "rose" | "sky";
 };
 
@@ -30,8 +28,6 @@ export const publicRoleProfiles = [
     primaryHref: "/auth?role=student",
     capabilities: ["六週關卡逐步解鎖", "閱讀政府開放資料", "保存個人思考歷程", "完成後進入真實場域"],
     journey: ["六週課程", "場域觀察", "回顧與反思"],
-    previewTitle: "學生學習地圖預覽",
-    previewStats: ["六週進度", "關卡狀態", "完成寶石"],
     accent: "teal"
   },
   {
@@ -43,8 +39,6 @@ export const publicRoleProfiles = [
     primaryHref: "/auth?role=teacher",
     capabilities: ["建立課程與任務", "審核學生觀察", "查看能力與學習證據", "審閱探究報告"],
     journey: ["課程設計", "證據審核", "學習成果分析"],
-    previewTitle: "教師工作台預覽",
-    previewStats: ["待審觀察", "課程資源", "學習證據"],
     accent: "amber"
   },
   {
@@ -56,8 +50,6 @@ export const publicRoleProfiles = [
     primaryHref: "/shelter",
     capabilities: ["刊登志工與教育活動", "接收及審核學生申請", "安排參訪與服務任務", "傳送通知並回填成果"],
     journey: ["發布機會", "審核與安排", "回覆與成果"],
-    previewTitle: "動保夥伴工作台預覽",
-    previewStats: ["招募中活動", "待處理申請", "待回覆參訪"],
     accent: "rose"
   }
 ] as const satisfies readonly PublicRoleProfile[];
