@@ -3,14 +3,17 @@ import { expect, test } from "@playwright/test";
 test("landing presents the six-week curriculum and working entry points", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator('link[rel="icon"][href="/icon?v=2"]')).toHaveCount(1);
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("ShelterLab:青少年科學實驗室");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("ShelterLab｜青少年動物科學探究實驗室");
   await expect(page.getByRole("table", { name: "六週學習地圖", exact: true }).getByRole("row")).toHaveCount(7);
   await expect(page.getByRole("table", { name: "連結高中探究與實作", exact: true }).getByRole("row")).toHaveCount(5);
   await expect(page.getByTestId("version2-hero")).toHaveCSS("height", /.+/);
-  await expect(page.getByText("One Health Education Initiative", { exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "了解專案願景", exact: true }).click();
+  await expect(page.getByText("六週數位探究課程 · Evidence-led learning", { exact: true })).toBeVisible();
+  await expect(page.getByText("從看見一隻犬，到理解牠身後的世界。", { exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "了解專案細節", exact: true }).click();
   await expect(page).toHaveURL(/#vision$/);
   await expect(page.getByRole("heading", { name: "專案願景｜讓關心有依據，讓行動有方向" })).toBeInViewport();
+  await page.getByRole("link", { name: "開始六週探索", exact: true }).click();
+  await expect(page).toHaveURL(/\/start$/);
 });
 
 test("public navigation keeps authentication inside the start experience", async ({ page }) => {

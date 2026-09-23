@@ -60,23 +60,29 @@ export default function HomePage() {
       <div className="bg-[linear-gradient(180deg,#fffaf0_0%,#f7f0e4_48%,#fffaf2_100%)] text-[#403b33]">
         <section id="top" data-testid="version2-hero" className="relative h-[90vh] w-full overflow-hidden">
           <Image src="/Shelter-Dog.png" alt="Shelter Dog running" fill priority sizes="100vw" className="object-cover object-center" />
-          <div className="absolute bottom-0 left-0 z-10 w-full bg-gradient-to-t from-[#332a22]/90 via-[#332a22]/30 to-transparent px-10 pb-20 pt-32 md:px-20">
+          <div className="absolute bottom-0 left-0 z-10 w-full bg-gradient-to-t from-[#332a22]/95 via-[#332a22]/45 to-transparent px-5 pb-10 pt-28 sm:px-10 sm:pb-14 md:px-20 lg:pb-16">
             <div className="mx-auto flex h-full max-w-7xl flex-col items-start justify-end">
               <span className="mb-4 inline-block rounded-full border border-[#ebd197]/50 px-3 py-1 text-[9px] font-bold uppercase tracking-[0.3em] text-[#ebd197]">
-                One Health Education Initiative
+                六週數位探究課程 · Evidence-led learning
               </span>
               <h1 className="max-w-[850px] text-4xl font-extrabold leading-[1.15] tracking-tight text-white drop-shadow-md md:text-5xl lg:text-6xl">
-                ShelterLab:青少年科學實驗室
-                <span className="mt-5 block text-xl font-medium leading-snug text-[#ebd197] drop-shadow-sm md:text-2xl lg:text-3xl">
-                  校園+政府+收容所的動物科學資訊協作平台
-                </span>
+                ShelterLab｜青少年動物科學探究實驗室
               </h1>
-              <p className="mt-6 max-w-[500px] text-base font-normal leading-relaxed text-white/80 drop-shadow-sm md:text-lg">
-                透過數位協作，將收容所轉化為真實的科學探究場域。讓每一位青少年的觀察，都成為提升動物認養品質的關鍵數據資產。
+              <p className="mt-4 text-xl font-bold leading-relaxed text-[#f5dda7] drop-shadow-sm sm:text-2xl lg:text-3xl">
+                從看見一隻犬，到理解牠身後的世界。
               </p>
-              <div className="mt-8">
-                <Link className="inline-block rounded-full bg-[#ebd197] px-8 py-3 text-sm font-bold tracking-wider text-[#332a22] shadow-xl transition hover:bg-white md:text-base" href="/#vision">
-                  了解專案願景
+              <p className="mt-4 max-w-2xl text-sm font-normal leading-7 text-white/90 drop-shadow-sm sm:text-base sm:leading-8">
+                連結校園學習、政府開放資料與收容所實務，讓青少年透過六週數位課程，練習閱讀證據、辨識偏見、理解不同立場，並提出負責任的動保行動。
+              </p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/85 sm:text-base">
+                從「我想幫助牠」開始，進一步思考：<span className="font-bold text-[#f5dda7]">我知道什麼？還需要查證什麼？怎麼做才真正有幫助？</span>
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link className="inline-block rounded-full bg-[#ebd197] px-8 py-3 text-sm font-bold tracking-wider text-[#332a22] shadow-xl transition hover:bg-white md:text-base" href="/start">
+                  開始六週探索
+                </Link>
+                <Link className="inline-block rounded-full border border-white/70 bg-white/10 px-8 py-3 text-sm font-bold tracking-wider text-white shadow-xl transition hover:bg-white/20 md:text-base" href="/#vision">
+                  了解專案細節
                 </Link>
               </div>
             </div>
