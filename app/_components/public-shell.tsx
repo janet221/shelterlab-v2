@@ -27,9 +27,9 @@ const primaryNav = [
 /* =========================================================================
    🎯 BRAND 元件：極致貼左調整
    ========================================================================= */
-export function Brand({ inverse = false }: { inverse?: boolean }) {
+export function Brand({ inverse = false, gold = false, href = "/" }: { inverse?: boolean; gold?: boolean; href?: string }) {
   return (
-    <Link className="inline-flex items-center transition-all duration-200 hover:opacity-85 active:scale-98 shrink-0" href="/">
+    <Link className="inline-flex shrink-0 items-center transition-all duration-200 hover:opacity-85 active:scale-98" href={href} aria-label="ShelterLab 首頁">
       {/* 🚀 用 object-left 確保圖片內的手寫字體從最左像素點開始渲染 */}
       <div className="relative h-10 w-28 sm:w-32 lg:h-14 lg:w-40">
         <Image
@@ -37,7 +37,7 @@ export function Brand({ inverse = false }: { inverse?: boolean }) {
           alt="ShelterLab"
           fill
           className={`object-contain object-left transition-all ${
-            inverse ? "invert brightness-200" : ""
+            gold ? "brightness-0 invert-[.78] sepia saturate-[1.7] hue-rotate-[356deg]" : inverse ? "invert brightness-200" : ""
           }`}
           priority
         />
@@ -106,7 +106,7 @@ export function PublicFooter() {
         
         {/* 品牌與核心說明 */}
         <div>
-          <Brand inverse />
+          <Brand gold href="/#top" />
           <p className="mt-4 max-w-md text-xs leading-6 text-[#cdbfae]/80">
             ShelterLab 連結校園學習、政府開放資料與收容實務，引導青少年閱讀證據、辨識偏見、理解不同立場，讓關心轉化為有依據的判斷與能負責完成的行動。
           </p>
@@ -128,7 +128,7 @@ export function PublicFooter() {
 
       {/* 底部版權說明 */}
       <div className="border-t border-white/5 px-5 py-4 text-center text-xs text-[#cdbfae]/40">
-        © {new Date().getFullYear()} ShelterLab Education Initiative. 本站僅供專案演示與科學教育交流使用。
+        © {new Date().getFullYear()} ShelterLab Education Initiative
       </div>
     </footer>
   );

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   metadataBase: getPublicSiteUrl(),
   applicationName: "ShelterLab",
   title: {
-    default: "ShelterLab｜證據驅動的 One Health 公民科學教育平台",
+    default: "ShelterLab｜青少年動物科學探究實驗室",
     template: "%s｜ShelterLab"
   },
   description: publicSiteDescription,
@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   creator: "ShelterLab 團隊",
   publisher: "ShelterLab",
   category: "教育",
+  icons: {
+    icon: [{ url: "/icon?v=2", type: "image/png", sizes: "32x32" }],
+    shortcut: "/icon?v=2"
+  },
   openGraph: {
     type: "website",
     locale: "zh_TW",

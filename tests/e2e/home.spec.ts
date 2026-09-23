@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("landing presents the six-week curriculum and working entry points", async ({ page }) => {
   await page.goto("/");
+  await expect(page.locator('link[rel="icon"][href="/icon?v=2"]')).toHaveCount(1);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("ShelterLab｜青少年動物科學探究實驗室");
   await expect(page.getByRole("table", { name: "六週學習地圖", exact: true }).getByRole("row")).toHaveCount(7);
   await expect(page.getByRole("table", { name: "連結高中探究與實作", exact: true }).getByRole("row")).toHaveCount(5);
@@ -33,6 +34,9 @@ test("footer mirrors the primary journey and keeps one resource link", async ({ 
   const resources = footer.getByRole("navigation", { name: "補充資訊" });
   await expect(resources.getByRole("link")).toHaveCount(1);
   await expect(resources.getByRole("link", { name: "政府開放資料", exact: true })).toHaveAttribute("href", "/government-data");
+  await expect(footer.getByRole("link", { name: "ShelterLab 首頁" })).toHaveAttribute("href", "/#top");
+  await expect(footer).toContainText("© 2026 ShelterLab Education Initiative");
+  await expect(footer).not.toContainText("本站僅供專案演示與科學教育交流使用");
 });
 
 test("government data page lists datasets and cited resources", async ({ page }) => {

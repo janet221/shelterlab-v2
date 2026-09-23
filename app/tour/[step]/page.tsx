@@ -64,8 +64,8 @@ export default async function TourStepPage({ params }: { params: Promise<{ step:
 
               {current.sequence === 1 && (
                 <div className="mt-8 flex flex-wrap gap-3" aria-label="選擇登入身分">
-                  <Link className="inline-flex min-h-12 items-center rounded-full bg-[#7f918d] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#697c77] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#7f918d]" href="/auth?role=student">我是學生 →</Link>
-                  <Link className="inline-flex min-h-12 items-center rounded-full bg-[#aa9175] px-6 py-3 text-sm font-bold text-white transition hover:bg-[#92785f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#aa9175]" href="/auth?role=teacher&mode=signup">我是老師 →</Link>
+                  <Link className="inline-flex min-h-12 items-center rounded-full border border-[#dfbf78] bg-[#f2dba4] px-6 py-3 text-sm font-bold text-[#4e3b20] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#f8e8bf] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#bd9141]" href="/auth?role=student">我是學生 →</Link>
+                  <Link className="inline-flex min-h-12 items-center rounded-full border border-[#dbb69d] bg-[#f0d2bd] px-6 py-3 text-sm font-bold text-[#5d3e31] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#f7e0d0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b98568]" href="/auth?role=teacher&mode=signup">我是老師 →</Link>
                 </div>
               )}
 

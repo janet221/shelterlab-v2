@@ -51,6 +51,8 @@ test("eight-step guide shows one active step and only step one has a setup actio
   await expect(page.getByRole("article")).toHaveCount(1);
   await expect(page.getByRole("article").getByRole("link", { name: "我是學生 →" })).toHaveAttribute("href", "/auth?role=student");
   await expect(page.getByRole("article").getByRole("link", { name: "我是老師 →" })).toHaveAttribute("href", "/auth?role=teacher&mode=signup");
+  await expect(page.getByRole("article").getByRole("link", { name: "我是學生 →" })).toHaveCSS("background-color", "rgb(242, 219, 164)");
+  await expect(page.getByRole("article").getByRole("link", { name: "我是老師 →" })).toHaveCSS("background-color", "rgb(240, 210, 189)");
   await page.getByRole("navigation", { name: "實作步驟清單" }).getByRole("link").nth(7).click();
   await expect(page).toHaveURL(/\/tour\/final-vision$/);
   await expect(page.getByRole("heading", { name: "第八步：學期結案與證據總覽" })).toBeVisible();
@@ -66,6 +68,7 @@ test("public surfaces use the gold and cream theme without green utility colors"
 
 test("student and teacher authentication request the correct verification codes", async ({ page }) => {
   await page.goto("/auth?role=student");
+  await expect(page.locator('div[style*="b.jpg"]')).toBeVisible();
   await expect(page.locator('input[name="classCode"]')).toHaveCount(0);
   await page.getByRole("tab", { name: "建立帳號" }).click();
   await expect(page.locator('input[name="classCode"]')).toBeVisible();
