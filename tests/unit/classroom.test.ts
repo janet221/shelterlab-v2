@@ -3,6 +3,7 @@ import { analyzeCoa, buildQuestionSet, chooseContrasts, COA_FIELDS, countyData, 
 import { applyTranslationChoices } from "@/lib/classroom/translator";
 import { hashPassword, newToken, tokenHash, verifyPassword } from "@/lib/classroom/security";
 import { settingsSchema, submissionSchema, validateAnswers } from "@/lib/classroom/service";
+import { courseWeekLabel } from "@/lib/classroom/course";
 import { assertSameOrigin, body } from "@/lib/classroom/http";
 import { z } from "zod";
 
@@ -61,6 +62,11 @@ describe("authoritative COA classroom evidence", () => {
     const data = { schoolId: "120303", county: "高雄市", grade: "高一", studentCount: 30, plannedWeeks: 6 };
     expect(settingsSchema.safeParse(data).success).toBe(true); expect(settingsSchema.safeParse({ ...data, address: "不應收集" }).success).toBe(false);
     expect(submissionSchema.safeParse({ version: 0, generation: 0, status: "completed", answers: [] }).success).toBe(false);
+  });
+  it("uses the approved six-week labels and rejects shortened courses", () => {
+    expect(courseWeekLabel(1)).toBe("第一週｜角色與處境");
+    expect(courseWeekLabel(6)).toBe("第六週｜現場與行動");
+    expect(settingsSchema.safeParse({ schoolId: "120303", county: "高雄市", grade: "高一", studentCount: 30, plannedWeeks: 5 }).success).toBe(false);
   });
 });
 describe("account security boundaries", () => {

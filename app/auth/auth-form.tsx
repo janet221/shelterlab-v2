@@ -77,7 +77,7 @@ export default function AuthForm() {
         await supabase.auth.signOut();
         throw new Error("無法讀取帳號資料，請聯絡系統管理員。");
       }
-      const destination = profile.role === "teacher" ? "/teacher" : profile.role === "shelter" ? "/shelter" : "/student";
+      const destination = profile.role === "teacher" ? "/teacher/dashboard" : profile.role === "shelter" ? "/shelter" : "/student";
       window.location.assign(destination);
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : "";

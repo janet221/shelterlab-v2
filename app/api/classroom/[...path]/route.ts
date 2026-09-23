@@ -1,7 +1,6 @@
-import { z } from "zod";
-import { requireAccount, throttle } from "@/lib/classroom/auth";
+import { requireAccount } from "@/lib/classroom/auth";
 import { body, endpoint, RequestError } from "@/lib/classroom/http";
-import { joinClass, localWorkbench, resetProgress, reviewSchema, reviewWeek, saveSettings, schoolChoices, settingsSchema, studentProgress, studentWeek, submissionSchema, submitWeek, teacherDashboard, teacherSubmission } from "@/lib/classroom/service";
+import { localWorkbench, resetProgress, resetSchema, reviewSchema, reviewWeek, saveSettings, schoolChoices, settingsSchema, studentProgress, studentWeek, submissionSchema, submitWeek, teacherDashboard, teacherSubmission } from "@/lib/classroom/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,19 +26,14 @@ export async function GET(_request: Request, context: Context) {
 export async function POST(request: Request, context: Context) {
   return endpoint(async () => {
     const path = (await context.params).path, route = path.join("/");
-    if (route === "join") {
-      const student = await requireAccount("student"); await throttle(`join:${student.id}`, 20);
-      const input = await body(request, z.object({ joinCode: z.string().trim().regex(/^[a-fA-F0-9]{12}$/).transform(s => s.toUpperCase()) }).strict());
-      return joinClass(student.id, input.joinCode);
-    }
+    if (route === "join") throw new RequestError(409, "班級已於註冊時綁定，請聯絡教師確認。");
     if (path[0] === "weeks" && path.length === 2) {
       const student = await requireAccount("student"); return submitWeek(student.id, weekNumber(path[1]), await body(request, submissionSchema));
     }
     const teacher = await requireAccount("teacher");
     if (route === "settings") return saveSettings(teacher.id, await body(request, settingsSchema));
     if (route === "reset") {
-      const input = await body(request, z.object({ studentId: z.string().min(1).max(100).optional(), confirmation: z.literal("RESET") }).strict());
-      return resetProgress(teacher.id, input.studentId);
+      return resetProgress(teacher.id, await body(request, resetSchema));
     }
     if (path[0] === "reviews" && path.length === 2) return reviewWeek(teacher.id, path[1], await body(request, reviewSchema));
     throw new RequestError(404, "找不到功能。");

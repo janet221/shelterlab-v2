@@ -1,70 +1,69 @@
-import { Prisma } from "@prisma/client";
-import { randomBytes } from "node:crypto";
 import { z } from "zod";
-import { prisma } from "@/lib/db/prisma";
 import { getSchoolDirectorySnapshot } from "@/lib/government-open-data";
 import { FALLBACK_ACTION_ORGANIZATIONS } from "@/data/action-organizations";
 import { RequestError } from "./http";
 import { buildQuestionSet, countyData } from "./coa";
-import { translateQuestions } from "./translator";
 import type { QuestionSet, SubmittedAnswer } from "./data-types";
 
-export const settingsSchema = z.object({ schoolId: z.string().min(1).max(40), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.number().int().min(1).max(6) }).strict();
+export const settingsSchema = z.object({ classId: z.string().uuid().optional(), schoolId: z.string().min(1).max(40), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.literal(6) }).strict();
 export const submissionSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), answers: z.array(z.object({ questionId: z.string().max(40), text: z.string().trim().min(10).max(3000), selectedAnimalIds: z.array(z.string().max(60)).min(1).max(4) }).strict()).length(3) }).strict();
-export const reviewSchema = z.object({ version: z.number().int().nonnegative(), decision: z.enum(["approve", "return"]), feedback: z.string().trim().max(3000) }).strict();
-const json = (value: unknown) => JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
-const atomic = <T>(action: (tx: Prisma.TransactionClient) => Promise<T>) => prisma.$transaction(action, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 15000 });
-
+export const reviewSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), decision: z.literal("approve"), feedback: z.string().trim().max(3000) }).strict();
+export const resetSchema = z.object({ classId: z.string().uuid(), confirmation: z.literal("RESET"), targets: z.array(z.object({ studentId: z.string().uuid(), generation: z.number().int().nonnegative() }).strict()).min(1).max(200) }).strict();
+const statuses = { Locked: "locked", "In Progress": "in_progress", Pending: "pending", Completed: "completed" } as const;
+type DbStatus = keyof typeof statuses;
+type Profile = { id: string; display_name: string; class_id: string | null; progress_generation: number; is_course_completed: boolean; course_completed_at: string | null };
+type ClassRow = { id: string; name: string; teacher_id: string; class_code: string; school_id: string | null; school_name: string | null; county: string | null; grade: string | null; student_count: number };
+type ProgressRow = { student_id: string; week_number: number; status: DbStatus; version: number; submitted_at: string | null; reviewed_at: string | null; feedback: string; question_set: QuestionSet | null; answers: SubmittedAnswer[] | null };
+async function client() {
+  const { createServerSupabaseClient } = await import("@/lib/supabase/server");
+  return createServerSupabaseClient();
+}
+function checked<T>({ data, error }: { data: T; error: { code?: string } | null }): T {
+  if (error) {
+    if (error.code === "42501") throw new RequestError(403, "您沒有此班級或學生的操作權限。");
+    if (error.code === "40001") throw new RequestError(409, "進度已變更，請重新整理後再操作。");
+    if (error.code === "23514") throw new RequestError(409, "目前狀態不允許此操作，請確認前一週已完成並重新整理。");
+    if (error.code === "22023" || error.code === "22P02") throw new RequestError(400, "提交資料不完整，請重新確認。");
+    throw new RequestError(503, "資料服務暫時無法使用，請確認 Step 4 資料庫遷移已套用。");
+  }
+  return data;
+}
+function mapWeek(row: ProgressRow) {
+  return { id: `${row.student_id}_${row.week_number}`, week: row.week_number, status: statuses[row.status], version: row.version, submittedAt: row.submitted_at, reviewedAt: row.reviewed_at, feedback: row.feedback, questionSet: row.question_set, answers: row.answers };
+}
+async function profile(studentId: string) {
+  const db = await client();
+  const data = checked(await db.from("profiles").select("id,display_name,class_id,progress_generation,is_course_completed,course_completed_at").eq("id", studentId).eq("role", "student").maybeSingle()) as Profile | null;
+  if (!data) throw new RequestError(404, "找不到您可存取的學生。");
+  return data;
+}
 export async function schoolChoices() {
   const snapshot = await getSchoolDirectorySnapshot();
   return { source: snapshot.source, schools: snapshot.schools.map(({ id, name, county }) => ({ id, name, county })) };
 }
-export async function saveSettings(teacherId: string, input: z.infer<typeof settingsSchema>) {
-  const { schools } = await schoolChoices(); const school = schools.find(s => s.id === input.schoolId);
+export async function saveSettings(_teacherId: string, input: z.infer<typeof settingsSchema>) {
+  const { schools } = await schoolChoices();
+  const school = schools.find(s => s.id === input.schoolId);
   if (!school || school.county !== input.county) throw new RequestError(400, "學校與縣市不符，請重新選擇學校。");
-  return atomic(async tx => {
-    const existing = await tx.learningClass.findUnique({ where: { teacherId }, include: { _count: { select: { enrollments: true } } } });
-    if (existing && existing._count.enrollments > 0 && (existing.schoolId !== input.schoolId || existing.plannedWeeks !== input.plannedWeeks)) throw new RequestError(409, "已有學生加入，無法更換學校或課程週數；其餘設定仍可更新。");
-    if (existing && existing._count.enrollments > input.studentCount) throw new RequestError(409, "班級人數不可少於已加入人數。");
-    const data = { ...input, schoolName: school.name, county: school.county };
-    const classroom = await tx.learningClass.upsert({ where: { teacherId }, create: { ...data, teacherId, joinCode: randomBytes(6).toString("hex").toUpperCase() }, update: { ...data, revision: { increment: 1 } } });
-    await tx.learningAudit.create({ data: { actorId: teacherId, classId: classroom.id, action: "settings_saved", details: json(data) } });
-    return classroom;
-  });
-}
-export async function joinClass(studentId: string, joinCode: string) {
-  return atomic(async tx => {
-    if (await tx.learningEnrollment.findUnique({ where: { studentId } })) throw new RequestError(409, "您已加入班級。");
-    const classroom = await tx.learningClass.findUnique({ where: { joinCode }, include: { _count: { select: { enrollments: true } } } });
-    if (!classroom) throw new RequestError(404, "找不到此班級代碼。");
-    if (classroom._count.enrollments >= classroom.studentCount) throw new RequestError(409, "班級名額已滿，請聯絡教師。");
-    await tx.learningClass.update({ where: { id: classroom.id }, data: { revision: { increment: 1 } } });
-    const enrollment = await tx.learningEnrollment.create({ data: { classId: classroom.id, studentId, weeks: { create: Array.from({ length: classroom.plannedWeeks }, (_, i) => ({ week: i + 1, status: i === 0 ? "in_progress" as const : "locked" as const })) } } });
-    await tx.learningAudit.create({ data: { actorId: studentId, classId: classroom.id, studentId, action: "joined", details: {} } });
-    return enrollment;
-  });
+  const db = await client();
+  const id = checked(await db.rpc("shelterlab_save_class", { p_class_id: input.classId ?? null, p_school_id: school.id, p_school_name: school.name, p_county: school.county, p_grade: input.grade, p_student_count: input.studentCount }));
+  return { id };
 }
 export async function studentProgress(studentId: string) {
-  const enrollment = await prisma.learningEnrollment.findUnique({ where: { studentId }, include: { classroom: true, weeks: { orderBy: { week: "asc" }, select: { week: true, status: true, submittedAt: true, reviewedAt: true } } } });
-  if (!enrollment) return { enrolled: false as const, weeks: [] };
-  return { enrolled: true as const, generation: enrollment.generation, schoolName: enrollment.classroom.schoolName, county: enrollment.classroom.county, plannedWeeks: enrollment.classroom.plannedWeeks, weeks: enrollment.weeks };
+  const db = await client(), student = await profile(studentId);
+  const classroom = checked(await db.from("classes").select("name,school_name,county").eq("id", student.class_id).single());
+  if (!classroom) throw new RequestError(404, "找不到學生所屬班級。");
+  const weeks = checked(await db.from("student_progress").select("*").eq("student_id", studentId).order("week_number")) as ProgressRow[];
+  return { enrolled: true as const, generation: student.progress_generation, isCourseCompleted: student.is_course_completed, courseCompletedAt: student.course_completed_at, schoolName: classroom.school_name || classroom.name, county: classroom.county, plannedWeeks: 6, weeks: weeks.map(mapWeek) };
 }
 export async function studentWeek(studentId: string, week: number) {
-  const enrollment = await prisma.learningEnrollment.findUnique({ where: { studentId }, include: { classroom: true } });
-  if (!enrollment) throw new RequestError(403, "請先加入教師提供的班級。");
-  const record = await prisma.learningWeek.findUnique({ where: { enrollmentId_week: { enrollmentId: enrollment.id, week } } });
-  if (!record || record.status === "locked") throw new RequestError(403, "前一週尚未經教師核准，此關卡未解鎖。");
-  if (!record.questionSet) {
-    const questionSet = await translateQuestions(buildQuestionSet(await countyData(enrollment.classroom.county), week, enrollment.classroom.county));
-    await atomic(async tx => {
-      const fresh = await tx.learningEnrollment.findUniqueOrThrow({ where: { id: enrollment.id } });
-      if (fresh.generation !== enrollment.generation) throw new RequestError(409, "教師已重設進度，請重新載入。");
-      await tx.learningWeek.updateMany({ where: { id: record.id, version: record.version, status: "in_progress", questionSet: { equals: Prisma.DbNull } }, data: { questionSet: json(questionSet) } });
-    });
-  }
-  const fresh = await prisma.learningWeek.findUniqueOrThrow({ where: { id: record.id } });
-  if (fresh.status === "locked") throw new RequestError(403, "關卡已重新鎖定。");
-  return { ...fresh, generation: enrollment.generation, questionSet: fresh.questionSet as unknown as QuestionSet, answers: fresh.answers as unknown as SubmittedAnswer[] | null };
+  if (!Number.isInteger(week) || week < 1 || week > 6) throw new RequestError(404, "找不到週次。");
+  const progress = await studentProgress(studentId);
+  const record = progress.weeks.find(w => w.week === week);
+  if (!record || record.status === "locked" || progress.weeks.filter(w => w.week < week && w.status === "completed").length !== week - 1) throw new RequestError(403, "前一週尚未經教師核准，此關卡未解鎖。");
+  if (!record.questionSet && !progress.county) throw new RequestError(409, "請教師先至設定面板完成班級學校與縣市設定。");
+  const questionSet = record.questionSet ?? buildQuestionSet(await countyData(progress.county!), week, progress.county!);
+  return { ...record, generation: progress.generation, questionSet };
 }
 export function validateAnswers(set: QuestionSet, answers: SubmittedAnswer[]) {
   const ids = new Set(set.cases.map(a => a.id));
@@ -76,54 +75,41 @@ export function validateAnswers(set: QuestionSet, answers: SubmittedAnswer[]) {
   }
 }
 export async function submitWeek(studentId: string, week: number, input: z.infer<typeof submissionSchema>) {
-  return atomic(async tx => {
-    const enrollment = await tx.learningEnrollment.findUnique({ where: { studentId } });
-    if (!enrollment || enrollment.generation !== input.generation) throw new RequestError(409, "進度已變更，請重新載入。");
-    const record = await tx.learningWeek.findUnique({ where: { enrollmentId_week: { enrollmentId: enrollment.id, week } } });
-    if (!record || record.status !== "in_progress" || record.version !== input.version || !record.questionSet) throw new RequestError(409, "作業不可送出，可能已送審、尚未解鎖或已被重設。");
-    if (week > 1 && (await tx.learningWeek.findUnique({ where: { enrollmentId_week: { enrollmentId: enrollment.id, week: week - 1 } } }))?.status !== "completed") throw new RequestError(403, "前一週尚未核准。");
-    validateAnswers(record.questionSet as unknown as QuestionSet, input.answers);
-    const updated = await tx.learningWeek.update({ where: { id: record.id }, data: { answers: json(input.answers), status: "pending", submittedAt: new Date(), feedback: "", version: { increment: 1 } } });
-    await tx.learningAudit.create({ data: { actorId: studentId, classId: enrollment.classId, studentId, action: "submitted", details: json({ week, generation: enrollment.generation, answers: input.answers, questionSet: record.questionSet }) } });
-    return { status: updated.status };
-  });
-}
-export async function reviewWeek(teacherId: string, id: string, input: z.infer<typeof reviewSchema>) {
-  if (input.decision === "return" && input.feedback.length < 2) throw new RequestError(400, "退回時請提供修改建議。");
-  return atomic(async tx => {
-    const record = await tx.learningWeek.findUnique({ where: { id }, include: { enrollment: { include: { classroom: true } } } });
-    if (!record || record.enrollment.classroom.teacherId !== teacherId) throw new RequestError(404, "找不到您可審核的作業。");
-    if (record.status !== "pending" || record.version !== input.version) throw new RequestError(409, "此作業狀態已變更，請重新載入。");
-    await tx.learningWeek.update({ where: { id }, data: { status: input.decision === "approve" ? "completed" : "in_progress", reviewedAt: new Date(), reviewedBy: teacherId, feedback: input.feedback, version: { increment: 1 } } });
-    if (input.decision === "approve") await tx.learningWeek.updateMany({ where: { enrollmentId: record.enrollmentId, week: record.week + 1, status: "locked" }, data: { status: "in_progress", version: { increment: 1 } } });
-    await tx.learningAudit.create({ data: { actorId: teacherId, classId: record.enrollment.classId, studentId: record.enrollment.studentId, action: input.decision, details: json({ week: record.week, generation: record.enrollment.generation, feedback: input.feedback, previousVersion: record.version }) } });
-    return { ok: true };
-  });
-}
-export async function resetProgress(teacherId: string, studentId?: string) {
-  return atomic(async tx => {
-    const classroom = await tx.learningClass.findUnique({ where: { teacherId } });
-    if (!classroom) throw new RequestError(404, "尚未建立班級。");
-    const enrollments = await tx.learningEnrollment.findMany({ where: { classId: classroom.id, ...(studentId ? { studentId } : {}) }, include: { weeks: true } });
-    if (studentId && !enrollments.length) throw new RequestError(404, "找不到本班學生。");
-    for (const enrollment of enrollments) {
-      await tx.learningAudit.create({ data: { actorId: teacherId, classId: classroom.id, studentId: enrollment.studentId, action: "reset", details: json({ previousGeneration: enrollment.generation, previousWeeks: enrollment.weeks }) } });
-      await tx.learningEnrollment.update({ where: { id: enrollment.id }, data: { generation: { increment: 1 } } });
-      await tx.learningWeek.updateMany({ where: { enrollmentId: enrollment.id }, data: { status: "locked", questionSet: Prisma.DbNull, answers: Prisma.DbNull, submittedAt: null, reviewedAt: null, reviewedBy: null, feedback: "", version: { increment: 1 } } });
-      await tx.learningWeek.update({ where: { enrollmentId_week: { enrollmentId: enrollment.id, week: 1 } }, data: { status: "in_progress" } });
-    }
-    return { resetCount: enrollments.length };
-  });
+  const record = await studentWeek(studentId, week);
+  if (record.status !== "in_progress" || record.version !== input.version || record.generation !== input.generation) throw new RequestError(409, "進度已變更或已送審，請重新載入。");
+  validateAnswers(record.questionSet, input.answers);
+  const db = await client();
+  checked(await db.rpc("shelterlab_progress_action", { p_student_id: studentId, p_week: week, p_action: "submit", p_generation: input.generation, p_version: input.version, p_answers: input.answers, p_question_set: record.questionSet }));
+  return { status: "pending" };
 }
 export async function teacherDashboard(teacherId: string) {
-  const classroom = await prisma.learningClass.findUnique({ where: { teacherId }, include: { enrollments: { include: { student: { select: { id: true, displayName: true } }, weeks: { select: { id: true, week: true, status: true, submittedAt: true } } }, orderBy: { createdAt: "asc" } } } });
-  if (!classroom) return { classroom: null, pending: [] };
-  return { classroom, pending: classroom.enrollments.flatMap(e => e.weeks.filter(w => w.status === "pending").map(w => ({ ...w, student: e.student }))).sort((a, b) => (a.submittedAt?.getTime() || 0) - (b.submittedAt?.getTime() || 0)) };
+  const db = await client();
+  const classes = checked(await db.from("classes").select("*").eq("teacher_id", teacherId).order("created_at")) as ClassRow[];
+  const students = classes.length ? checked(await db.from("profiles").select("id,display_name,class_id,progress_generation,is_course_completed,course_completed_at").eq("role", "student").in("class_id", classes.map(c => c.id)).order("created_at")) as Profile[] : [];
+  const records = students.length ? checked(await db.from("student_progress").select("student_id,week_number,status,version,submitted_at,reviewed_at,feedback").in("student_id", students.map(s => s.id))) as ProgressRow[] : [];
+  const classrooms = classes.map(c => ({ id: c.id, name: c.name, schoolId: c.school_id || "", schoolName: c.school_name || c.name, county: c.county || "", grade: c.grade || "", studentCount: c.student_count, plannedWeeks: 6, joinCode: c.class_code,
+    enrollments: students.filter(s => s.class_id === c.id).map(s => ({ student: { id: s.id, displayName: s.display_name || "未填姓名" }, generation: s.progress_generation, isCourseCompleted: s.is_course_completed, weeks: records.filter(w => w.student_id === s.id).map(mapWeek) })) }));
+  const pending = classrooms.flatMap(c => c.enrollments.flatMap(e => e.weeks.filter(w => w.status === "pending").map(w => ({ ...w, student: e.student, generation: e.generation, classId: c.id, className: c.name })))).sort((a, b) => (a.submittedAt || "").localeCompare(b.submittedAt || ""));
+  return { classroom: classrooms[0] ?? null, classrooms, pending };
 }
 export async function teacherSubmission(teacherId: string, id: string) {
-  const record = await prisma.learningWeek.findFirst({ where: { id, enrollment: { classroom: { teacherId } } }, include: { enrollment: { include: { student: { select: { displayName: true } } } } } });
-  if (!record) throw new RequestError(404, "找不到作業。");
-  return record;
+  const match = /^([0-9a-f-]{36})_([1-6])$/i.exec(id);
+  if (!match) throw new RequestError(404, "找不到作業。");
+  const db = await client(), student = await profile(match[1]);
+  const classroom = checked(await db.from("classes").select("id").eq("id", student.class_id).eq("teacher_id", teacherId).maybeSingle());
+  if (!classroom) throw new RequestError(404, "找不到您可審核的作業。");
+  const record = checked(await db.from("student_progress").select("*").eq("student_id", student.id).eq("week_number", Number(match[2])).single()) as ProgressRow;
+  return { ...mapWeek(record), studentId: student.id, generation: student.progress_generation, enrollment: { student: { displayName: student.display_name, id: student.id } } };
+}
+export async function reviewWeek(teacherId: string, id: string, input: z.infer<typeof reviewSchema>) {
+  const record = await teacherSubmission(teacherId, id), db = await client();
+  checked(await db.rpc("shelterlab_progress_action", { p_student_id: record.studentId, p_week: record.week, p_action: "approve", p_generation: input.generation, p_version: input.version, p_feedback: input.feedback }));
+  return { ok: true };
+}
+export async function resetProgress(_teacherId: string, input: z.infer<typeof resetSchema>) {
+  const db = await client();
+  const resetCount = checked(await db.rpc("shelterlab_reset_class_progress", { p_class_id: input.classId, p_targets: input.targets })) as number;
+  return { resetCount };
 }
 export async function localWorkbench(county: string) {
   const data = await countyData(county);
