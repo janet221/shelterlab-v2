@@ -62,16 +62,23 @@ export default function HomePage() {
           <Image src="/Shelter-Dog.png" alt="在戶外奔跑的犬隻" fill priority sizes="100vw" className="-z-20 object-cover object-center" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#211f19]/88 via-[#211f19]/68 to-[#211f19]/26" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#211f19]/52 via-[#211f19]/10 to-[#211f19]/22" />
-          <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-28 lg:py-36">
-            <div className="max-w-5xl">
-              <p className="mb-5 text-xs font-bold uppercase tracking-[0.28em] text-[#f0d99f] sm:text-sm">六週數位探究課程 · Evidence-led learning</p>
-              <h1 className="max-w-5xl text-balance text-4xl font-bold leading-[1.18] tracking-[-0.035em] drop-shadow-[0_3px_18px_rgba(0,0,0,0.38)] sm:text-5xl lg:text-7xl">ShelterLab｜青少年動物科學探究實驗室</h1>
-              <div className="mt-8 max-w-3xl rounded-r-3xl border-l-4 border-[#e7c77f] bg-[#211f19]/28 px-5 py-5 shadow-[0_20px_55px_-36px_rgba(0,0,0,0.8)] backdrop-blur-[2px] sm:px-7 sm:py-6">
-                <p className="text-xl font-bold leading-relaxed text-[#f0d99f] sm:text-2xl lg:text-3xl">從看見一隻犬，到理解牠身後的世界。</p>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-[#fffaf0] sm:text-base sm:leading-8">連結校園學習、政府開放資料與收容所實務，讓青少年透過六週數位課程，練習閱讀證據、辨識偏見、理解不同立場，並提出負責任的動保行動。</p>
-                <blockquote className="mt-5 border-t border-white/25 pt-4 text-sm leading-7 text-white/90 sm:text-base sm:leading-8">從「我想幫助牠」開始，進一步思考：<strong className="block pt-1 text-[#f5dda7] sm:inline sm:pl-1">我知道什麼？還需要查證什麼？怎麼做才真正有幫助？</strong></blockquote>
+          <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-24 lg:py-28">
+            <div data-testid="hero-panel" className="max-w-4xl rounded-[2rem] border border-white/20 bg-[#191713]/80 p-6 shadow-[0_28px_90px_-34px_rgba(0,0,0,0.82)] backdrop-blur-lg sm:p-9 lg:p-12">
+              <header>
+                <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#f0d99f] sm:text-sm">六週數位探究課程 · Evidence-led learning</p>
+                <h1 className="mt-5 max-w-4xl text-balance text-4xl font-bold leading-[1.18] tracking-[-0.035em] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.45)] sm:text-5xl lg:text-6xl">ShelterLab｜青少年動物科學探究實驗室</h1>
+              </header>
+
+              <div className="mt-8 max-w-3xl border-l-4 border-[#e7c77f] pl-5 sm:mt-10 sm:pl-7">
+                <p className="text-xl font-bold leading-relaxed text-[#f5dda7] sm:text-2xl lg:text-3xl">從看見一隻犬，到理解牠身後的世界。</p>
+                <p className="mt-5 max-w-2xl text-sm leading-7 text-[#fffaf0] sm:text-base sm:leading-8">連結校園學習、政府開放資料與收容所實務，讓青少年透過六週數位課程，練習閱讀證據、辨識偏見、理解不同立場，並提出負責任的動保行動。</p>
+                <blockquote className="mt-6 rounded-2xl border border-white/15 bg-black/20 px-5 py-4 text-sm leading-7 text-white/90 sm:text-base sm:leading-8">從「我想幫助牠」開始，進一步思考：<strong className="mt-1 block text-[#f5dda7]">我知道什麼？還需要查證什麼？怎麼做才真正有幫助？</strong></blockquote>
               </div>
-              <div className="mt-9 flex flex-wrap gap-4"><Link href="/start" className={`${button} bg-[#f0d99f] text-[#332a22] shadow-lg shadow-black/20 hover:bg-[#fff1c9]`}>開始六週探索</Link><Link href="#vision" className={`${button} border border-white/70 bg-black/10 hover:bg-white/15`}>了解專案願景</Link></div>
+
+              <div className="mt-8 flex flex-col gap-3 border-t border-white/20 pt-7 sm:flex-row sm:flex-wrap sm:gap-4">
+                <Link href="/start" className={`${button} w-full bg-[#f6d98c] px-8 py-4 text-base text-[#30251b] shadow-[0_12px_30px_-12px_rgba(246,217,140,0.65)] hover:-translate-y-1 hover:bg-[#fff0bd] hover:shadow-[0_16px_36px_-12px_rgba(246,217,140,0.8)] sm:w-auto`}>開始六週探索</Link>
+                <Link href="#vision" className={`${button} w-full border border-white/70 bg-white/10 px-8 py-4 text-base text-white shadow-lg shadow-black/15 hover:-translate-y-1 hover:border-white hover:bg-white/20 sm:w-auto`}>了解專案細節</Link>
+              </div>
             </div>
           </div>
         </section>
