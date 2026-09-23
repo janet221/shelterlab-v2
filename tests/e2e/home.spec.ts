@@ -42,8 +42,12 @@ test("footer mirrors the primary journey and keeps one resource link", async ({ 
 test("government data page lists datasets and cited resources", async ({ page }) => {
   await page.goto("/government-data");
   await expect(page.getByRole("heading", { level: 1, name: "政府開放資料與引用資源" })).toBeVisible();
+  await expect(page.getByText("以下為 Shelter Lab 課程進行中使用到的開放資料彙整，包含政府開放資料、官方資訊及教育民間資源三大分類。")).toBeVisible();
   await expect(page.getByRole("heading", { name: "政府開放資料來源清冊" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "教育與民間引用資源" })).toBeVisible();
+  await expect(page.getByText("資料集用於建立閱讀欄位、比較案例與查證來源的學習情境。", { exact: false })).toHaveCount(0);
+  await expect(page.getByText("這些來源支撐課程中的責任、政策、通報與行動安全內容。", { exact: false })).toHaveCount(0);
+  await expect(page.getByText("影音與閱讀材料以原站外部連結提供。", { exact: false })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "研究文獻" })).toHaveCount(0);
   await expect(page.getByText("資料使用原則", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "前往來源 ↗" })).toHaveCount(35);

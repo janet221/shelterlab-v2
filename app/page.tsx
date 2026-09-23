@@ -60,8 +60,8 @@ export default function HomePage() {
       <div className="bg-[linear-gradient(180deg,#fffaf0_0%,#f7f0e4_48%,#fffaf2_100%)] text-[#403b33]">
         <section id="top" className="relative isolate overflow-hidden bg-[#332a22] text-white">
           <Image src="/Shelter-Dog.png" alt="在戶外奔跑的犬隻" fill priority sizes="100vw" className="-z-20 object-cover object-center" />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#211f19]/76 via-[#211f19]/52 to-[#211f19]/12" />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#211f19]/40 via-transparent to-[#211f19]/15" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#211f19]/88 via-[#211f19]/68 to-[#211f19]/26" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#211f19]/52 via-[#211f19]/10 to-[#211f19]/22" />
           <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-28 lg:py-36">
             <div className="max-w-5xl">
               <p className="mb-5 text-xs font-bold uppercase tracking-[0.28em] text-[#f0d99f] sm:text-sm">六週數位探究課程 · Evidence-led learning</p>

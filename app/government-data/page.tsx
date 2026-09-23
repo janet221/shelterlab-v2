@@ -58,12 +58,11 @@ const educationResources: Resource[] = [
   { title: "遊蕩犬貓怎麼管《上》", provider: "公共電視", url: "https://www.youtube.com/watch?v=eHWNR-rstjc", note: "遊蕩犬貓與野生動物衝突的公共議題影音。" },
 ];
 
-function ResourceSection({ id, eyebrow, title, description, resources }: { id: string; eyebrow: string; title: string; description: string; resources: Resource[] }) {
+function ResourceSection({ id, eyebrow, title, resources }: { id: string; eyebrow: string; title: string; resources: Resource[] }) {
   return (
     <section id={id} className="scroll-mt-28" aria-labelledby={`${id}-title`}>
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#8f7c5e]">{eyebrow}</p>
       <h2 id={`${id}-title`} className="mt-3 text-2xl font-bold text-[#3f352c] sm:text-3xl">{title}</h2>
-      <p className="mt-4 max-w-3xl leading-8 text-[#6f6257]">{description}</p>
       <div className="mt-7 grid gap-4 md:grid-cols-2">
         {resources.map((resource) => (
           <article key={resource.url} className="rounded-2xl border border-[#dfd3c1] bg-[#fffdf8] p-5 shadow-[0_16px_45px_-38px_rgba(74,56,40,0.65)]">
@@ -89,7 +88,7 @@ export default function GovernmentDataPage() {
           <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-20">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#8f7c5e]">資料透明與引用責任</p>
             <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-tight text-[#332a22] sm:text-5xl">政府開放資料與引用資源</h1>
-            <p className="mt-6 max-w-3xl text-base leading-8 text-[#65594d] sm:text-lg">ShelterLab 將資料來源、用途與限制放在同一個脈絡中。以下清冊涵蓋課程目前引用的政府開放資料、官方法規與服務資訊，以及民間教育資源；連結均導向原始提供者。</p>
+            <p className="mt-6 max-w-3xl text-base leading-8 text-[#65594d] sm:text-lg">以下為 Shelter Lab 課程進行中使用到的開放資料彙整，包含政府開放資料、官方資訊及教育民間資源三大分類。</p>
             <nav className="mt-8 flex flex-wrap gap-3 text-sm font-bold" aria-label="資源分類">
               {[['政府開放資料', '#datasets'], ['官方資訊', '#official'], ['教育與民間資源', '#education']].map(([label, href]) => <a key={href} href={href} className="rounded-full border border-[#d7c49f] bg-[#fffdf8] px-4 py-2 text-[#5f5142] hover:bg-[#f4e4bd]">{label}</a>)}
             </nav>
@@ -97,9 +96,9 @@ export default function GovernmentDataPage() {
         </header>
 
         <div className="mx-auto max-w-6xl space-y-20 px-5 py-14 sm:px-8 sm:py-20">
-          <ResourceSection id="datasets" eyebrow="政府資料" title="政府開放資料來源清冊" description="資料集用於建立閱讀欄位、比較案例與查證來源的學習情境。數字只能回答其欄位、期間與統計單位能支持的問題，不能直接替個體補寫原因。" resources={openDatasets} />
-          <ResourceSection id="official" eyebrow="官方來源" title="官方法規、政策與服務資訊" description="這些來源支撐課程中的責任、政策、通報與行動安全內容。地方參與資格可能更新，採取行動前仍應向主責機關再次確認。" resources={officialReferences} />
-          <ResourceSection id="education" eyebrow="教育資源" title="教育與民間引用資源" description="影音與閱讀材料以原站外部連結提供。ShelterLab 不鏡像、不轉錄，也不以民間文章取代正式法規或政府原始資料。" resources={educationResources} />
+          <ResourceSection id="datasets" eyebrow="政府資料" title="政府開放資料來源清冊" resources={openDatasets} />
+          <ResourceSection id="official" eyebrow="官方來源" title="官方法規、政策與服務資訊" resources={officialReferences} />
+          <ResourceSection id="education" eyebrow="教育資源" title="教育與民間引用資源" resources={educationResources} />
         </div>
       </div>
     </PublicPageShell>
