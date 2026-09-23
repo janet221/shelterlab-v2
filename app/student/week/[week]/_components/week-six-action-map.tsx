@@ -4,7 +4,7 @@ import { divIcon, type Map as LeafletMap } from "leaflet";
 import { useEffect, useMemo, useRef } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
-import type { Coordinates, OrganizationMatch } from "@/lib/action-opportunities/types";
+import type { Coordinates, OrganizationMatch } from "@/lib/week-six-action";
 
 const markerClass = {
   public_shelter: "week6-marker-green",

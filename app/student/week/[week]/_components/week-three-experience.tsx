@@ -1,6 +1,4 @@
 "use client";
-import { learningStorage } from "@/lib/classroom/browser-storage";
-
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -241,7 +239,7 @@ export default function WeekThreeExperience() {
 
   useEffect(() => {
     try {
-      const raw = learningStorage.getItem(STORAGE_KEY);
+      const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<SavedWeekThree>;
         const hasCurrentFoundations = parsed.foundationsVersion === FOUNDATIONS_VERSION;
@@ -270,7 +268,7 @@ export default function WeekThreeExperience() {
 
   useEffect(() => {
     if (!ready) return;
-    try { learningStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {}
+    try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {}
   }, [ready, saved]);
 
   useEffect(() => {

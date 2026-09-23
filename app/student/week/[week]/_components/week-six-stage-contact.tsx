@@ -1,4 +1,4 @@
-import type { ActionOrganization, ContactMethod } from "@/lib/action-opportunities/types";
+import type { ActionOrganization, ContactMethod } from "@/lib/week-six-action";
 import styles from "./week-six-experience.module.css";
 
 const labels:Record<ContactMethod,string>={phone:"電話詢問稿",email:"Email 草稿",visit_proposal:"參訪申請草稿",school_proposal:"校園合作提案草稿"};

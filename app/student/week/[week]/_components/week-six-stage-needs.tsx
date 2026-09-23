@@ -1,5 +1,4 @@
-import { ACTION_TAG_LABELS, ORGANIZATION_TYPE_LABELS, UNKNOWN_OFFICIAL_TEXT, type OrganizationMatch } from "@/lib/action-opportunities/types";
-import { requiredComparisonCount } from "@/lib/action-opportunities/repository";
+import { ACTION_TAG_LABELS, ORGANIZATION_TYPE_LABELS, UNKNOWN_OFFICIAL_TEXT, requiredComparisonCount, type OrganizationMatch } from "@/lib/week-six-action";
 import type { AdoptionSnapshot, ShelterNeedsSnapshot, ShelterStatsSnapshot } from "@/lib/government-open-data";
 import WeekSixDataSnapshot from "./week-six-data-snapshot";
 import styles from "./week-six-experience.module.css";

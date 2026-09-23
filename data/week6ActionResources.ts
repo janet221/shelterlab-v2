@@ -1,4 +1,4 @@
-import type { ActionOrganization } from "@/lib/action-opportunities/types";
+import type { ActionOrganization } from "@/lib/week-six-action";
 
 // These records enrich or extend the live Ministry of Agriculture shelter feed.
 // Every student-facing claim below is tied to an official government page.

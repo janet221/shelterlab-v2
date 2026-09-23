@@ -1,6 +1,4 @@
 "use client";
-import { learningStorage } from "@/lib/classroom/browser-storage";
-
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -194,8 +192,8 @@ export default function WeekFiveExperience() {
   const [quizOrders, setQuizOrders] = useState<number[][][]>(defaultQuizOrders);
   const [fileOrders, setFileOrders] = useState<string[][]>(defaultFileOrders);
 
-  useEffect(() => { try { const raw = learningStorage.getItem(STORAGE_KEY); if (raw) { const parsed = JSON.parse(raw) as Partial<SavedWeekFive>; if (parsed.contentVersion === CONTENT_VERSION) setSaved({ ...EMPTY, ...parsed, hearts: { ...DEFAULT_HEARTS, ...(parsed.hearts ?? {}) }, answers: parsed.answers ?? {}, files: parsed.files ?? {}, treasureAnswers: parsed.treasureAnswers ?? {}, treasureCompleted: parsed.treasureCompleted ?? Boolean(parsed.completed) }); } } catch {} setReady(true); }, []);
-  useEffect(() => { if (!ready) return; try { learningStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {} }, [ready, saved]);
+  useEffect(() => { try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { const parsed = JSON.parse(raw) as Partial<SavedWeekFive>; if (parsed.contentVersion === CONTENT_VERSION) setSaved({ ...EMPTY, ...parsed, hearts: { ...DEFAULT_HEARTS, ...(parsed.hearts ?? {}) }, answers: parsed.answers ?? {}, files: parsed.files ?? {}, treasureAnswers: parsed.treasureAnswers ?? {}, treasureCompleted: parsed.treasureCompleted ?? Boolean(parsed.completed) }); } } catch {} setReady(true); }, []);
+  useEffect(() => { if (!ready) return; try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {} }, [ready, saved]);
   useEffect(() => { if (!ready) return; const stage = saved.stage; if (stage < 5) setQuizOrders((current) => current.map((orders, index) => index === stage ? QUIZZES[stage].map((item, question) => visitShuffle(item.options.map((_, option) => option), `week5-${stage}-${question}`)) : orders)); if (FILE_SETS[stage].length) setFileOrders((current) => current.map((orders, index) => index === stage ? visitShuffle(FILE_SETS[stage].map((item) => item.id), `week5-files-${stage}`) : orders)); }, [ready, saved.stage]);
 
   const selected = saved.files[saved.stage] ?? [];

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import type { SchoolDirectorySnapshot } from "@/lib/government-open-data";
-import { TAIWAN_COUNTIES, type ActionFilter, type ActionProfile, type Coordinates, type OrganizationMatch, type ResourceCategoryFilter } from "@/lib/action-opportunities/types";
+import { TAIWAN_COUNTIES, type ActionFilter, type ActionProfile, type Coordinates, type OrganizationMatch, type ResourceCategoryFilter } from "@/lib/week-six-action";
 import WeekSixMapBoundary from "./week-six-map-boundary";
 import WeekSixResourceCard from "./week-six-resource-card";
 import styles from "./week-six-experience.module.css";

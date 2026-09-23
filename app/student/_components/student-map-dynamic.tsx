@@ -308,7 +308,7 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
   );
 }
 
-export default function StudentMapDynamic({ progress }: { progress: StudentMapProgress }) {
+export default function StudentMapDynamic({ classCode, progress }: { classCode?: string; progress: StudentMapProgress }) {
   const nodes = buildWeekMapNodes(progress.weeks);
   const completed = getCompletedCount(progress.weeks);
   const progressPercent = Math.round((completed / 6) * 100);
@@ -386,6 +386,12 @@ export default function StudentMapDynamic({ progress }: { progress: StudentMapPr
         </div>
 
         <ToolInventory progress={progress} />
+
+        {classCode && (
+          <div className="rounded-full border border-white/75 bg-[#FFFDF8]/94 px-4 py-2 text-xs font-bold text-[#51483F] shadow-sm backdrop-blur-sm sm:text-sm">
+            班級代碼：<span className="tracking-wider">{classCode}</span>
+          </div>
+        )}
       </div>
     </main>
   );

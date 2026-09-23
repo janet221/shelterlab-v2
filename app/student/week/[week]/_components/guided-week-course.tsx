@@ -1,6 +1,4 @@
 "use client";
-import { learningStorage } from "@/lib/classroom/browser-storage";
-
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -99,7 +97,7 @@ export default function GuidedWeekCourse({ week, onShowIntro }: { week: WeekNumb
       fetch("/course/six-week-copy.md").then((response) => response.text()),
       Promise.resolve().then(() => {
         try {
-          const raw = learningStorage.getItem(storageKey);
+          const raw = window.localStorage.getItem(storageKey);
           if (raw) return JSON.parse(raw) as SavedCourse;
         } catch {}
         return EMPTY;
@@ -113,7 +111,7 @@ export default function GuidedWeekCourse({ week, onShowIntro }: { week: WeekNumb
 
   useEffect(() => {
     if (!ready) return;
-    try { learningStorage.setItem(storageKey, JSON.stringify(saved)); } catch {}
+    try { window.localStorage.setItem(storageKey, JSON.stringify(saved)); } catch {}
   }, [ready, saved, storageKey]);
 
   const noteKey = `${saved.stage}-reflection`;

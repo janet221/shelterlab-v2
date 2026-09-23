@@ -52,4 +52,15 @@ describe("前五週寶物跨週應用", () => {
     expect(weekSix).not.toContain("TreasureWorkspace");
     expect(weekSix).not.toContain("isTreasureUnlockedForWeek");
   });
+
+  it("學生地圖不再顯示頂部班級橫幅，班級代碼改放在探索工具旁", () => {
+    const classroomMap = read("app/student/_components/classroom-map.tsx");
+    const studentMap = read("app/student/_components/student-map-dynamic.tsx");
+
+    expect(classroomMap).not.toContain("<ClassroomNav");
+    expect(classroomMap).not.toContain("progress.schoolName");
+    expect(classroomMap).toContain("classCode={progress.classCode}");
+    expect(studentMap).toContain("<ToolInventory progress={progress} />");
+    expect(studentMap).toContain("班級代碼：");
+  });
 });

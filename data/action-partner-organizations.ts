@@ -1,4 +1,4 @@
-import type { ActionOrganization } from "@/lib/action-opportunities/types";
+import type { ActionOrganization } from "@/lib/week-six-action";
 
 // These records are explicit prototype fixtures. They are never presented as
 // verified real-world organizations, and exist only to exercise the permission flow.

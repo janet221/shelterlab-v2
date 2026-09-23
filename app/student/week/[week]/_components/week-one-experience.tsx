@@ -1,6 +1,4 @@
 "use client";
-import { learningStorage } from "@/lib/classroom/browser-storage";
-
 
 import { useEffect, useState } from "react";
 import RealisticNotebookIntro from "./realistic-notebook-intro";
@@ -14,7 +12,7 @@ export default function WeekOneExperience() {
 
   useEffect(() => {
     try {
-      setShowNotebook(learningStorage.getItem(COURSE_INTRO_STORAGE_KEY) !== "1");
+      setShowNotebook(window.localStorage.getItem(COURSE_INTRO_STORAGE_KEY) !== "1");
     } catch {
       setShowNotebook(true);
     }
@@ -22,7 +20,7 @@ export default function WeekOneExperience() {
 
   const finishNotebook = () => {
     try {
-      learningStorage.setItem(COURSE_INTRO_STORAGE_KEY, "1");
+      window.localStorage.setItem(COURSE_INTRO_STORAGE_KEY, "1");
     } catch {
       // localStorage 不可用時仍允許繼續課程。
     }

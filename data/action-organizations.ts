@@ -1,7 +1,6 @@
 import { WEEK_SIX_FALLBACK } from "@/data/week-six-open-data-fallback";
 import { WEEK6_VERIFIED_ACTION_RESOURCES } from "@/data/week6ActionResources";
-import { type ActionOrganization } from "@/lib/action-opportunities/types";
-import { dedupeActionOrganizations } from "@/lib/action-opportunities/repository";
+import { dedupeActionOrganizations, type ActionOrganization } from "@/lib/week-six-action";
 
 export const PUBLIC_SHELTER_DATASET_URL = "https://data.gov.tw/dataset/134284";
 export const PUBLIC_SHELTER_API_URL = "https://data.moa.gov.tw/Service/OpenData/TransService.aspx?IsTransData=1&UnitId=2thVboChxuKs";

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { studentActionProfileRepository } from "@/lib/action-opportunities/browser-repository";
+import { studentActionProfileRepository } from "@/lib/action-opportunities/repository";
 import { SCHOOL_LEVEL_LABELS, type SchoolLevel, type StudentActionProfile } from "@/lib/action-opportunities/types";
 import type { SchoolDirectorySnapshot } from "@/lib/government-open-data";
-import { TAIWAN_COUNTIES } from "@/lib/action-opportunities/types";
+import { TAIWAN_COUNTIES } from "@/lib/week-six-action";
 
 type Props={ profile:StudentActionProfile; onChange:(profile:StudentActionProfile)=>void; compact?:boolean };
 

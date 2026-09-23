@@ -1,0 +1,84 @@
+export const TAIWAN_COUNTIES = [
+  "基隆市", "臺北市", "新北市", "桃園市", "新竹市", "新竹縣", "苗栗縣", "臺中市", "彰化縣", "南投縣", "雲林縣", "嘉義市", "嘉義縣", "臺南市", "高雄市", "屏東縣", "宜蘭縣", "花蓮縣", "臺東縣", "澎湖縣", "金門縣", "連江縣"
+] as const;
+export type TaiwanCounty = typeof TAIWAN_COUNTIES[number];
+export type ParticipationMode = "online" | "school" | "onsite";
+export type CommitmentType = "one_time" | "long_term";
+export type MinorPolicy = "allowed" | "guardian_required" | "teacher_group_only" | "contact_to_confirm" | "adult_only";
+export type OrganizationType = "public_shelter" | "animal_home" | "government_agency" | "animal_protection_office" | "education_park" | "animal_welfare_education_park" | "registered_nonprofit" | "private_rescue_group" | "animal_welfare_association" | "foundation" | "rescue_group" | "other_partner" | "other_verified_organization";
+export type OrganizationManagementMode = "partner_managed" | "platform_curated" | "external_redirect";
+export type OrganizationVerificationLevel = "government_official" | "official_partnership" | "verified_nonprofit" | "public_information_only" | "pending_verification";
+export type DataSourceLayer = "government_open_data" | "official_announcement" | "platform_partner" | "demo";
+export type ActionTag = "visit" | "volunteer" | "material_donation" | "school_outreach" | "reporting" | "adoption_promotion";
+export type ResourceCategoryFilter = "all" | "government" | "public_care" | "education_park" | "registered_nonprofit" | "rescue_group" | "partner_managed" | "internal_application" | "visit" | "volunteer" | "school_outreach";
+export type ActionFilter = "all" | ActionTag;
+export type VerificationState = "published" | "not_published";
+export type ActionOrganization = { id:string; name:string; county:string; latitude:number; longitude:number; address:string; phone:string; openingHours?:string; officialUrl:string; organizationType:OrganizationType; managementMode:OrganizationManagementMode; verificationLevel:OrganizationVerificationLevel; sourceLayer:DataSourceLayer; officialSource:string; sourceUrl:string; actionTags:ActionTag[]; studentNotes:string[]; requiresAdult:boolean; ageLimitNote:string; hasOfficialVolunteerInfo:boolean; evidenceLinks?:Array<{label:string;url:string}>; minimumAge?:number; minorPolicy:MinorPolicy; participationModes:ParticipationMode[]; actionTypes:string[]; commitmentTypes:CommitmentType[]; officialServices?:string[]; volunteerInformation?:VerificationState; verificationStatus:"official"|"manually_verified"; verifiedAt:string; dataSource:string; openDogCount?:number|null; isDemo?:boolean; demoNotice?:string };
+export type TimeAvailability = "under_1"|"1_2"|"3_5"|"over_5";
+export type TravelAbility = "online_only"|"within_county"|"guardian_accompanied"|"cross_county";
+export type SkillTag = "photo_video"|"graphic_design"|"writing_social"|"data_analysis"|"event_planning"|"sorting"|"animal_care"|"recommend";
+export type ActionCommitment = "one_time"|"long_term"|"both";
+export type AdultSupport = "confirmed"|"need_to_ask"|"not_available";
+export type PreferredRole = "information"|"school_project"|"remote_support"|"onsite_learning"|"material_coordinator"|"contact_proposer"|"not_sure";
+export type ActionProfile = { age:number; county:string; weeklyTime:TimeAvailability; participationModes:ParticipationMode[]; travelAbility:TravelAbility; skills:SkillTag[]; commitment:ActionCommitment; adultSupport:AdultSupport; preferredRole:PreferredRole };
+export type Coordinates = { latitude:number; longitude:number };
+export type OrganizationMatch = { organization:ActionOrganization; eligible:boolean; exactMatch:boolean; reasons:string[]; distanceKm:number|null; score:number };
+export type ContactMethod = "phone"|"email"|"visit_proposal"|"school_proposal";
+export type ActionStatus = "not_started"|"prepared"|"contacted"|"waiting"|"scheduled"|"completed";
+export type ActionRecord = { actionType:string; plannedDate:string; status:ActionStatus; adultSupportNote:string; conditionsToConfirm:string; nextStep:string; alternativePlan:string; reflection:string };
+export type WeekSixJourneyDraft = { version:2; stage:number; furthestStage:number; profile:ActionProfile; selectedSchoolId:string; resourceCategoryFilter:ResourceCategoryFilter; actionFilter:ActionFilter; selectedOrganizationId:string; comparisonOrganizationIds:string[]; safetyAnswers:Record<string,string>; contactMethod:ContactMethod; contactDrafts:Record<ContactMethod,string>; actionRecord:ActionRecord; updatedAt:string; status:"draft"|"completed"; openDataDate:string };
+export type WeekSixLegacyDraft = { version:1; profile:Omit<ActionProfile,"adultSupport"|"preferredRole">; selectedOrganizationId:string; selectedAt:string; status:"draft"; openDataDate:string };
+export const WEEK_SIX_DRAFT_KEY = "shelterlab-week6-action-draft-v2";
+export const WEEK_SIX_LEGACY_DRAFT_KEY = "shelterlab-week6-action-draft-v1";
+export const UNKNOWN_OFFICIAL_TEXT = "官方資料未說明，請在行動前向單位確認。";
+export const UNKNOWN_MINOR_POLICY_TEXT = "政府收容資料未提供學生參與規定，請向單位確認。";
+export const ORGANIZATION_TYPE_LABELS:Record<OrganizationType,string> = { public_shelter:"公立動物收容所", animal_home:"動物之家", government_agency:"縣市動物保護處／防疫處", animal_protection_office:"縣市動物保護處／防疫處", education_park:"動物保護教育園區", animal_welfare_education_park:"動物保護教育園區", registered_nonprofit:"已驗證民間動保團體", private_rescue_group:"民間救援團體", animal_welfare_association:"動物保護協會", foundation:"動保基金會", rescue_group:"救援／中途組織", other_partner:"其他教育合作單位", other_verified_organization:"其他經確認的動保機構" };
+export const ACTION_TAG_LABELS:Record<ActionTag,string> = { visit:"可參訪", volunteer:"可洽詢志工", material_donation:"可物資募集", school_outreach:"可教育宣導", reporting:"可學習通報", adoption_promotion:"可協助認養曝光" };
+export const DATA_SOURCE_LAYER_LABELS:Record<DataSourceLayer,string> = { government_open_data:"政府開放資料", official_announcement:"官方公告", platform_partner:"平台合作", demo:"示範資料" };
+export const DEFAULT_ACTION_PROFILE:ActionProfile = { age:16, county:"", weeklyTime:"1_2", participationModes:["online"], travelAbility:"within_county", skills:["recommend"], commitment:"both", adultSupport:"need_to_ask", preferredRole:"not_sure" };
+export const DEFAULT_ACTION_RECORD:ActionRecord = { actionType:"", plannedDate:"", status:"not_started", adultSupportNote:"", conditionsToConfirm:"", nextStep:"", alternativePlan:"", reflection:"" };
+export function createWeekSixDraft():WeekSixJourneyDraft { return { version:2, stage:0, furthestStage:0, profile:{...DEFAULT_ACTION_PROFILE}, selectedSchoolId:"", resourceCategoryFilter:"all", actionFilter:"all", selectedOrganizationId:"", comparisonOrganizationIds:[], safetyAnswers:{}, contactMethod:"phone", contactDrafts:{phone:"",email:"",visit_proposal:"",school_proposal:""}, actionRecord:{...DEFAULT_ACTION_RECORD}, updatedAt:new Date().toISOString(), status:"draft", openDataDate:"" }; }
+
+export const SAFETY_SCENARIOS = [
+ {id:"injured",question:"路邊犬隻明顯受傷、受困，且仍有呼吸，你會先怎麼做？",options:[["move","沒有防護就直接把犬隻抱上車"],["1959","保持安全距離、記錄位置與狀況，撥 1959 動物保護專線"],["post","只把照片貼到社群等待網友處理"]],answer:"1959",explanation:"受傷或受困動物可向 1959 通報。先確保自己與交通安全，提供清楚位置與可觀察狀況，不自行冒險接觸。"},
+ {id:"chasing",question:"犬群正在車道追車，已危及用路人安全，你會怎麼做？",options:[["ignore","等隔天再說"],["chase","跑進車道驅趕犬群"],["110","先到安全處，若危險正在發生就撥 110，並可再向 1959 通報犬隻問題"]],answer:"110",explanation:"正在發生、影響交通或人身安全的事件可先撥 110；犬隻後續處理可由 1959 轉介地方動保機關。"},
+ {id:"fire",question:"犬隻受困火場或深坑，現場有立即生命危險，你會怎麼做？",options:[["119","撥 119 說明緊急救援位置與風險"],["email","寄一般詢問 Email"],["enter","自己進入危險區域救援"]],answer:"119",explanation:"火災、重大受困等緊急救援由 119 處理。不要讓自己成為第二名受困者。"},
+ {id:"general",question:"你想詢問收容所是否接受學生參訪或協助，沒有緊急危險，應怎麼做？",options:[["1959","把 1959 當作活動報名專線"],["official","在開放時間用官方電話或網站先詢問資格與需求"],["visit","未預約就直接到現場"]],answer:"official",explanation:"一般合作或參訪不是緊急通報。應使用該單位公開的官方聯絡方式，先確認年齡、陪同、時段與內容。"}
+ ,{id:"volunteer",question:"你想參加單位的志工服務，第一步應該是什麼？",options:[["show_up","直接到現場請工作人員安排工作"],["official","查看官方招募公告，確認年齡、訓練、保險與陪同規定，再由成人協助聯絡"],["promise","先向同學承諾一定能取得志工時數"]],answer:"official",explanation:"志工、服務學習、參訪是不同參與方式。先依官方公告確認資格與流程，未成年學生需讓教師或家長參與決定。"}
+ ,{id:"donation",question:"班級想替動保單位募集物資，怎麼做比較負責任？",options:[["confirm","先詢問目前需要的品項、規格、數量與收取方式，再決定是否募集"],["collect","先大量募集家中用不到的物品再送去"],["guess","照社群貼文猜單位現在需要什麼"]],answer:"confirm",explanation:"物資需求會隨時間、庫存與照護對象改變。先向官方窗口確認，才能避免把不合用的物品變成單位負擔。"}
+] as const;
+
+export function requiredComparisonCount(availableCount:number){return Math.min(2,Math.max(0,Math.floor(availableCount)));}
+export function areSafetyAnswersCorrect(answers:Record<string,string>){return SAFETY_SCENARIOS.every(s=>answers[s.id]===s.answer);}
+
+export function filterActionMatches(matches:OrganizationMatch[],category:ResourceCategoryFilter,action:ActionFilter){
+  return matches.filter(({organization})=>{
+    const categoryMatches=category==="all"
+      ||(category==="government"&&["public_shelter","animal_home","government_agency","education_park"].includes(organization.organizationType))
+      ||(category==="public_care"&&["public_shelter","animal_home"].includes(organization.organizationType))
+      ||(category==="education_park"&&organization.organizationType==="education_park")
+      ||(category==="registered_nonprofit"&&organization.organizationType==="registered_nonprofit")
+      ||(category==="rescue_group"&&organization.organizationType==="rescue_group")
+      ||(category==="partner_managed"&&organization.managementMode==="partner_managed")
+      ||(category==="internal_application"&&organization.managementMode==="partner_managed")
+      ||(category==="visit"&&organization.actionTags.includes("visit"))
+      ||(category==="volunteer"&&organization.hasOfficialVolunteerInfo)
+      ||(category==="school_outreach"&&organization.actionTags.includes("school_outreach"));
+    const actionMatches=action==="all"||organization.actionTags.includes(action);
+    return categoryMatches&&actionMatches;
+  });
+}
+
+export function normalizeCountyName(value:string){return value.trim().replace(/^台/,"臺").replace(/台([北中南東])/,"臺$1");}
+function organizationIdentity(value:string){return value.normalize("NFKC").toLowerCase().replace(/[\s　()（）·．。、-]/g,"");}
+function organizationIdOrder(value:string){const parsed=Number(value.replace(/\D/g,""));return Number.isFinite(parsed)?parsed:0;}
+const SUPERSEDED_ORGANIZATION_IDS=new Set(["PS00000017"]);
+export function dedupeActionOrganizations(organizations:ActionOrganization[]):ActionOrganization[]{const deduped=new Map<string,ActionOrganization>();for(const organization of organizations){if(SUPERSEDED_ORGANIZATION_IDS.has(organization.id))continue;const key=`${normalizeCountyName(organization.county)}|${organizationIdentity(organization.name)}`,existing=deduped.get(key);if(!existing){deduped.set(key,organization);continue}const preferred=organizationIdOrder(organization.id)>organizationIdOrder(existing.id)?organization:existing,fallback=preferred===organization?existing:organization;deduped.set(key,{...fallback,...preferred,openingHours:preferred.openingHours||fallback.openingHours,officialUrl:preferred.officialUrl||fallback.officialUrl,officialServices:preferred.officialServices?.length?preferred.officialServices:fallback.officialServices,openDogCount:Math.max(preferred.openDogCount??0,fallback.openDogCount??0)});}return[...deduped.values()];}
+export function haversineDistanceKm(from:Coordinates,to:Coordinates){const r=6371,rad=(n:number)=>n*Math.PI/180,dLat=rad(to.latitude-from.latitude),dLon=rad(to.longitude-from.longitude);const a=Math.sin(dLat/2)**2+Math.cos(rad(from.latitude))*Math.cos(rad(to.latitude))*Math.sin(dLon/2)**2;return r*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
+function minorEligibility(age:number,o:ActionOrganization){if(age>=18)return{eligible:true,reason:"年齡符合成人參與條件"};if(o.minorPolicy==="adult_only"||(o.minimumAge??0)>=18)return{eligible:false,reason:"目前不符合直接參與資格"};if(o.minorPolicy==="guardian_required")return{eligible:true,reason:"需由家長或監護人同意／陪同"};if(o.minorPolicy==="teacher_group_only")return{eligible:true,reason:"需由教師以團體方式聯絡"};return{eligible:true,reason:o.minorPolicy==="allowed"?"資料標示未成年可參與":"未成年參與規定需先向單位確認"};}
+export function matchActionOrganizations(organizations:ActionOrganization[],profile:ActionProfile,location?:Coordinates|null):OrganizationMatch[]{const county=normalizeCountyName(profile.county);return organizations.map(o=>{const minor=minorEligibility(profile.age,o),sameCounty=!county||normalizeCountyName(o.county)===county,publishedModes=o.participationModes.length>0,modeMatch=!publishedModes||profile.participationModes.length===0||profile.participationModes.some(m=>o.participationModes.includes(m)),publishedCommitment=o.commitmentTypes.length>0,commitmentMatch=!publishedCommitment||profile.commitment==="both"||o.commitmentTypes.includes(profile.commitment),travelMatch=profile.travelAbility==="cross_county"||profile.travelAbility==="guardian_accompanied"||(profile.travelAbility==="online_only"?(!publishedModes||o.participationModes.includes("online")):sameCounty),distanceKm=location?haversineDistanceKm(location,o):null,reasons=[minor.reason];if(sameCounty)reasons.push("位於所選縣市");if(!publishedModes)reasons.push("參與方式尚待向單位確認");if(profile.age<18&&profile.adultSupport==="confirmed")reasons.push("已有成人協助規劃聯絡");if(!travelMatch)reasons.push("超出目前交通條件");const exactMatch=minor.eligible&&sameCounty&&modeMatch&&commitmentMatch&&travelMatch,score=(minor.eligible?25:0)+(sameCounty?30:0)+(modeMatch?10:0)+(commitmentMatch?10:0)+(travelMatch?15:0)-(distanceKm??0)/100;return{organization:o,eligible:minor.eligible,exactMatch,reasons,distanceKm,score};}).sort((a,b)=>a.exactMatch===b.exactMatch?(location?(a.distanceKm??Infinity)-(b.distanceKm??Infinity):b.score-a.score):a.exactMatch?-1:1);}
+function validProfile(value:unknown):ActionProfile{const p=value&&typeof value==="object"?value as Partial<ActionProfile>:{};return{...DEFAULT_ACTION_PROFILE,...p,adultSupport:p.adultSupport??DEFAULT_ACTION_PROFILE.adultSupport,preferredRole:p.preferredRole??DEFAULT_ACTION_PROFILE.preferredRole,participationModes:Array.isArray(p.participationModes)?p.participationModes:DEFAULT_ACTION_PROFILE.participationModes,skills:Array.isArray(p.skills)?p.skills:DEFAULT_ACTION_PROFILE.skills};}
+export function parseWeekSixDraft(value:string|null):WeekSixJourneyDraft|null{if(!value)return null;try{const raw=JSON.parse(value) as Partial<WeekSixJourneyDraft>|Partial<WeekSixLegacyDraft>;if(raw.version===1&&raw.profile&&typeof raw.selectedOrganizationId==="string"){const d=createWeekSixDraft();return{...d,profile:validProfile(raw.profile),selectedOrganizationId:raw.selectedOrganizationId,comparisonOrganizationIds:raw.selectedOrganizationId?[raw.selectedOrganizationId]:[],openDataDate:raw.openDataDate??""};}if(raw.version!==2||!raw.profile||typeof raw.selectedOrganizationId!=="string")return null;const d=createWeekSixDraft();return{...d,...raw,profile:validProfile(raw.profile),stage:Math.max(0,Math.min(5,Number(raw.stage)||0)),furthestStage:Math.max(0,Math.min(5,Number(raw.furthestStage)||0)),comparisonOrganizationIds:Array.isArray(raw.comparisonOrganizationIds)?raw.comparisonOrganizationIds.filter((v):v is string=>typeof v==="string").slice(0,3):[],safetyAnswers:raw.safetyAnswers&&typeof raw.safetyAnswers==="object"?raw.safetyAnswers:{},contactDrafts:{...d.contactDrafts,...(raw.contactDrafts??{})},actionRecord:{...d.actionRecord,...(raw.actionRecord??{})}};}catch{return null;}}
+export function roleSummary(p:ActionProfile){const roles:Record<PreferredRole,string>={information:"資料整理者",school_project:"宣導設計者",remote_support:"認養曝光協助者",onsite_learning:"參訪紀錄者",material_coordinator:"物資募集者",contact_proposer:"聯絡提案者",not_sure:"先詢問再決定"};const eligibility=p.age>=18?"仍需依單位規定確認參與資格":p.adultSupport==="confirmed"?"已有成人協助，仍需確認參與類型與最低年齡":"需先確認成人支持、參與類型與最低年齡";return`目前適合從「${roles[p.preferredRole]}」開始；${eligibility}，再依官方回覆調整行動。`;}
+export function buildContactDrafts(o:ActionOrganization,p:ActionProfile):Record<ContactMethod,string>{const intro=`您好，我是關心動物議題的學生，想先了解 ${o.name} 目前公開且適合學生參與的需求。`,conditions=`我目前 ${p.age} 歲。請問這次參與屬於正式志工、學生服務學習、參訪，還是其他方式？最低年齡為何？是否需要家長或學校同意、成人陪同、事前訓練、保險、預約或固定服務時數？`;return{phone:`${intro}\n${conditions}\n我不會未經同意直接到場，謝謝您。`,email:`主旨：學生參與方式詢問\n\n${intro}\n${conditions}\n若目前沒有適合的方式，也想請教可查閱的官方資訊。謝謝。`,visit_proposal:`主旨：學生參訪 ${o.name} 申請草稿\n\n希望由教師或家長陪同，以生命教育與資料查證為目的進行參訪。\n預計先確認：可申請對象、人數、日期、導覽內容、年齡與安全規範、交通及影像紀錄限制。\n本草稿只供討論，將由負責成人確認後再使用官方管道提出申請。`,school_proposal:`提案主題：與 ${o.name} 建立安全的學生行動\n\n目的：先向官方單位確認真實需求，再由教師與學生評估可行方式。\n需確認：參與類型、最低年齡、家長或學校同意、成人陪同、訓練、保險、預約、交通、服務時段與內容。\n下一步：由教師或指定成人使用官方聯絡方式詢問，不直接承諾或到場。`};}
+export type AiActionMatchRequest={profile:ActionProfile;organizations:ActionOrganization[]};export type AiContactDraftRequest={organization:ActionOrganization;profile:ActionProfile;format:"phone"|"email"};export interface WeekSixAiService{matchActions(input:AiActionMatchRequest):Promise<never>;createContactDraft(input:AiContactDraftRequest):Promise<never>;}export interface ActionPassportService{saveDraft(draft:WeekSixJourneyDraft):Promise<never>;}

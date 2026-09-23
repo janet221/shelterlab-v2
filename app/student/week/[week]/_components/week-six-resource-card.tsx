@@ -1,4 +1,4 @@
-import { ACTION_TAG_LABELS, DATA_SOURCE_LAYER_LABELS, ORGANIZATION_TYPE_LABELS, UNKNOWN_OFFICIAL_TEXT, type OrganizationMatch } from "@/lib/action-opportunities/types";
+import { ACTION_TAG_LABELS, DATA_SOURCE_LAYER_LABELS, ORGANIZATION_TYPE_LABELS, UNKNOWN_OFFICIAL_TEXT, type OrganizationMatch } from "@/lib/week-six-action";
 import styles from "./week-six-experience.module.css";
 
 export default function WeekSixResourceCard({ match, selected, onSelect }:{ match:OrganizationMatch; selected:boolean; onSelect:()=>void }) {

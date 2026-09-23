@@ -1,6 +1,4 @@
 "use client";
-import { learningStorage } from "@/lib/classroom/browser-storage";
-
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -147,8 +145,8 @@ export default function WeekTwoExperience() {
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [orders, setOrders] = useState<Orders>(INITIAL_ORDERS);
 
-  useEffect(() => { try { const raw = learningStorage.getItem(STORAGE_KEY); if (raw) { const parsed = JSON.parse(raw) as Partial<SavedWeekTwo>; if (parsed.contentVersion === CONTENT_VERSION) setSaved({ ...EMPTY, ...parsed, hearts: { ...DEFAULT_HEARTS, ...(parsed.hearts ?? {}) }, treasureAnswers: parsed.treasureAnswers ?? {}, treasureCompleted: parsed.treasureCompleted ?? Boolean(parsed.completed) }); } } catch {} setReady(true); }, []);
-  useEffect(() => { if (!ready) return; try { learningStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {} }, [ready, saved]);
+  useEffect(() => { try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { const parsed = JSON.parse(raw) as Partial<SavedWeekTwo>; if (parsed.contentVersion === CONTENT_VERSION) setSaved({ ...EMPTY, ...parsed, hearts: { ...DEFAULT_HEARTS, ...(parsed.hearts ?? {}) }, treasureAnswers: parsed.treasureAnswers ?? {}, treasureCompleted: parsed.treasureCompleted ?? Boolean(parsed.completed) }); } } catch {} setReady(true); }, []);
+  useEffect(() => { if (!ready) return; try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {} }, [ready, saved]);
   useEffect(() => { if (!ready) return; setOrders((current) => { if (saved.stage === 0) return { ...current, law: LAW_QUESTIONS.map((item, i) => visitShuffle(item.options.map((_, j) => j), `week2-law-${i}`)), lawFiles: visitShuffle(LAW_FILES.map((item) => item.id), "week2-law-files") }; if (saved.stage === 1) return { ...current, time: TIME_QUESTIONS.map((item, i) => visitShuffle(item.options.map((_, j) => j), `week2-time-${i}`)), timeFiles: visitShuffle(TIME_ACTIONS.map((item) => item.id), "week2-time-files") }; if (saved.stage === 2) return { ...current, money: MONEY_QUESTIONS.map((item, i) => visitShuffle(item.options.map((_, j) => j), `week2-money-${i}`)), moneyFiles: visitShuffle(MONEY_FILES.map((item) => item.id), "week2-money-files") }; if (saved.stage === 3) return { ...current, emotion: EMOTION_QUESTIONS.map((item, i) => visitShuffle(item.options.map((_, j) => j), `week2-emotion-${i}`)), familyFiles: visitShuffle(FAMILY_FILES.map((item) => item.id), "week2-family-files") }; if (saved.stage === 4) return { ...current, video: VIDEO_QUESTIONS.map((item, i) => visitShuffle(item.options.map((_, j) => j), `week2-video-${i}`)) }; return { ...current, dataFiles: visitShuffle(DATA_FILES.map((item) => item.id), "week2-data-files") }; }); }, [ready, saved.stage]);
 
   const correctCount = (ids: string[], choices: readonly { id: string; correct: boolean }[]) => ids.filter((id) => choices.find((item) => item.id === id)?.correct).length;

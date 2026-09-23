@@ -2,13 +2,12 @@
 
 import { useEffect,useState } from "react";
 import StudentActionProfileForm from "@/app/student/_components/student-action-profile-form";
-import { studentActionProfileRepository } from "@/lib/action-opportunities/browser-repository";
+import { studentActionProfileRepository } from "@/lib/action-opportunities/repository";
 import type { StudentActionProfile } from "@/lib/action-opportunities/types";
-import { type ActionProfile, type ActionParticipationMode, type PreferredRole, type SkillTag } from "@/lib/action-opportunities/types";
-import { roleSummary } from "@/lib/action-opportunities/repository";
+import { roleSummary, type ActionProfile, type ParticipationMode, type PreferredRole, type SkillTag } from "@/lib/week-six-action";
 import styles from "./week-six-experience.module.css";
 
-const modes:Array<[ActionParticipationMode,string]>=[["online","在家或線上"],["school","校園內"],["onsite","動保單位現場"]];
+const modes:Array<[ParticipationMode,string]>=[["online","在家或線上"],["school","校園內"],["onsite","動保單位現場"]];
 const skills:Array<[SkillTag,string]>=[["photo_video","攝影／影片"],["graphic_design","平面設計"],["writing_social","寫作／社群"],["data_analysis","資料整理"],["event_planning","活動企劃"],["sorting","物資整理"],["animal_care","動物照護"],["recommend","希望推薦"]];
 const roles:Array<[PreferredRole,string]>=[["information","資料整理者"],["school_project","宣導設計者"],["remote_support","認養曝光協助者"],["onsite_learning","參訪紀錄者"],["material_coordinator","物資募集者"],["contact_proposer","聯絡提案者"],["not_sure","先詢問再決定"]];
 

@@ -1,4 +1,4 @@
-import type { ActionRecord, ActionStatus, ActionOrganization } from "@/lib/action-opportunities/types";
+import type { ActionRecord, ActionStatus, ActionOrganization } from "@/lib/week-six-action";
 import styles from "./week-six-experience.module.css";
 
 export default function Commitment({organization,record,completed,onChange,onComplete,onEdit,onRestart}:{organization:ActionOrganization;record:ActionRecord;completed:boolean;onChange:(record:ActionRecord)=>void;onComplete:()=>void;onEdit:()=>void;onRestart:()=>void}) {
