@@ -69,7 +69,10 @@ test("public surfaces use the gold and cream theme without green utility colors"
 test("student and teacher authentication request the correct verification codes", async ({ page }) => {
   await page.goto("/auth?role=student");
   await expect(page.locator('div[style*="b.jpg"]')).toBeVisible();
+  await expect(page.getByTestId("auth-page")).toHaveCSS("background-image", /linear-gradient/);
+  await expect(page.getByTestId("auth-page")).toHaveCSS("min-height", /.+/);
   await expect(page.getByTestId("auth-content")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(page.getByText("登入後保存課程進度與學習紀錄；第一次使用可直接建立帳號。")).toHaveCount(0);
   await expect(page.locator("footer")).toHaveCount(0);
   await expect(page.locator('input[name="classCode"]')).toHaveCount(0);
   await page.getByRole("tab", { name: "建立帳號" }).click();

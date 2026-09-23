@@ -9,6 +9,8 @@ test("landing presents the six-week curriculum and working entry points", async 
   await expect(page.getByTestId("version2-hero")).toHaveCSS("height", /.+/);
   await expect(page.getByText("六週數位探究課程 · Evidence-led learning", { exact: true })).toBeVisible();
   await expect(page.getByText("從看見一隻犬，到理解牠身後的世界。", { exact: true })).toBeVisible();
+  await expect(page.getByText("從「我想幫助牠」開始，透過 6 週數位思辨課程，學會查證、看清偏見，把愛心化為真正幫得上忙的負責任行動。", { exact: true })).toBeVisible();
+  await expect(page.getByText("連結校園學習、政府開放資料與收容所實務", { exact: false })).toHaveCount(0);
   await page.getByRole("link", { name: "了解專案細節", exact: true }).click();
   await expect(page).toHaveURL(/#vision$/);
   await expect(page.getByRole("heading", { name: "專案願景｜讓關心有依據，讓行動有方向" })).toBeInViewport();

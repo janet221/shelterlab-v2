@@ -72,10 +72,7 @@ export default function HomePage() {
                 從看見一隻犬，到理解牠身後的世界。
               </p>
               <p className="mt-4 max-w-2xl text-sm font-normal leading-7 text-white/90 drop-shadow-sm sm:text-base sm:leading-8">
-                連結校園學習、政府開放資料與收容所實務，讓青少年透過六週數位課程，練習閱讀證據、辨識偏見、理解不同立場，並提出負責任的動保行動。
-              </p>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/85 sm:text-base">
-                從「我想幫助牠」開始，進一步思考：<span className="font-bold text-[#f5dda7]">我知道什麼？還需要查證什麼？怎麼做才真正有幫助？</span>
+                從「我想幫助牠」開始，透過 6 週數位思辨課程，學會查證、看清偏見，把愛心化為真正幫得上忙的負責任行動。
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link className="inline-block rounded-full bg-[#ebd197] px-8 py-3 text-sm font-bold tracking-wider text-[#332a22] shadow-xl transition hover:bg-white md:text-base" href="/start">
