@@ -12,6 +12,7 @@ const STATUS_LABEL = { locked: "未解鎖", in_progress: "進行中", pending: "
 export default function TeacherDashboard() {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
   const refresh = useCallback(async () => {
     try { setDashboard(await api<Dashboard>("/api/classroom/dashboard")); setError(""); }
     catch (cause) { setError((cause as Error).message); }
@@ -23,7 +24,32 @@ export default function TeacherDashboard() {
     return () => clearInterval(timer);
   }, [refresh]);
 
+  async function copyClassCode(code: string) {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setError("無法自動複製，請手動選取班級代碼。");
+    }
+  }
+
   return <main className="mx-auto max-w-7xl space-y-8 px-5 py-10">
+    {dashboard?.classroom && <section className="relative overflow-hidden rounded-[2rem] border border-[#d8c7a7] bg-[linear-gradient(135deg,#fffaf0_0%,#f1eadf_58%,#dfe9e2_100%)] p-6 shadow-[0_24px_70px_-45px_rgba(70,57,44,0.65)] sm:p-8" aria-labelledby="teacher-zone-title">
+      <div aria-hidden="true" className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/60 blur-2xl" />
+      <div className="relative flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-[#806e58]">Teacher Profile</p>
+          <h1 id="teacher-zone-title" className="mt-2 text-3xl font-bold text-[#382f28]">授課教師專區</h1>
+          <p className="mt-3 text-lg font-bold text-[#574b40]">{dashboard.teacherName}</p>
+        </div>
+        <dl className="grid flex-1 gap-3 sm:grid-cols-2 xl:max-w-4xl xl:grid-cols-4">
+          <div className="rounded-2xl border border-white/80 bg-white/70 p-4"><dt className="text-xs font-bold text-[#887966]">學校與縣市</dt><dd className="mt-2 font-bold text-[#3f352c]">{dashboard.classroom.schoolName}<span className="mt-1 block text-sm font-medium text-[#6f6257]">{dashboard.classroom.county}</span></dd></div>
+          <div className="rounded-2xl border border-white/80 bg-white/70 p-4"><dt className="text-xs font-bold text-[#887966]">任教年級</dt><dd className="mt-2 text-lg font-bold text-[#3f352c]">{dashboard.classroom.grade}</dd></div>
+          <div className="rounded-2xl border border-white/80 bg-white/70 p-4 sm:col-span-2"><dt className="text-xs font-bold text-[#887966]">班級代碼</dt><dd className="mt-2 flex flex-wrap items-center gap-3"><code className="rounded-lg bg-[#3f554d] px-3 py-2 font-bold tracking-wider text-white">{dashboard.classroom.joinCode}</code><button type="button" onClick={() => void copyClassCode(dashboard.classroom!.joinCode)} className="rounded-xl border border-[#8f806b] bg-white px-4 py-2 text-sm font-bold text-[#4e4339] transition hover:bg-[#fffaf0]">{copied ? "已複製 ✓" : "一鍵複製班級代碼"}</button></dd></div>
+        </dl>
+      </div>
+    </section>}
     <header>
       <p className="font-bold text-[#7f7165]">教師工作區</p>
       <h1 className="mt-2 text-3xl font-bold">學習進度追蹤</h1>

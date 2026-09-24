@@ -5,7 +5,7 @@ import { RequestError } from "./http";
 import { buildQuestionSet, countyData } from "./coa";
 import type { QuestionSet, SubmittedAnswer, WeekGameAudit } from "./data-types";
 
-export const settingsSchema = z.object({ classId: z.string().uuid().optional(), classCode: z.string().trim().min(8).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()), schoolId: z.string().min(1).max(40), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.literal(6) }).strict();
+export const settingsSchema = z.object({ classId: z.string().uuid().optional(), teacherName: z.string().trim().min(1, "請填寫教師姓名或稱謂。").max(100), classCode: z.string().trim().min(8).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()), schoolId: z.string().min(1).max(40), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.literal(6) }).strict();
 export const studentIdentitySchema = z.object({
   realName: z.string().trim().min(2, "請填寫真實姓名。").max(100),
   studentNumber: z.string().trim().min(1, "請填寫學號。").max(40).regex(/^[A-Za-z0-9_-]+$/, "學號只能包含英文字母、數字、底線或連字號。")
@@ -67,11 +67,12 @@ export async function schoolChoices() {
   const snapshot = await getSchoolDirectorySnapshot();
   return { source: snapshot.source, schools: snapshot.schools.map(({ id, name, county }) => ({ id, name, county })) };
 }
-export async function saveSettings(_teacherId: string, input: z.infer<typeof settingsSchema>) {
+export async function saveSettings(teacherId: string, input: z.infer<typeof settingsSchema>) {
   const { schools } = await schoolChoices();
   const school = schools.find(s => s.id === input.schoolId);
   if (!school || school.county !== input.county) throw new RequestError(400, "學校與縣市不符，請重新選擇學校。");
   const db = await client();
+  checked(await db.from("profiles").update({ display_name: input.teacherName }).eq("id", teacherId).eq("role", "teacher"));
   const id = checked(await db.rpc("shelterlab_save_class", { p_class_id: input.classId ?? null, p_school_id: school.id, p_school_name: school.name, p_county: school.county, p_grade: input.grade, p_student_count: input.studentCount, p_class_code: input.classCode }));
   return { id };
 }
@@ -127,13 +128,14 @@ export async function submitGameAudit(studentId: string, week: number, input: z.
 }
 export async function teacherDashboard(teacherId: string) {
   const db = await client();
+  const teacher = checked(await db.from("profiles").select("display_name").eq("id", teacherId).eq("role", "teacher").maybeSingle()) as { display_name: string } | null;
   const classes = checked(await db.from("classes").select("*").eq("teacher_id", teacherId).order("created_at")) as ClassRow[];
   const students = classes.length ? checked(await db.from("profiles").select("id,display_name,real_name,student_number,class_id,progress_generation,is_course_completed,course_completed_at").eq("role", "student").in("class_id", classes.map(c => c.id)).order("created_at")) as Profile[] : [];
   const records = students.length ? checked(await db.from("student_progress").select("student_id,week_number,status,version,submitted_at,reviewed_at,feedback").in("student_id", students.map(s => s.id))) as ProgressRow[] : [];
   const classrooms = classes.map(c => ({ id: c.id, name: c.name, schoolId: c.school_id || "", schoolName: c.school_name || c.name, county: c.county || "", grade: c.grade || "", studentCount: c.student_count, plannedWeeks: 6, joinCode: c.class_code,
     enrollments: students.filter(s => s.class_id === c.id).map(s => ({ student: { id: s.id, displayName: s.real_name || s.display_name || "未填姓名", realName: s.real_name || "", studentNumber: s.student_number || "" }, generation: s.progress_generation, isCourseCompleted: s.is_course_completed, weeks: records.filter(w => w.student_id === s.id).map(mapWeek) })) }));
   const pending = classrooms.flatMap(c => c.enrollments.flatMap(e => e.weeks.filter(w => w.status === "pending").map(w => ({ ...w, student: e.student, generation: e.generation, classId: c.id, className: c.name })))).sort((a, b) => (a.submittedAt || "").localeCompare(b.submittedAt || ""));
-  return { classroom: classrooms[0] ?? null, classrooms, pending };
+  return { teacherName: teacher?.display_name?.trim() || "授課教師", classroom: classrooms[0] ?? null, classrooms, pending };
 }
 export async function teacherSubmission(teacherId: string, id: string) {
   const match = /^([0-9a-f-]{36})_([1-6])$/i.exec(id);

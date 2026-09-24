@@ -122,11 +122,32 @@ describe("前五週寶物跨週應用", () => {
     expect(nav).toContain("設定");
     expect(nav).not.toContain("課程工作台");
     expect(nav).not.toContain("在地教案產生器");
+    expect(nav).toContain('teacher ? "/auth?role=teacher" : "/auth?role=student"');
+    expect(settings).toContain("教師姓名 / 稱謂");
     expect(settings).toContain("班級代碼");
+    expect(settings).toContain("學生首次註冊時會使用此碼，且不可與其他班級重複。");
+    expect(settings).not.toContain("由學校名錄鎖定");
+    expect(settings).not.toContain("8–64 個英文字母");
     expect(settings).not.toContain("課程週數");
     expect(settings).not.toContain("採固定六週闖關");
     expect(dashboard).toContain('redirect("/teacher/reviews")');
     expect(generator).toContain('redirect("/teacher/reviews")');
+  });
+
+  it("進度追蹤頁最上方提供動態授課教師專區與班級代碼複製", () => {
+    const dashboard = read("app/teacher/workbench.tsx");
+    const loading = read("app/student/loading.tsx");
+
+    expect(dashboard).toContain("授課教師專區");
+    expect(dashboard).toContain("dashboard.teacherName");
+    expect(dashboard).toContain("dashboard.classroom.schoolName");
+    expect(dashboard).toContain("dashboard.classroom.county");
+    expect(dashboard).toContain("dashboard.classroom.grade");
+    expect(dashboard).toContain("一鍵複製班級代碼");
+    expect(dashboard).toContain("navigator.clipboard.writeText");
+    expect(loading).toContain("正在展開六週探索地圖");
+    expect(loading).toContain("animate-spin");
+    expect(loading).toContain("animate-pulse");
   });
 
   it("資料遷移固定測試班級的學校、縣市並加入學生身分欄位", () => {

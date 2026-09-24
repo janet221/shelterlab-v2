@@ -70,6 +70,7 @@ export default function SettingsForm() {
         try {
           await api("/api/classroom/settings", {
             ...(dashboard.classroom ? { classId: dashboard.classroom.id } : {}),
+            teacherName: String(form.get("teacherName") || "").trim(),
             classCode: String(form.get("classCode") || "").trim().toUpperCase(),
             schoolId,
             county: school?.county,
@@ -78,21 +79,20 @@ export default function SettingsForm() {
             plannedWeeks: 6,
           });
           setDashboard(await api<Dashboard>("/api/classroom/dashboard"));
-          setToast({ kind: "success", message: "設定已儲存。工作台會自動載入在地資料。" });
+          setToast({ kind: "success", message: "設定已儲存。" });
         } catch (error) {
           setToast({ kind: "error", message: (error as Error).message });
         } finally {
           setBusy(false);
         }
       }}>
+        <label className="block">教師姓名 / 稱謂<input name="teacherName" minLength={1} maxLength={100} defaultValue={dashboard.teacherName} required className={fieldClass} placeholder="例如：王老師" autoComplete="name" /></label>
         <label className="block">學校<select value={schoolId} onChange={(event) => setSchoolId(event.target.value)} required className={fieldClass}><option value="">請選擇學校</option>{schools.schools.map((item) => <option key={item.id} value={item.id}>{item.county} · {item.name}</option>)}</select></label>
-        <p className="text-xs text-stone-500">{schools.source.message}。{schools.source.updatedAt}</p>
-        <label className="block">縣市<input readOnly value={school?.county || ""} className={fieldClass} aria-describedby="county-note" /></label>
-        <p id="county-note" className="text-xs">由學校名錄鎖定，後端會再次核對。</p>
+        <label className="block">縣市<input readOnly value={school?.county || ""} className={fieldClass} /></label>
         <label className="block">年級<select name="grade" defaultValue={dashboard.classroom?.grade || "高一"} className={fieldClass}>{["高一", "高二", "高三"].map((grade) => <option key={grade}>{grade}</option>)}</select></label>
         <label className="block">班級人數<input type="number" name="studentCount" min={1} max={200} defaultValue={dashboard.classroom?.studentCount || 30} required className={fieldClass} /></label>
         <label className="block">班級代碼<input name="classCode" minLength={8} maxLength={64} pattern="[A-Za-z0-9][A-Za-z0-9-]{7,63}" defaultValue={dashboard.classroom?.joinCode || ""} required autoComplete="off" spellCheck={false} className={`${fieldClass} uppercase`} placeholder="例如 SHELTER-2026" /></label>
-        <p className="text-xs text-stone-500">8–64 個英文字母、數字或連字號。學生首次註冊時會使用此代碼，且不可與其他班級重複。</p>
+        <p className="text-xs text-stone-500">學生首次註冊時會使用此碼，且不可與其他班級重複。</p>
         <button disabled={busy || !school} className={buttonClass}>{busy ? "儲存中…" : "儲存並載入在地設定"}</button>
       </form>
 
