@@ -5,6 +5,7 @@ import { hashPassword, newToken, tokenHash, verifyPassword } from "@/lib/classro
 import { gameAuditSubmissionSchema, settingsSchema, studentIdentitySchema, submissionSchema, validateAnswers } from "@/lib/classroom/service";
 import { courseWeekLabel } from "@/lib/classroom/course";
 import { assertSameOrigin, body } from "@/lib/classroom/http";
+import { gradingGuidelines, isGradableAuditEntry, parseQuestionReviewComments, serializeQuestionReviewComments } from "@/lib/classroom/review-guidelines";
 import { z } from "zod";
 
 const row = (id: string, extra: Record<string, string> = {}) => ({ animal_id: id, animal_status: "OPEN", animal_createtime: "2026/9/1", animal_colour: "黑色", animal_bodytype: "MEDIUM", animal_age: "ADULT", animal_sex: "M", animal_Variety: "混種犬", shelter_name: "臺北市動物之家", shelter_address: "臺北市公開收容設施", animal_update: "2026/9/5", ...extra });
@@ -80,6 +81,19 @@ describe("authoritative COA classroom evidence", () => {
     expect(gameAuditSubmissionSchema.safeParse(input).success).toBe(true);
     expect(gameAuditSubmissionSchema.safeParse({ ...input, audit: { ...input.audit, completed: false } }).success).toBe(false);
     expect(gameAuditSubmissionSchema.safeParse({ ...input, audit: { ...input.audit, entries: [] } }).success).toBe(false);
+  });
+  it("shows only gradable answers and persists per-question teacher comments", () => {
+    const base = { id: "entry-1", section: "資料深思", prompt: "資料支持什麼結論？", kind: "text" as const, answers: ["目前資料只能支持差異，不能證明原因。"], answered: true, updatedAt: "2026-09-24T08:00:00.000Z" };
+    expect(isGradableAuditEntry(base)).toBe(true);
+    expect(isGradableAuditEntry({ ...base, section: "影像觀察站" })).toBe(false);
+    expect(isGradableAuditEntry({ ...base, prompt: "互動題目" })).toBe(false);
+    expect(isGradableAuditEntry({ ...base, kind: "action" })).toBe(false);
+    expect(isGradableAuditEntry({ ...base, answered: false, answers: [] })).toBe(false);
+    for (let week = 1; week <= 6; week += 1) expect(gradingGuidelines(week)).toHaveLength(4);
+    expect(gradingGuidelines(1, base)[0]).toContain(base.prompt);
+    const encoded = serializeQuestionReviewComments({ "entry-1": "  有引用資料，也有指出限制。  " });
+    expect(parseQuestionReviewComments(encoded)).toEqual({ "entry-1": "有引用資料，也有指出限制。" });
+    expect(parseQuestionReviewComments("舊版一般評語")).toEqual({});
   });
   it("requires a real name and a classroom-safe student number", () => {
     expect(studentIdentitySchema.safeParse({ realName: "王小明", studentNumber: "CK-1024" }).success).toBe(true);

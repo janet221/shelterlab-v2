@@ -32,7 +32,7 @@ export const gameAuditSubmissionSchema = z.object({
     gameState: z.record(z.string(), z.unknown())
   }).strict()
 }).strict();
-export const reviewSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), decision: z.literal("approve"), feedback: z.string().trim().max(3000) }).strict();
+export const reviewSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), decision: z.literal("approve"), feedback: z.string().trim().max(12000) }).strict();
 export const resetSchema = z.object({ classId: z.string().uuid(), confirmation: z.literal("RESET"), targets: z.array(z.object({ studentId: z.string().uuid(), generation: z.number().int().nonnegative() }).strict()).min(1).max(200) }).strict();
 const statuses = { Locked: "locked", "In Progress": "in_progress", Pending: "pending", Completed: "completed" } as const;
 type DbStatus = keyof typeof statuses;

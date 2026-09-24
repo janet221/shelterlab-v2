@@ -127,9 +127,11 @@ describe("前五週寶物跨週應用", () => {
     expect(review).toContain("完成時間：");
     expect(review).toContain("選擇題");
     expect(review).toContain("gameAudit");
-    expect(review).toContain('entry.kind !== "action"');
-    expect(review).toContain('entry.answered &&');
-    expect(review).toContain('!entry.prompt.includes("互動題目")');
+    expect(review).toContain("isGradableAuditEntry");
+    expect(review).toContain("教師評語");
+    expect(review).toContain("教師批改方針建議");
+    expect(review).toContain("gradingGuidelines");
+    expect(review).toContain("serializeQuestionReviewComments");
     expect(review).not.toContain("完整關卡填答狀況");
     expect(review).not.toContain("整體完成狀態");
     expect(review).not.toContain("已填答／互動");
