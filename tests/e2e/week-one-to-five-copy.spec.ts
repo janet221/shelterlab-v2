@@ -1,8 +1,17 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function openWeek(page: Page, week: number) {
+  await page.goto(`/student/week/${week}`);
+  if (week !== 1) return;
+  await expect(page.getByText("正在展開筆記本…")).toBeHidden();
+  for (let pageNumber = 0; pageNumber < 3; pageNumber += 1) {
+    await page.getByRole("button", { name: "下一頁 →" }).click();
+  }
+  await page.getByRole("button", { name: "進入第一週" }).click();
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
-    if (!localStorage.getItem("shelterlab-course-intro-v9")) localStorage.setItem("shelterlab-course-intro-v9", "1");
     if (!localStorage.getItem("shelterlab-learning-progress-v2")) localStorage.setItem("shelterlab-learning-progress-v2", JSON.stringify({
       schemaVersion: 2,
       completedWeeks: [1, 2, 3, 4, 5],
@@ -26,7 +35,7 @@ test("Week 1–5 final stages use the shared inquiry title and real-data summari
   ] as const;
 
   for (const [week, label, group, statistic] of expected) {
-    await page.goto(`/student/week/${week}`);
+    await openWeek(page, week);
     await expect(page.getByRole("heading", { name: "想想看牠們被貼上了什麼標籤" })).toBeVisible();
     await expect(page.getByText(label, { exact: true })).toBeVisible();
     await expect(page.getByText(group, { exact: true }).first()).toBeVisible();
@@ -41,7 +50,7 @@ test("Week 1–5 final stages use the shared inquiry title and real-data summari
 test("final-stage data cards remain within a narrow viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   for (const week of [1, 2, 3, 4, 5]) {
-    await page.goto(`/student/week/${week}`);
+    await openWeek(page, week);
     await expect(page.getByRole("heading", { name: "想想看牠們被貼上了什麼標籤" })).toBeVisible();
     const hasOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
     expect(hasOverflow).toBe(false);
@@ -49,13 +58,13 @@ test("final-stage data cards remain within a narrow viewport", async ({ page }) 
 });
 
 test("replaying Week 1 keeps its completion and unlocked reward", async ({ page }) => {
-  await page.goto("/student/week/1");
+  await openWeek(page, 1);
   await page.getByRole("textbox").fill("我會先區分資料呈現的差異與仍需查證的原因。");
   await page.getByRole("button", { name: "完成第一週" }).click();
   await expect(page.getByRole("dialog", { name: "取得新的探究工具" })).toBeVisible();
   await page.getByRole("button", { name: "收下工具" }).click();
   await expect(page).toHaveURL(/\/student$/);
-  await page.goto("/student/week/1");
+  await openWeek(page, 1);
   await page.getByRole("button", { name: "重新體驗第一週" }).click();
   await expect(page.getByRole("heading", { name: "四種犬隻，如何出現在不同生活環境？" })).toBeVisible();
 
@@ -74,7 +83,7 @@ test("Week 1 resets the challenge with a clear alert after three wrong choices",
     unlockedTools: [],
     weekOne: { stage: 1, completed: false, sourceTags: [] }
   })));
-  await page.goto("/student/week/1");
+  await openWeek(page, 1);
 
   await page.getByRole("button", { name: /成為家庭犬/ }).click();
   await page.getByRole("button", { name: "下一步，進入這項挑戰" }).click();

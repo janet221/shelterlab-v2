@@ -80,8 +80,9 @@ describe("前五週寶物跨週應用", () => {
     const experience = read("app/student/week/[week]/_components/week-one-experience.tsx");
     const notebook = read("app/student/week/[week]/_components/realistic-notebook-intro.tsx");
 
-    expect(experience).toContain('shelterlab-course-intro-v9');
-    expect(experience).toContain("<RealisticNotebookIntro onComplete={finishNotebook} />");
+    expect(experience).toContain("useState(true)");
+    expect(experience).not.toContain("localStorage");
+    expect(experience).toContain("<RealisticNotebookIntro onComplete={() => setShowNotebook(false)} />");
     expect(notebook).toContain("第 1 週｜先入為主與證據");
     expect(notebook).toContain("進入第一週");
   });
@@ -151,7 +152,8 @@ describe("前五週寶物跨週應用", () => {
     expect(classroomMap).toContain("正在讀取地圖進度");
     expect(loadingVisual).toContain("animate-spin");
     expect(loadingVisual).toContain("animate-pulse");
-    expect(loadingVisual).toContain("#fffaf0");
+    expect(loadingVisual).toContain("#fffefa");
+    expect(loadingVisual).not.toContain("#d4ae62");
     expect(loadingVisual).not.toContain("green");
     expect(loadingVisual).not.toContain("emerald");
   });
