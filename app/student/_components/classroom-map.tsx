@@ -2,13 +2,14 @@
 import { useEffect, useState } from "react";
 import { api } from "@/app/_components/classroom-ui";
 import StudentMapDynamic from "./student-map-dynamic";
+import StudentRouteLoading from "./student-route-loading";
 import type { StudentMapProgress } from "@/lib/student-map";
 type Progress = { enrolled: boolean; generation?: number; realName?: string; studentNumber?: string; requiresIdentity?: boolean; schoolName?: string; classCode?: string; county?: string; grade?: string; plannedWeeks?: number; weeks: StudentMapProgress["weeks"] };
 export default function ClassroomMap() {
   const [progress, setProgress] = useState<Progress | null>(null), [error, setError] = useState("");
   useEffect(() => { const refresh = () => api<Progress>("/api/classroom/progress").then(p => { setProgress(p); setError(""); }).catch(e => setError(e.message)); void refresh(); const timer = setInterval(refresh, 5000); window.addEventListener("focus", refresh); return () => { clearInterval(timer); window.removeEventListener("focus", refresh); }; }, []);
   const weeks = ([1, 2, 3, 4, 5, 6] as const).map(week => progress?.weeks.find(w => w.week === week) || { week, status: "locked" as const });
-  return <><p role="alert" className="relative z-[90] bg-white px-5 text-red-800">{error}</p>{!progress && !error && <p className="p-10">正在讀取地圖進度…</p>}{progress?.enrolled ? <StudentMapDynamic
+  return <><p role="alert" className="relative z-[90] bg-white px-5 text-red-800">{error}</p>{!progress && !error && <StudentRouteLoading title="正在讀取地圖進度" description="正在同步你的六週旅程、解鎖狀態與探究工具…" />}{progress?.enrolled ? <StudentMapDynamic
     profile={{ realName: progress.realName || "", studentNumber: progress.studentNumber || "", requiresIdentity: Boolean(progress.requiresIdentity), classCode: progress.classCode || "", schoolName: progress.schoolName || "", county: progress.county || "", grade: progress.grade || "" }}
     progress={{ weeks }}
     onIdentitySaved={(identity) => setProgress((current) => current ? { ...current, ...identity, requiresIdentity: false } : current)}

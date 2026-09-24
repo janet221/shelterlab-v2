@@ -137,6 +137,8 @@ describe("前五週寶物跨週應用", () => {
   it("進度追蹤頁最上方提供動態授課教師專區與班級代碼複製", () => {
     const dashboard = read("app/teacher/workbench.tsx");
     const loading = read("app/student/loading.tsx");
+    const loadingVisual = read("app/student/_components/student-route-loading.tsx");
+    const classroomMap = read("app/student/_components/classroom-map.tsx");
 
     expect(dashboard).toContain("授課教師專區");
     expect(dashboard).toContain("dashboard.teacherName");
@@ -145,9 +147,13 @@ describe("前五週寶物跨週應用", () => {
     expect(dashboard).toContain("dashboard.classroom.grade");
     expect(dashboard).toContain("一鍵複製班級代碼");
     expect(dashboard).toContain("navigator.clipboard.writeText");
-    expect(loading).toContain("正在展開六週探索地圖");
-    expect(loading).toContain("animate-spin");
-    expect(loading).toContain("animate-pulse");
+    expect(loading).toContain("正在載入關卡");
+    expect(classroomMap).toContain("正在讀取地圖進度");
+    expect(loadingVisual).toContain("animate-spin");
+    expect(loadingVisual).toContain("animate-pulse");
+    expect(loadingVisual).toContain("#fffaf0");
+    expect(loadingVisual).not.toContain("green");
+    expect(loadingVisual).not.toContain("emerald");
   });
 
   it("資料遷移固定測試班級的學校、縣市並加入學生身分欄位", () => {
