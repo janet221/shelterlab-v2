@@ -86,4 +86,13 @@ describe("Release 1.0.2 role-based public experience", () => {
       for (const phrase of unintendedEnglish) expect(source, `${path}: ${phrase}`).not.toContain(phrase);
     }
   });
+
+  it("政府開放資料卡片不顯示右上角狀態標籤", () => {
+    const source = read("app/government-data/page.tsx");
+    expect(source).not.toContain('status?: "使用中"');
+    expect(source).not.toContain('status: "使用中"');
+    expect(source).not.toContain('status: "中繼資料"');
+    expect(source).not.toContain('status: "背景引用"');
+    expect(source).not.toContain("resource.status");
+  });
 });

@@ -11,19 +11,18 @@ type Resource = {
   provider: string;
   url: string;
   note: string;
-  status?: "使用中" | "中繼資料" | "背景引用";
 };
 
 const openDatasets: Resource[] = [
-  { title: "動物認領養", provider: "農業部動物保護司", url: "https://data.gov.tw/dataset/85903", note: "提供公開待認養動物個案欄位，作為六週課程的資料判讀與個案比較素材。", status: "使用中" },
-  { title: "全國公立動物收容所收容處理情形統計表", provider: "農業部", url: "https://data.gov.tw/dataset/41236", note: "提供縣市與月份層級的入所、認領養及處理統計，用於政策與資料限制討論。", status: "使用中" },
-  { title: "全國公立動物收容所收容處理情形統計表二", provider: "農業部", url: "https://data.nat.gov.tw/dataset/73396", note: "提供容量、月底在養與入所來源等欄位，用於理解收容現場需求。", status: "使用中" },
-  { title: "全國公立動物收容所資料", provider: "農業部", url: "https://data.gov.tw/dataset/134284", note: "提供公立收容所與動物之家基本資料，支援資源地圖及官方單位連結。", status: "使用中" },
-  { title: "一般高級中等學校名錄", provider: "教育部統計處", url: "https://data.gov.tw/dataset/6089", note: "用於確認學校與縣市，協助篩選同縣市動保資源；不推算未提供的距離。", status: "使用中" },
-  { title: "國家教育研究院愛學網", provider: "國家教育研究院", url: "https://data.gov.tw/dataset/6318", note: "僅使用教材中繼資料與官方外部連結，不下載、鏡像或重新散布影片。", status: "中繼資料" },
-  { title: "各級學校縣市別學生人數", provider: "教育部統計處", url: "https://data.gov.tw/dataset/40121", note: "提供縣市層級教育背景資料，用於探究情境與素養脈絡。", status: "背景引用" },
-  { title: "國家教育研究院全國中小學題庫網", provider: "國家教育研究院", url: "https://data.gov.tw/dataset/29027", note: "保留歷史索引與中繼資料；原網站已停止更新，不提供題目內容或答案。", status: "中繼資料" },
-  { title: "國中教育會考各科試題通過率", provider: "教育部國民及學前教育署", url: "https://data.gov.tw/dataset/15391", note: "作為資料治理與教育統計背景清冊，目前不直接參與學生評量。", status: "背景引用" },
+  { title: "動物認領養", provider: "農業部動物保護司", url: "https://data.gov.tw/dataset/85903", note: "提供公開待認養動物個案欄位，作為六週課程的資料判讀與個案比較素材。" },
+  { title: "全國公立動物收容所收容處理情形統計表", provider: "農業部", url: "https://data.gov.tw/dataset/41236", note: "提供縣市與月份層級的入所、認領養及處理統計，用於政策與資料限制討論。" },
+  { title: "全國公立動物收容所收容處理情形統計表二", provider: "農業部", url: "https://data.nat.gov.tw/dataset/73396", note: "提供容量、月底在養與入所來源等欄位，用於理解收容現場需求。" },
+  { title: "全國公立動物收容所資料", provider: "農業部", url: "https://data.gov.tw/dataset/134284", note: "提供公立收容所與動物之家基本資料，支援資源地圖及官方單位連結。" },
+  { title: "一般高級中等學校名錄", provider: "教育部統計處", url: "https://data.gov.tw/dataset/6089", note: "用於確認學校與縣市，協助篩選同縣市動保資源；不推算未提供的距離。" },
+  { title: "國家教育研究院愛學網", provider: "國家教育研究院", url: "https://data.gov.tw/dataset/6318", note: "僅使用教材中繼資料與官方外部連結，不下載、鏡像或重新散布影片。" },
+  { title: "各級學校縣市別學生人數", provider: "教育部統計處", url: "https://data.gov.tw/dataset/40121", note: "提供縣市層級教育背景資料，用於探究情境與素養脈絡。" },
+  { title: "國家教育研究院全國中小學題庫網", provider: "國家教育研究院", url: "https://data.gov.tw/dataset/29027", note: "保留歷史索引與中繼資料；原網站已停止更新，不提供題目內容或答案。" },
+  { title: "國中教育會考各科試題通過率", provider: "教育部國民及學前教育署", url: "https://data.gov.tw/dataset/15391", note: "作為資料治理與教育統計背景清冊，目前不直接參與學生評量。" },
 ];
 
 const officialReferences: Resource[] = [
@@ -66,10 +65,7 @@ function ResourceSection({ id, eyebrow, title, resources }: { id: string; eyebro
       <div className="mt-7 grid gap-4 md:grid-cols-2">
         {resources.map((resource) => (
           <article key={resource.url} className="rounded-2xl border border-[#dfd3c1] bg-[#fffdf8] p-5 shadow-[0_16px_45px_-38px_rgba(74,56,40,0.65)]">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-bold text-[#8a7562]">{resource.provider}</p>
-              {resource.status && <span className="rounded-full bg-[#eee8df] px-3 py-1 text-[11px] font-bold text-[#6f6257]">{resource.status}</span>}
-            </div>
+            <p className="text-xs font-bold text-[#8a7562]">{resource.provider}</p>
             <h3 className="mt-3 text-lg font-bold leading-7 text-[#3f352c]">{resource.title}</h3>
             <p className="mt-3 text-sm leading-7 text-[#6f6257]">{resource.note}</p>
             <a className="mt-5 inline-flex items-center text-sm font-bold text-[#766248] underline decoration-[#c9b58f] underline-offset-4 hover:text-[#4e4032]" href={resource.url} target="_blank" rel="noreferrer">前往來源 ↗</a>
