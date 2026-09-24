@@ -22,6 +22,7 @@ export interface WeekProgress {
   status: WeekStatus;
   submittedAt?: string | null;
   reviewedAt?: string | null;
+  feedback?: string;
 }
 
 export interface StudentMapProgress {

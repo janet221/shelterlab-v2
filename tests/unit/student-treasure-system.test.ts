@@ -104,7 +104,7 @@ describe("前五週寶物跨週應用", () => {
       expect(weekPage).toContain(component);
     }
     expect(weekPage).toContain("studentWeek(account.id, weekNumber)");
-    expect(weekPage).toContain("<WeekAuditTracker accountId={account.id} week={weekNumber}>");
+    expect(weekPage).toContain("status={work.status} reviewFeedback={work.feedback}");
     expect(weekPage).not.toContain("WeekSubmission");
     expect(tracker).toContain("shelterlab-week-complete");
     expect(tracker).toContain("game-audit");
@@ -129,9 +129,11 @@ describe("前五週寶物跨週應用", () => {
     expect(review).toContain("gameAudit");
     expect(review).toContain("isGradableAuditEntry");
     expect(review).toContain("教師評語");
-    expect(review).toContain("教師批改方針建議");
+    expect(review).toContain("教師批改建議");
     expect(review).toContain("gradingGuidelines");
     expect(review).toContain("serializeQuestionReviewComments");
+    expect(review).toContain("不通過，退回修正");
+    expect(review).toContain('decide("reject")');
     expect(review).not.toContain("完整關卡填答狀況");
     expect(review).not.toContain("整體完成狀態");
     expect(review).not.toContain("已填答／互動");

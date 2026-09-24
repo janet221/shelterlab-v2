@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { api, buttonClass, fieldClass } from "@/app/_components/classroom-ui";
+import { parseStudentReviewFeedback } from "@/lib/classroom/review-guidelines";
 import type { StudentMapProgress, WeekStatus } from "@/lib/student-map";
 
 export type StudentProfileView = {
@@ -49,6 +50,10 @@ export default function StudentProfileModal({ open, profile, weeks, onClose, onS
 
   if (!open) return null;
   const forced = profile.requiresIdentity;
+  const reviews = weeks.flatMap((week) => {
+    const review = parseStudentReviewFeedback(week.feedback);
+    return review ? [{ week: week.week, reviewedAt: week.reviewedAt, ...review }] : [];
+  });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -86,6 +91,23 @@ export default function StudentProfileModal({ open, profile, weeks, onClose, onS
           <div><dt className="font-bold text-stone-500">縣市</dt><dd className="mt-1 font-bold">{profile.county || "尚未設定"}</dd></div>
           <div><dt className="font-bold text-stone-500">年級</dt><dd className="mt-1 font-bold">{profile.grade || "尚未設定"}</dd></div>
         </dl>
+
+        {!forced && <section className="rounded-2xl border border-[#e3d9c8] bg-white p-4">
+          <h3 className="font-bold">各關教師評語</h3>
+          {reviews.length === 0 ? <p className="mt-2 text-sm text-stone-500">目前尚無教師評語。</p> : <div className="mt-3 space-y-3">
+            {reviews.map((review) => <details key={`${review.week}-${review.reviewedAt ?? "review"}`} className="rounded-xl border border-stone-200 bg-[#fffaf0] p-3" open={review.decision === "reject"}>
+              <summary className="cursor-pointer font-bold">
+                {WEEK_NAMES[review.week - 1]} · <span className={review.decision === "approve" ? "text-emerald-700" : "text-red-700"}>{review.decision === "approve" ? "通過" : "不通過，請修正"}</span>
+              </summary>
+              {review.items.length ? <ul className="mt-3 space-y-3">
+                {review.items.map((item) => <li key={item.entryId} className="rounded-lg bg-white p-3 text-sm">
+                  <p className="font-bold">{item.prompt}</p>
+                  <p className="mt-1 whitespace-pre-wrap text-stone-700">{item.comment}</p>
+                </li>)}
+              </ul> : <p className="mt-2 text-sm text-stone-600">教師已通過本週審查，未另留評語。</p>}
+            </details>)}
+          </div>}
+        </section>}
 
         {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-bold text-red-800">{error}</p>}
         <div className="flex justify-end gap-3">

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, type ReactNode, type SyntheticEvent } f
 import { api } from "@/app/_components/classroom-ui";
 import type { WeekAuditEntry, WeekGameAudit } from "@/lib/classroom/data-types";
 import { learningStorage } from "@/lib/classroom/browser-storage";
+import { parseStudentReviewFeedback } from "@/lib/classroom/review-guidelines";
 
 const AUDIT_KEY_PREFIX = "shelterlab-week-game-audit-v1";
 const WEEK_STATE_KEYS: Record<number, string[]> = {
@@ -158,8 +159,9 @@ function capture(accountId: string, week: number, target: EventTarget | null) {
   upsert(accountId, week, { id: entryId(kind, section, prompt), section, prompt, kind, answers: [answer], answered: true, updatedAt });
 }
 
-export default function WeekAuditTracker({ accountId, week, children }: { accountId: string; week: number; children: ReactNode }) {
+export default function WeekAuditTracker({ accountId, week, status, reviewFeedback, children }: { accountId: string; week: number; status: string; reviewFeedback?: string; children: ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const review = parseStudentReviewFeedback(reviewFeedback);
 
   const submitCompletedAudit = useCallback(async (): Promise<boolean> => {
     const current = readAudit(accountId, week);
@@ -193,13 +195,44 @@ export default function WeekAuditTracker({ accountId, week, children }: { accoun
       if (detail?.week === week) window.setTimeout(() => void submitCompletedAudit().then((saved) => detail.resolve?.(saved)), 150);
     };
     window.addEventListener("shelterlab-week-complete", onComplete);
-    if (readAudit(accountId, week).completed) void submitCompletedAudit();
+    if (readAudit(accountId, week).completed && !(status === "in_progress" && review?.decision === "reject")) void submitCompletedAudit();
     return () => {
       observer.disconnect();
       window.removeEventListener("shelterlab-week-complete", onComplete);
     };
-  }, [accountId, submitCompletedAudit, week]);
+  }, [accountId, review?.decision, status, submitCompletedAudit, week]);
+
+  const beginRevision = () => {
+    const audit = readAudit(accountId, week);
+    writeAudit(accountId, { ...audit, completed: false, completedAt: "" });
+    for (const key of WEEK_STATE_KEYS[week] ?? []) {
+      try {
+        const storage = week === 1 ? learningStorage : window.localStorage;
+        const raw = storage.getItem(key);
+        if (!raw) continue;
+        const state = JSON.parse(raw) as Record<string, unknown>;
+        if (week === 1 && state.weekOne && typeof state.weekOne === "object") {
+          const weekOne = state.weekOne as Record<string, unknown>;
+          state.weekOne = { ...weekOne, completed: false, completedAt: null, stage: Math.min(Number(weekOne.stage) || 5, 5) };
+        } else {
+          state.completed = false;
+          if ("completedAt" in state) state.completedAt = null;
+        }
+        storage.setItem(key, JSON.stringify(state));
+      } catch {}
+    }
+    window.location.reload();
+  };
 
   const record = (event: SyntheticEvent) => capture(accountId, week, event.target);
-  return <div ref={rootRef} className="student-week-audit" onClickCapture={record} onInputCapture={record} onChangeCapture={record}>{children}</div>;
+  return <div ref={rootRef} className="student-week-audit" onClickCapture={record} onInputCapture={record} onChangeCapture={record}>
+    {review && <aside className={`sticky top-0 z-[110] border-b px-5 py-4 shadow-sm ${review.decision === "reject" ? "border-red-200 bg-red-50 text-red-950" : "border-emerald-200 bg-emerald-50 text-emerald-950"}`}>
+      <div className="mx-auto max-w-5xl">
+        <p className="font-black">教師審查：{review.decision === "approve" ? "通過" : "不通過，請依評語修正"}</p>
+        {review.items.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">{review.items.map((item) => <li key={item.entryId}><strong>{item.prompt}：</strong>{item.comment}</li>)}</ul>}
+        {review.decision === "reject" && <button type="button" className="mt-3 rounded-xl bg-red-800 px-4 py-2 text-sm font-bold text-white" onClick={beginRevision}>開始修正本週作答</button>}
+      </div>
+    </aside>}
+    {children}
+  </div>;
 }

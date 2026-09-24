@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 const foundation = readFileSync("supabase/migrations/202609230001_foundation.sql", "utf8");
 const workflow = readFileSync("supabase/migrations/202609230002_progress_workflow.sql", "utf8");
 const annotations = readFileSync("supabase/migrations/202609230003_step5_local_lesson_annotations.sql", "utf8");
+const reviewCycle = readFileSync("supabase/migrations/202609240005_review_revision_cycle.sql", "utf8");
 
 describe("six-week Supabase progress workflow", () => {
   it("creates exactly six rows with only week one unlocked", () => {
@@ -30,6 +31,14 @@ describe("six-week Supabase progress workflow", () => {
     expect(foundation).toContain("create policy progress_read");
     expect(workflow).toContain("revoke insert, update, delete on public.student_progress");
     expect(workflow).toContain("grant execute on function public.shelterlab_progress_action");
+  });
+
+  it("supports approve and return-for-revision without unlocking on rejection", () => {
+    expect(reviewCycle).toContain("p_decision not in ('approve', 'reject')");
+    expect(reviewCycle).toContain("status = 'In Progress'");
+    expect(reviewCycle).toContain("case when p_decision = 'reject' then 'return'");
+    expect(reviewCycle).toContain("p_week + 1 and status = 'Locked'");
+    expect(reviewCycle).toContain("grant execute on function public.shelterlab_review_progress");
   });
 });
 

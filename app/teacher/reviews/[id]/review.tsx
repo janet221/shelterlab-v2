@@ -6,7 +6,7 @@ import { api, buttonClass, fieldClass } from "@/app/_components/classroom-ui";
 import CaseComparison from "@/app/_components/case-comparison";
 import DataLens from "@/app/_components/data-lens";
 import { courseWeekLabel } from "@/lib/classroom/course";
-import { gradingGuidelines, isGradableAuditEntry, parseQuestionReviewComments, serializeQuestionReviewComments, type QuestionReviewComments } from "@/lib/classroom/review-guidelines";
+import { gradingGuidelines, isGradableAuditEntry, parseQuestionReviewComments, serializeQuestionReviewComments, type QuestionReviewComments, type ReviewDecision } from "@/lib/classroom/review-guidelines";
 import type { QuestionSet, SubmittedAnswer, WeekAuditEntry, WeekGameAudit } from "@/lib/classroom/data-types";
 import type { teacherSubmission } from "@/lib/classroom/service";
 
@@ -54,7 +54,7 @@ function GameAuditReview({ audit, week, comments, editable, onCommentChange }: {
           />
         </label>
         <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-stone-700">
-          <h4 className="font-bold text-sky-900">教師批改方針建議</h4>
+          <h4 className="font-bold text-sky-900">教師批改建議</h4>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {gradingGuidelines(week, entry).map((guideline) => <li key={guideline}>{guideline}</li>)}
           </ul>
@@ -98,12 +98,16 @@ export default function Review({ id }: { id: string }) {
   const answers = record?.answers as unknown as SubmittedAnswer[] | null;
   const gameAudit = record?.gameAudit as unknown as WeekGameAudit | null;
 
-  async function decide() {
+  async function decide(decision: ReviewDecision) {
     if (!record) return;
+    if (decision === "reject" && !Object.values(questionComments).some((comment) => comment.trim())) {
+      setError("退回修正前，請至少填寫一則教師評語。");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
-      await api(`/api/classroom/reviews/${id}`, { version: record.version, generation: record.generation, decision: "approve", feedback: gameAudit ? serializeQuestionReviewComments(questionComments) : feedback });
+      await api(`/api/classroom/reviews/${id}`, { version: record.version, generation: record.generation, decision, feedback: gameAudit ? serializeQuestionReviewComments(questionComments, gameAudit.entries, decision) : feedback });
       window.location.href = "/teacher/reviews";
     } catch (cause) {
       setError((cause as Error).message);
@@ -116,12 +120,15 @@ export default function Review({ id }: { id: string }) {
   return <main className="mx-auto max-w-5xl space-y-6 px-5 py-10">
     <Link className="underline" href="/teacher/reviews">← 返回待審清單</Link>
     <h1 className="text-3xl font-bold">完整關卡填答審查</h1>
-    {error && <div role="alert" className="fixed right-5 top-20 z-[100] max-w-sm rounded-2xl border border-red-300 bg-red-50 px-5 py-4 text-red-900 shadow-xl">審核失敗：{error}</div>}
+    {error && <div role="alert" className="fixed right-5 top-20 z-[100] max-w-sm rounded-2xl border border-red-300 bg-red-50 px-5 py-4 text-red-900 shadow-xl">審查失敗：{error}</div>}
     {ready ? <>
-      <p>{record.enrollment.student.displayName} · 學號 {record.enrollment.student.studentNumber || "未填寫"} · {courseWeekLabel(record.week)} · {record.status === "pending" ? "等待審核中" : "目前不可批改"}</p>
+      <p>{record.enrollment.student.displayName} · 學號 {record.enrollment.student.studentNumber || "未填寫"} · {courseWeekLabel(record.week)} · {record.status === "pending" ? "等待審查中" : "目前不可批改"}</p>
       {gameAudit ? <GameAuditReview audit={gameAudit} week={record.week} comments={questionComments} editable={record.status === "pending"} onCommentChange={(entryId, comment) => setQuestionComments((current) => ({ ...current, [entryId]: comment }))} /> : <LegacyReview questionSet={questionSet!} answers={answers} />}
       {!gameAudit && <label className="block font-bold">教師回饋<textarea value={feedback} onChange={(event) => setFeedback(event.target.value)} maxLength={3000} rows={4} className={fieldClass} /></label>}
-      <div className="flex gap-4"><button className={buttonClass} disabled={busy || record.status !== "pending"} onClick={decide}>{busy ? "審核中…" : record.week === 6 ? "審核通過並完成課程" : "審核通過並解鎖下一週"}</button></div>
+      <div className="flex flex-wrap gap-4">
+        <button className="rounded-xl border border-red-300 bg-white px-5 py-3 font-bold text-red-800 disabled:opacity-50" disabled={busy || record.status !== "pending"} onClick={() => decide("reject")}>不通過，退回修正</button>
+        <button className={buttonClass} disabled={busy || record.status !== "pending"} onClick={() => decide("approve")}>{busy ? "審查中…" : record.week === 6 ? "通過並完成課程" : "通過並解鎖下一週"}</button>
+      </div>
     </> : !error && <p>載入作業中…</p>}
   </main>;
 }

@@ -27,8 +27,9 @@ export default async function WeekPage({ params }: WeekPageProps) {
   if (!isWeekNumber(weekNumber)) notFound();
 
   const account = await requirePageAccount("student");
+  let work: Awaited<ReturnType<typeof studentWeek>>;
   try {
-    await studentWeek(account.id, weekNumber);
+    work = await studentWeek(account.id, weekNumber);
   } catch (error) {
     if (error instanceof RequestError) {
       return (
@@ -50,5 +51,5 @@ export default async function WeekPage({ params }: WeekPageProps) {
             : weekNumber === 6 ? <WeekSixExperience />
               : <GuidedWeekCourse week={weekNumber} />;
 
-  return <WeekAuditTracker accountId={account.id} week={weekNumber}>{experience}</WeekAuditTracker>;
+  return <WeekAuditTracker accountId={account.id} week={weekNumber} status={work.status} reviewFeedback={work.feedback}>{experience}</WeekAuditTracker>;
 }

@@ -32,7 +32,7 @@ export const gameAuditSubmissionSchema = z.object({
     gameState: z.record(z.string(), z.unknown())
   }).strict()
 }).strict();
-export const reviewSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), decision: z.literal("approve"), feedback: z.string().trim().max(12000) }).strict();
+export const reviewSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), decision: z.enum(["approve", "reject"]), feedback: z.string().trim().max(12000) }).strict();
 export const resetSchema = z.object({ classId: z.string().uuid(), confirmation: z.literal("RESET"), targets: z.array(z.object({ studentId: z.string().uuid(), generation: z.number().int().nonnegative() }).strict()).min(1).max(200) }).strict();
 const statuses = { Locked: "locked", "In Progress": "in_progress", Pending: "pending", Completed: "completed" } as const;
 type DbStatus = keyof typeof statuses;
@@ -150,8 +150,8 @@ export async function teacherSubmission(teacherId: string, id: string) {
 }
 export async function reviewWeek(teacherId: string, id: string, input: z.infer<typeof reviewSchema>) {
   const record = await teacherSubmission(teacherId, id), db = await client();
-  checked(await db.rpc("shelterlab_progress_action", { p_student_id: record.studentId, p_week: record.week, p_action: "approve", p_generation: input.generation, p_version: input.version, p_feedback: input.feedback }));
-  return { ok: true };
+  checked(await db.rpc("shelterlab_review_progress", { p_student_id: record.studentId, p_week: record.week, p_decision: input.decision, p_generation: input.generation, p_version: input.version, p_feedback: input.feedback }));
+  return { ok: true, decision: input.decision };
 }
 export async function resetProgress(_teacherId: string, input: z.infer<typeof resetSchema>) {
   const db = await client();
