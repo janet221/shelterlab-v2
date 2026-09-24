@@ -159,4 +159,19 @@ describe("前五週寶物跨週應用", () => {
     expect(migration).toContain("建國中學");
     expect(migration).toContain("臺北市");
   });
+
+  it("允許教師更新已有學生班級的學校，學生個人中心會讀取最新班級資料", () => {
+    const migration = read("supabase/migrations/202609240003_allow_teacher_school_updates.sql");
+    const service = read("lib/classroom/service.ts");
+    const classroomMap = read("app/student/_components/classroom-map.tsx");
+
+    expect(migration).not.toContain("Cannot change enrolled school");
+    expect(migration).toContain("school_id=p_school_id");
+    expect(migration).toContain("school_name=p_school_name");
+    expect(migration).toContain("county=p_county");
+    expect(service).toContain('select("name,school_name,county,grade,class_code")');
+    expect(service).toContain("schoolName: classroom.school_name");
+    expect(classroomMap).toContain("setInterval(refresh, 5000)");
+    expect(classroomMap).toContain('schoolName: progress.schoolName');
+  });
 });

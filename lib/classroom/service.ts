@@ -43,11 +43,12 @@ async function client() {
   const { createServerSupabaseClient } = await import("@/lib/supabase/server");
   return createServerSupabaseClient();
 }
-function checked<T>({ data, error }: { data: T; error: { code?: string } | null }): T {
+function checked<T>({ data, error }: { data: T; error: { code?: string; message?: string } | null }): T {
   if (error) {
     if (error.code === "42501") throw new RequestError(403, "您沒有此班級或學生的操作權限。");
     if (error.code === "40001") throw new RequestError(409, "進度已變更，請重新整理後再操作。");
-    if (error.code === "23514") throw new RequestError(409, "目前狀態不允許此操作，請確認前一週已完成並重新整理。");
+    if (error.code === "23514" && error.message?.includes("Class capacity below enrollment")) throw new RequestError(409, "班級人數不可小於目前已加入的學生人數。");
+    if (error.code === "23514") throw new RequestError(409, "目前狀態不允許此操作，請重新整理後再試。");
     if (error.code === "23505") throw new RequestError(409, "這個班級代碼已被使用，請設定另一組代碼。");
     if (error.code === "22023" || error.code === "22P02") throw new RequestError(400, "提交資料不完整，請重新確認。");
     throw new RequestError(503, "資料服務暫時無法使用，請確認 Step 4 資料庫遷移已套用。");
