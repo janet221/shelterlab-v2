@@ -381,6 +381,6 @@ export default function WeekOneGame() {
         <div className={styles.buttonRow}><PaperButton onClick={() => router.push("/student")}>帶著工具返回地圖</PaperButton><PaperButton onClick={resetWeekOne} secondary>重新體驗第一週</PaperButton></div>
       </StagePaper>}
     </div>
-    <RewardUnlockModal open={rewardOpen} week={1} onClose={() => { setRewardOpen(false); router.push("/student"); }} />
+    <RewardUnlockModal open={rewardOpen} week={1} onClose={() => setRewardOpen(false)} />
   </main>;
 }

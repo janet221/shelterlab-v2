@@ -79,12 +79,17 @@ describe("前五週寶物跨週應用", () => {
   it("第一週會重新顯示完整翻書教案，並在完成後才進入遊戲", () => {
     const experience = read("app/student/week/[week]/_components/week-one-experience.tsx");
     const notebook = read("app/student/week/[week]/_components/realistic-notebook-intro.tsx");
+    const game = read("app/student/week/[week]/_components/week-one-game.tsx");
 
     expect(experience).toContain("useState(true)");
     expect(experience).not.toContain("localStorage");
     expect(experience).toContain("<RealisticNotebookIntro onComplete={() => setShowNotebook(false)} />");
     expect(notebook).toContain("第 1 週｜先入為主與證據");
     expect(notebook).toContain("進入第一週");
+    expect(game).toContain("帶著工具返回地圖");
+    expect(game).toContain("重新體驗第一週");
+    expect(game).toContain('onClose={() => setRewardOpen(false)}');
+    expect(game).not.toContain('onClose={() => { setRewardOpen(false); router.push("/student"); }}');
   });
 
   it("六週完整互動內容直接記錄稽核資料且不顯示底部送審區", () => {
