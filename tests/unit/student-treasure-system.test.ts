@@ -65,6 +65,8 @@ describe("前五週寶物跨週應用", () => {
     expect(studentMap).toContain("返回首頁");
     expect(studentMap).toContain("個人中心");
     expect(studentMap).not.toContain("班級代碼：");
+    expect(studentMap).not.toContain("已取得・待教師審核");
+    expect(studentMap).not.toContain("查看完整寶物工具箱");
     expect(profileModal).toContain("首次登入身分確認");
     expect(profileModal).toContain("請填寫真實姓名與學號。");
     expect(profileModal).not.toContain("完成前無法關閉此視窗");

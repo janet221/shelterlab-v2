@@ -238,7 +238,6 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
   const earnedWeeks = new Set(
     progress.weeks.filter((item) => item.status === "pending" || item.status === "completed").map((item) => item.week)
   );
-  const pendingWeeks = new Set(progress.weeks.filter((item) => item.status === "pending").map((item) => item.week));
   const earnedCount = LEARNING_TOOLS.filter((tool) => earnedWeeks.has(tool.week)).length;
 
   return (
@@ -275,7 +274,6 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
           <div className="grid grid-cols-2 gap-2">
             {LEARNING_TOOLS.map((tool) => {
               const earned = earnedWeeks.has(tool.week);
-              const pending = pendingWeeks.has(tool.week);
               return (
                 <div
                   key={tool.week}
@@ -291,7 +289,7 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
                   <div className="min-w-0">
                     <p className="text-xs font-black text-[#4A4037]">{earned ? tool.name : `第 ${tool.week} 週`}</p>
                     <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#776B60]">
-                      {pending ? `已取得・待教師審核｜${tool.description}` : earned ? tool.description : "完成關卡後取得"}
+                      {earned ? tool.description : "完成關卡後取得"}
                     </p>
                   </div>
                 </div>
@@ -299,12 +297,6 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
             })}
           </div>
 
-          <Link
-            href="/student/tools"
-            className="mt-3 flex min-h-10 items-center justify-center rounded-xl border border-[#D9C7A4] bg-[#FFF8E7] px-3 text-xs font-black text-[#5B4938] transition hover:bg-[#FFF2CB]"
-          >
-            查看完整寶物工具箱 →
-          </Link>
         </div>
       )}
     </div>
