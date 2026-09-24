@@ -7,7 +7,7 @@ import WeekFourExperience from "./_components/week-four-experience";
 import WeekFiveExperience from "./_components/week-five-experience";
 import WeekSixExperience from "./_components/week-six-experience";
 import GuidedWeekCourse from "./_components/guided-week-course";
-import WeekSubmission from "./_components/week-submission";
+import WeekAuditTracker from "./_components/week-audit-tracker";
 import { requirePageAccount } from "@/lib/classroom/auth";
 import { RequestError } from "@/lib/classroom/http";
 import { studentWeek } from "@/lib/classroom/service";
@@ -50,5 +50,5 @@ export default async function WeekPage({ params }: WeekPageProps) {
             : weekNumber === 6 ? <WeekSixExperience />
               : <GuidedWeekCourse week={weekNumber} />;
 
-  return <>{experience}<WeekSubmission week={weekNumber} /></>;
+  return <WeekAuditTracker accountId={account.id} week={weekNumber}>{experience}</WeekAuditTracker>;
 }

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { analyzeCoa, buildQuestionSet, chooseContrasts, COA_FIELDS, countyData, elapsedDays, median, parseCsv, parseDate } from "@/lib/classroom/coa";
 import { applyTranslationChoices } from "@/lib/classroom/translator";
 import { hashPassword, newToken, tokenHash, verifyPassword } from "@/lib/classroom/security";
-import { settingsSchema, submissionSchema, validateAnswers } from "@/lib/classroom/service";
+import { gameAuditSubmissionSchema, settingsSchema, submissionSchema, validateAnswers } from "@/lib/classroom/service";
 import { courseWeekLabel } from "@/lib/classroom/course";
 import { assertSameOrigin, body } from "@/lib/classroom/http";
 import { z } from "zod";
@@ -63,6 +63,23 @@ describe("authoritative COA classroom evidence", () => {
     expect(settingsSchema.safeParse(data).success).toBe(true); expect(settingsSchema.safeParse({ ...data, address: "不應收集" }).success).toBe(false);
     expect(settingsSchema.safeParse({ ...data, classCode: "短碼" }).success).toBe(false);
     expect(submissionSchema.safeParse({ version: 0, generation: 0, status: "completed", answers: [] }).success).toBe(false);
+  });
+  it("accepts only completed, non-empty full-game audit submissions", () => {
+    const input = {
+      version: 2,
+      generation: 1,
+      audit: {
+        version: 1,
+        week: 3,
+        completed: true,
+        completedAt: "2026-09-24T08:00:00.000Z",
+        entries: [{ id: "choice:責任配套挑戰:情境題", section: "責任配套挑戰", prompt: "情境題", kind: "choice", answers: ["安排備援照顧者"], answered: true, updatedAt: "2026-09-24T07:59:00.000Z" }],
+        gameState: { selectedPlan: "backup-carer" }
+      }
+    } as const;
+    expect(gameAuditSubmissionSchema.safeParse(input).success).toBe(true);
+    expect(gameAuditSubmissionSchema.safeParse({ ...input, audit: { ...input.audit, completed: false } }).success).toBe(false);
+    expect(gameAuditSubmissionSchema.safeParse({ ...input, audit: { ...input.audit, entries: [] } }).success).toBe(false);
   });
   it("uses the approved six-week labels and rejects shortened courses", () => {
     expect(courseWeekLabel(1)).toBe("第一週｜角色與處境");

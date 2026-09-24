@@ -3,17 +3,38 @@ import { getSchoolDirectorySnapshot } from "@/lib/government-open-data";
 import { FALLBACK_ACTION_ORGANIZATIONS } from "@/data/action-organizations";
 import { RequestError } from "./http";
 import { buildQuestionSet, countyData } from "./coa";
-import type { QuestionSet, SubmittedAnswer } from "./data-types";
+import type { QuestionSet, SubmittedAnswer, WeekGameAudit } from "./data-types";
 
 export const settingsSchema = z.object({ classId: z.string().uuid().optional(), classCode: z.string().trim().min(8).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()), schoolId: z.string().min(1).max(40), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.literal(6) }).strict();
 export const submissionSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), answers: z.array(z.object({ questionId: z.string().max(40), text: z.string().trim().min(10).max(3000), selectedAnimalIds: z.array(z.string().max(60)).min(1).max(4) }).strict()).length(3) }).strict();
+const auditEntrySchema = z.object({
+  id: z.string().min(1).max(700),
+  section: z.string().min(1).max(500),
+  prompt: z.string().min(1).max(500),
+  kind: z.enum(["choice", "text", "checkbox", "select", "action"]),
+  answers: z.array(z.string().min(1).max(3000)).max(30),
+  answered: z.boolean(),
+  updatedAt: z.string().datetime()
+}).strict();
+export const gameAuditSubmissionSchema = z.object({
+  version: z.number().int().nonnegative(),
+  generation: z.number().int().nonnegative(),
+  audit: z.object({
+    version: z.literal(1),
+    week: z.number().int().min(1).max(6),
+    completed: z.literal(true),
+    completedAt: z.string().datetime(),
+    entries: z.array(auditEntrySchema).min(1).max(500),
+    gameState: z.record(z.string(), z.unknown())
+  }).strict()
+}).strict();
 export const reviewSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), decision: z.literal("approve"), feedback: z.string().trim().max(3000) }).strict();
 export const resetSchema = z.object({ classId: z.string().uuid(), confirmation: z.literal("RESET"), targets: z.array(z.object({ studentId: z.string().uuid(), generation: z.number().int().nonnegative() }).strict()).min(1).max(200) }).strict();
 const statuses = { Locked: "locked", "In Progress": "in_progress", Pending: "pending", Completed: "completed" } as const;
 type DbStatus = keyof typeof statuses;
 type Profile = { id: string; display_name: string; class_id: string | null; progress_generation: number; is_course_completed: boolean; course_completed_at: string | null };
 type ClassRow = { id: string; name: string; teacher_id: string; class_code: string; school_id: string | null; school_name: string | null; county: string | null; grade: string | null; student_count: number };
-type ProgressRow = { student_id: string; week_number: number; status: DbStatus; version: number; submitted_at: string | null; reviewed_at: string | null; feedback: string; question_set: QuestionSet | null; answers: SubmittedAnswer[] | null };
+type ProgressRow = { student_id: string; week_number: number; status: DbStatus; version: number; submitted_at: string | null; reviewed_at: string | null; feedback: string; question_set: QuestionSet | null; answers: SubmittedAnswer[] | null; game_audit: WeekGameAudit | null };
 async function client() {
   const { createServerSupabaseClient } = await import("@/lib/supabase/server");
   return createServerSupabaseClient();
@@ -30,7 +51,7 @@ function checked<T>({ data, error }: { data: T; error: { code?: string } | null 
   return data;
 }
 function mapWeek(row: ProgressRow) {
-  return { id: `${row.student_id}_${row.week_number}`, week: row.week_number, status: statuses[row.status], version: row.version, submittedAt: row.submitted_at, reviewedAt: row.reviewed_at, feedback: row.feedback, questionSet: row.question_set, answers: row.answers };
+  return { id: `${row.student_id}_${row.week_number}`, week: row.week_number, status: statuses[row.status], version: row.version, submittedAt: row.submitted_at, reviewedAt: row.reviewed_at, feedback: row.feedback, questionSet: row.question_set, answers: row.answers, gameAudit: row.game_audit };
 }
 async function profile(studentId: string) {
   const db = await client();
@@ -81,6 +102,15 @@ export async function submitWeek(studentId: string, week: number, input: z.infer
   validateAnswers(record.questionSet, input.answers);
   const db = await client();
   checked(await db.rpc("shelterlab_progress_action", { p_student_id: studentId, p_week: week, p_action: "submit", p_generation: input.generation, p_version: input.version, p_answers: input.answers, p_question_set: record.questionSet }));
+  return { status: "pending" };
+}
+export async function submitGameAudit(studentId: string, week: number, input: z.infer<typeof gameAuditSubmissionSchema>) {
+  const record = await studentWeek(studentId, week);
+  if (record.status !== "in_progress" || record.version !== input.version || record.generation !== input.generation) throw new RequestError(409, "進度已變更或已送審，請重新載入。");
+  if (input.audit.week !== week) throw new RequestError(400, "關卡稽核資料與週次不符。");
+  const audit = input.audit as WeekGameAudit;
+  const db = await client();
+  checked(await db.rpc("shelterlab_submit_game_audit", { p_student_id: studentId, p_week: week, p_generation: input.generation, p_version: input.version, p_game_audit: audit }));
   return { status: "pending" };
 }
 export async function teacherDashboard(teacherId: string) {

@@ -201,7 +201,9 @@ export function StudentLearningProgressProvider({ children, accountId }: { child
  useEffect(()=>{if(ready)try{learningStorage.setItem(STUDENT_LEARNING_STORAGE_KEY,JSON.stringify({...progress,completedWeeks:[],unlockedTools:[]}));}catch{}},[progress,ready]);
  const updateWeekOne=useCallback((patch:Partial<WeekOneProgress>)=>setProgress(p=>({...p,weekOne:normalizeWeekOne({...p.weekOne,...patch})})),[]);
  const replaceWeekOne=useCallback((recipe:(p:WeekOneProgress)=>WeekOneProgress)=>setProgress(p=>({...p,weekOne:normalizeWeekOne(recipe(p.weekOne))})),[]);
- const completeWeek=useCallback((_week:WeekNumber)=>{document.getElementById("classroom-submission")?.scrollIntoView({behavior:"smooth"});},[]);
+ const completeWeek=useCallback((week:WeekNumber)=>{
+  window.dispatchEvent(new CustomEvent("shelterlab-week-complete",{detail:{week}}));
+ },[]);
  const completeWeekOne=useCallback(()=>completeWeek(1),[completeWeek]);
  const resetWeekOne=useCallback(()=>setProgress(p=>({...p,weekOne:{...INITIAL_WEEK_ONE_PROGRESS}})),[]);
  const value=useMemo(()=>({progress,ready,updateWeekOne,replaceWeekOne,completeWeek,completeWeekOne,resetWeekOne}),[progress,ready,updateWeekOne,replaceWeekOne,completeWeek,completeWeekOne,resetWeekOne]);

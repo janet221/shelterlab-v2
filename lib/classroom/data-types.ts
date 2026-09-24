@@ -11,3 +11,22 @@ export type QuestionSet = {
   comparisonNote: string; wordingSource: "template" | "constrained_ai";
 };
 export type SubmittedAnswer = { questionId: string; text: string; selectedAnimalIds: string[] };
+
+export type WeekAuditEntry = {
+  id: string;
+  section: string;
+  prompt: string;
+  kind: "choice" | "text" | "checkbox" | "select" | "action";
+  answers: string[];
+  answered: boolean;
+  updatedAt: string;
+};
+
+export type WeekGameAudit = {
+  version: 1;
+  week: number;
+  completed: true;
+  completedAt: string;
+  entries: WeekAuditEntry[];
+  gameState: Record<string, unknown>;
+};

@@ -1,6 +1,6 @@
 import { requireAccount } from "@/lib/classroom/auth";
 import { body, endpoint, RequestError } from "@/lib/classroom/http";
-import { localWorkbench, resetProgress, resetSchema, reviewSchema, reviewWeek, saveSettings, schoolChoices, settingsSchema, studentProgress, studentWeek, submissionSchema, submitWeek, teacherDashboard, teacherSubmission } from "@/lib/classroom/service";
+import { gameAuditSubmissionSchema, localWorkbench, resetProgress, resetSchema, reviewSchema, reviewWeek, saveSettings, schoolChoices, settingsSchema, studentProgress, studentWeek, submissionSchema, submitGameAudit, submitWeek, teacherDashboard, teacherSubmission } from "@/lib/classroom/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +27,9 @@ export async function POST(request: Request, context: Context) {
   return endpoint(async () => {
     const path = (await context.params).path, route = path.join("/");
     if (route === "join") throw new RequestError(409, "班級已於註冊時綁定，請聯絡教師確認。");
+    if (path[0] === "weeks" && path.length === 3 && path[2] === "game-audit") {
+      const student = await requireAccount("student"); return submitGameAudit(student.id, weekNumber(path[1]), await body(request, gameAuditSubmissionSchema));
+    }
     if (path[0] === "weeks" && path.length === 2) {
       const student = await requireAccount("student"); return submitWeek(student.id, weekNumber(path[1]), await body(request, submissionSchema));
     }
