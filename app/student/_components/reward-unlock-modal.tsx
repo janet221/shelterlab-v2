@@ -6,13 +6,23 @@ import { getLearningTool, type WeekNumber } from "@/lib/student-map";
 type RewardUnlockModalProps = {
   week: WeekNumber;
   open: boolean;
-  onClose: () => void;
+  onClose: () => void | Promise<void>;
+  primaryLabel?: string;
+  busy?: boolean;
+  error?: string;
+  secondaryLabel?: string;
+  onSecondary?: () => void | Promise<void>;
 };
 
 export default function RewardUnlockModal({
   week,
   open,
-  onClose
+  onClose,
+  primaryLabel = "收下工具",
+  busy = false,
+  error = "",
+  secondaryLabel,
+  onSecondary
 }: RewardUnlockModalProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const reward = getLearningTool(week);
@@ -25,7 +35,7 @@ export default function RewardUnlockModal({
     buttonRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape" && !busy) void onClose();
     };
     window.addEventListener("keydown", handleKeyDown);
 
@@ -33,7 +43,7 @@ export default function RewardUnlockModal({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open, onClose]);
+  }, [busy, open, onClose]);
 
   if (!open) return null;
 
@@ -65,14 +75,26 @@ export default function RewardUnlockModal({
           {reward.description}
         </p>
 
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={onClose}
-          className="mt-6 min-h-11 rounded-full border-2 border-[#315f56] bg-[#4d8375] px-8 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#3f7064] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#9fc8b8]"
-        >
-          收下工具
-        </button>
+        {error && <p role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-800">{error}</p>}
+        <div className="mt-6 flex flex-col items-center justify-center gap-2 sm:flex-row">
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={() => void onClose()}
+            disabled={busy}
+            className="min-h-11 rounded-full border-2 border-[#8c7442] bg-[#c9a85d] px-8 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#b8954d] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#ead8aa] disabled:cursor-wait disabled:opacity-65"
+          >
+            {busy ? "正在儲存作答…" : primaryLabel}
+          </button>
+          {secondaryLabel && onSecondary && <button
+            type="button"
+            onClick={() => void onSecondary()}
+            disabled={busy}
+            className="min-h-11 rounded-full border-2 border-[#d8c59d] bg-[#fffaf0] px-6 py-2 text-sm font-black text-[#67594b] transition hover:bg-[#fff2d2] disabled:cursor-wait disabled:opacity-65"
+          >
+            {secondaryLabel}
+          </button>}
+        </div>
       </section>
     </div>
   );

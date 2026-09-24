@@ -161,7 +161,7 @@ function capture(accountId: string, week: number, target: EventTarget | null) {
 export default function WeekAuditTracker({ accountId, week, children }: { accountId: string; week: number; children: ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null);
 
-  const submitCompletedAudit = useCallback(async () => {
+  const submitCompletedAudit = useCallback(async (): Promise<boolean> => {
     const current = readAudit(accountId, week);
     const audit: WeekGameAudit = {
       ...current,
@@ -172,11 +172,13 @@ export default function WeekAuditTracker({ accountId, week, children }: { accoun
     writeAudit(accountId, audit);
     try {
       const work = await api<{ status: string; version: number; generation: number }>(`/api/classroom/weeks/${week}`);
-      if (work.status !== "in_progress") return;
+      if (work.status !== "in_progress") return work.status === "pending" || work.status === "completed";
       await api(`/api/classroom/weeks/${week}/game-audit`, { version: work.version, generation: work.generation, audit });
       window.dispatchEvent(new Event("classroom-progress"));
+      return true;
     } catch {
       // 保留於本機，下次載入本週時自動重試，不中斷完成畫面。
+      return false;
     }
   }, [accountId, week]);
 
@@ -187,7 +189,8 @@ export default function WeekAuditTracker({ accountId, week, children }: { accoun
     const observer = new MutationObserver(() => registerUnanswered(accountId, week, root));
     observer.observe(root, { childList: true, subtree: true });
     const onComplete = (event: Event) => {
-      if ((event as CustomEvent<{ week?: number }>).detail?.week === week) window.setTimeout(() => void submitCompletedAudit(), 150);
+      const detail = (event as CustomEvent<{ week?: number; resolve?: (saved: boolean) => void }>).detail;
+      if (detail?.week === week) window.setTimeout(() => void submitCompletedAudit().then((saved) => detail.resolve?.(saved)), 150);
     };
     window.addEventListener("shelterlab-week-complete", onComplete);
     if (readAudit(accountId, week).completed) void submitCompletedAudit();

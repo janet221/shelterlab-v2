@@ -88,8 +88,10 @@ describe("前五週寶物跨週應用", () => {
     expect(notebook).toContain("進入第一週");
     expect(game).toContain("帶著工具返回地圖");
     expect(game).toContain("重新體驗第一週");
-    expect(game).toContain('onClose={() => setRewardOpen(false)}');
-    expect(game).not.toContain('onClose={() => { setRewardOpen(false); router.push("/student"); }}');
+    expect(game).toContain('primaryLabel="收下工具並返回地圖"');
+    expect(game).toContain("submissionRef.current = completeWeekOne()");
+    expect(game).toContain('router.push("/student")');
+    expect(game).toContain("stage: 6, completed: true");
   });
 
   it("六週完整互動內容直接記錄稽核資料且不顯示底部送審區", () => {
@@ -104,6 +106,12 @@ describe("前五週寶物跨週應用", () => {
     expect(weekPage).not.toContain("WeekSubmission");
     expect(tracker).toContain("shelterlab-week-complete");
     expect(tracker).toContain("game-audit");
+    expect(tracker).toContain("detail.resolve?.(saved)");
+    expect(tracker).toContain('work.status === "pending" || work.status === "completed"');
+
+    const map = read("app/student/_components/student-map-dynamic.tsx");
+    expect(map).toContain('item.status === "pending" || item.status === "completed"');
+    expect(map).toContain("闖關進度 {submitted}/6");
   });
 
   it("教師稽核可看完整填答、選擇題與整體完成狀態", () => {

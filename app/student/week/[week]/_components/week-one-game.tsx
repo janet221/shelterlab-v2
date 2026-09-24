@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import RewardUnlockModal from "@/app/student/_components/reward-unlock-modal";
 import { useStudentLearningProgress } from "@/app/student/_components/student-learning-progress";
 import { getLearningTool } from "@/lib/student-map";
@@ -136,6 +136,9 @@ export default function WeekOneGame() {
   const stage = draft.stage;
   const reward = getLearningTool(1);
   const [rewardOpen, setRewardOpen] = useState(false);
+  const [savingCompletion, setSavingCompletion] = useState(false);
+  const [completionError, setCompletionError] = useState("");
+  const submissionRef = useRef<Promise<boolean> | null>(null);
   const [flipped, setFlipped] = useState<string[]>([]);
   const [roleChoice, setRoleChoice] = useState<PathId | "">("");
   const [challengeId, setChallengeId] = useState<PathId | null>(null);
@@ -228,8 +231,36 @@ export default function WeekOneGame() {
   };
 
   const finish = () => {
-    completeWeekOne();
+    updateWeekOne({ stage: 6, completed: true, completedAt: new Date().toISOString() });
+    submissionRef.current = completeWeekOne();
+    setCompletionError("");
     setRewardOpen(true);
+  };
+
+  const saveCompletion = async () => {
+    setSavingCompletion(true);
+    setCompletionError("");
+    const saved = await (submissionRef.current ?? completeWeekOne());
+    if (!saved) {
+      submissionRef.current = null;
+      setCompletionError("作答尚未成功送出，請確認網路連線後再試一次。");
+    }
+    setSavingCompletion(false);
+    return saved;
+  };
+
+  const collectAndReturn = async () => {
+    if (await saveCompletion()) {
+      setRewardOpen(false);
+      router.push("/student");
+    }
+  };
+
+  const replayWeekOne = async () => {
+    if (await saveCompletion()) {
+      setRewardOpen(false);
+      resetWeekOne();
+    }
   };
 
   if (!ready) return <main className={styles.experience}><div className={styles.loading}>正在整理你的學習紀錄…</div></main>;
@@ -381,6 +412,15 @@ export default function WeekOneGame() {
         <div className={styles.buttonRow}><PaperButton onClick={() => router.push("/student")}>帶著工具返回地圖</PaperButton><PaperButton onClick={resetWeekOne} secondary>重新體驗第一週</PaperButton></div>
       </StagePaper>}
     </div>
-    <RewardUnlockModal open={rewardOpen} week={1} onClose={() => setRewardOpen(false)} />
+    <RewardUnlockModal
+      open={rewardOpen}
+      week={1}
+      onClose={collectAndReturn}
+      primaryLabel="收下工具並返回地圖"
+      busy={savingCompletion}
+      error={completionError}
+      secondaryLabel="重新體驗第一週"
+      onSecondary={replayWeekOne}
+    />
   </main>;
 }

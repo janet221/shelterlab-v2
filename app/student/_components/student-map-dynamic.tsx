@@ -235,10 +235,11 @@ function WeekNodeButton({ node }: { node: WeekMapNode }) {
 
 function ToolInventory({ progress }: { progress: StudentMapProgress }) {
   const [open, setOpen] = useState(false);
-  const completedWeeks = new Set(
-    progress.weeks.filter((item) => item.status === "completed").map((item) => item.week)
+  const earnedWeeks = new Set(
+    progress.weeks.filter((item) => item.status === "pending" || item.status === "completed").map((item) => item.week)
   );
-  const earnedCount = LEARNING_TOOLS.filter((tool) => completedWeeks.has(tool.week)).length;
+  const pendingWeeks = new Set(progress.weeks.filter((item) => item.status === "pending").map((item) => item.week));
+  const earnedCount = LEARNING_TOOLS.filter((tool) => earnedWeeks.has(tool.week)).length;
 
   return (
     <div className="relative z-40">
@@ -254,7 +255,7 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
         </div>
         <div className="mt-1 flex gap-1.5">
           {LEARNING_TOOLS.map((tool) => {
-            const earned = completedWeeks.has(tool.week);
+            const earned = earnedWeeks.has(tool.week);
             return (
               <span
                 key={tool.week}
@@ -273,7 +274,8 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
           </div>
           <div className="grid grid-cols-2 gap-2">
             {LEARNING_TOOLS.map((tool) => {
-              const earned = completedWeeks.has(tool.week);
+              const earned = earnedWeeks.has(tool.week);
+              const pending = pendingWeeks.has(tool.week);
               return (
                 <div
                   key={tool.week}
@@ -289,7 +291,7 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
                   <div className="min-w-0">
                     <p className="text-xs font-black text-[#4A4037]">{earned ? tool.name : `第 ${tool.week} 週`}</p>
                     <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#776B60]">
-                      {earned ? tool.description : "完成關卡後取得"}
+                      {pending ? `已取得・待教師審核｜${tool.description}` : earned ? tool.description : "完成關卡後取得"}
                     </p>
                   </div>
                 </div>
@@ -312,7 +314,8 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
 export default function StudentMapDynamic({ profile, progress, onIdentitySaved }: { profile: StudentProfileView; progress: StudentMapProgress; onIdentitySaved: (identity: { realName: string; studentNumber: string }) => void }) {
   const nodes = buildWeekMapNodes(progress.weeks);
   const completed = getCompletedCount(progress.weeks);
-  const progressPercent = Math.round((completed / 6) * 100);
+  const submitted = progress.weeks.filter((item) => item.status === "pending" || item.status === "completed").length;
+  const progressPercent = Math.round((submitted / 6) * 100);
   const stageSize = useViewportCoverStage();
   const [profileOpen, setProfileOpen] = useState(profile.requiresIdentity);
 
@@ -383,7 +386,7 @@ export default function StudentMapDynamic({ profile, progress, onIdentitySaved }
         <div className="rounded-full border border-white/75 bg-[#FFFDF8]/94 px-4 py-2 shadow-sm backdrop-blur-sm">
           <div className="flex items-center gap-2 text-xs font-bold text-[#51483F] sm:text-sm">
             <span aria-hidden="true">◆</span>
-            <span>進度 {completed}/6</span>
+            <span>闖關進度 {submitted}/6{submitted > completed ? "・待審" : ""}</span>
           </div>
           <div className="mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-[#E7E0D7] sm:w-32">
             <div

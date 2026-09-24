@@ -58,14 +58,18 @@ test("final-stage data cards remain within a narrow viewport", async ({ page }) 
 });
 
 test("replaying Week 1 keeps its completion and unlocked reward", async ({ page }) => {
+  await page.route("**/api/classroom/weeks/1", async (route) => {
+    await route.fulfill({ json: { status: "in_progress", version: 1, generation: 0 } });
+  });
+  await page.route("**/api/classroom/weeks/1/game-audit", async (route) => {
+    await route.fulfill({ json: { status: "pending" } });
+  });
   await openWeek(page, 1);
   await page.getByRole("textbox").fill("我會先區分資料呈現的差異與仍需查證的原因。");
   await page.getByRole("button", { name: "完成第一週" }).click();
   await expect(page.getByRole("dialog", { name: "取得新的探究工具" })).toBeVisible();
-  await page.getByRole("button", { name: "收下工具" }).click();
-  await expect(page.getByRole("button", { name: "帶著工具返回地圖" })).toBeVisible();
   await expect(page.getByRole("button", { name: "重新體驗第一週" })).toBeVisible();
-  await page.getByRole("button", { name: "帶著工具返回地圖" }).click();
+  await page.getByRole("button", { name: "收下工具並返回地圖" }).click();
   await expect(page).toHaveURL(/\/student$/);
   await openWeek(page, 1);
   await page.getByRole("button", { name: "重新體驗第一週" }).click();
