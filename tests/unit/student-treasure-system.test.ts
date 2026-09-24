@@ -120,15 +120,20 @@ describe("前五週寶物跨週應用", () => {
     expect(learningProgress).toContain("unlockedTools:earnedWeeks");
   });
 
-  it("教師稽核可看完整填答、選擇題與整體完成狀態", () => {
+  it("教師稽核只呈現可批改的填答與完成時間", () => {
     const review = read("app/teacher/reviews/[id]/review.tsx");
 
     expect(review).toContain("完整關卡填答稽核");
-    expect(review).toContain("整體完成狀態");
+    expect(review).toContain("完成時間：");
     expect(review).toContain("選擇題");
-    expect(review).toContain("尚未填答");
     expect(review).toContain("gameAudit");
-    expect(review).toContain("米白色遊戲區塊內");
+    expect(review).toContain('entry.kind !== "action"');
+    expect(review).toContain('entry.answered &&');
+    expect(review).toContain('!entry.prompt.includes("互動題目")');
+    expect(review).not.toContain("完整關卡填答狀況");
+    expect(review).not.toContain("整體完成狀態");
+    expect(review).not.toContain("已填答／互動");
+    expect(review).not.toContain("尚未填答");
     expect(review).not.toContain("JSON.stringify(audit.gameState");
   });
 

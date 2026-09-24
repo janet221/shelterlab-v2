@@ -22,33 +22,34 @@ const kindLabel: Record<WeekAuditEntry["kind"], string> = {
 function GameAuditReview({ audit }: { audit: WeekGameAudit }) {
   const groups = useMemo(() => {
     const result = new Map<string, WeekAuditEntry[]>();
-    for (const entry of audit.entries) result.set(entry.section, [...(result.get(entry.section) ?? []), entry]);
+    const gradableEntries = audit.entries.filter((entry) =>
+      entry.answered &&
+      entry.answers.length > 0 &&
+      entry.kind !== "action" &&
+      !entry.section.includes("互動題目") &&
+      !entry.prompt.includes("互動題目")
+    );
+    for (const entry of gradableEntries) result.set(entry.section, [...(result.get(entry.section) ?? []), entry]);
     return [...result.entries()];
   }, [audit.entries]);
-  const answered = audit.entries.filter((entry) => entry.answered).length;
 
   return <section className="space-y-5" aria-label="完整關卡填答稽核">
-    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-      <h2 className="text-xl font-bold">完整關卡填答狀況</h2>
-      <p className="mt-2 text-sm text-stone-600">以下只呈現學生在米白色遊戲區塊內的問答、選擇與責任配套挑戰。</p>
-      <p className="mt-2">整體完成狀態：<strong>{audit.completed ? "已完成完整關卡" : "尚未完成"}</strong></p>
-      <p>已填答／互動 {answered} 項，共記錄 {audit.entries.length} 項；未填答 {audit.entries.length - answered} 項。</p>
-      <p className="mt-1 text-sm text-stone-600">完成時間：{new Date(audit.completedAt).toLocaleString("zh-TW")}</p>
-    </div>
+    <p className="text-sm text-stone-600">完成時間：{new Date(audit.completedAt).toLocaleString("zh-TW")}</p>
     {groups.map(([section, entries]) => <section key={section} className="space-y-3 rounded-2xl border border-stone-200 bg-[#fffaf0] p-5">
       <h2 className="text-xl font-bold">{section}</h2>
       {entries.map((entry, index) => <article key={entry.id} className="rounded-xl border border-stone-200 bg-white p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <h3 className="font-bold">{index + 1}. {entry.prompt}</h3>
-          <span className={`rounded-full px-3 py-1 text-xs font-bold ${entry.answered ? "bg-emerald-100 text-emerald-800" : "bg-stone-200 text-stone-700"}`}>
-            {kindLabel[entry.kind]} · {entry.answered ? "已填答" : "尚未填答"}
+          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+            {kindLabel[entry.kind]}
           </span>
         </div>
         <div className="mt-3 whitespace-pre-wrap rounded-lg bg-stone-50 p-3 text-stone-800">
-          {entry.answers.length ? entry.answers.join("\n") : "尚未留下答案"}
+          {entry.answers.join("\n")}
         </div>
       </article>)}
     </section>)}
+    {groups.length === 0 && <p className="rounded-2xl border border-stone-200 bg-white p-5 text-stone-600">此關卡沒有需要批改的填答題。</p>}
   </section>;
 }
 
