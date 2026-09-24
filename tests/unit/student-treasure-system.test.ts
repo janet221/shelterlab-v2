@@ -112,6 +112,10 @@ describe("前五週寶物跨週應用", () => {
     const map = read("app/student/_components/student-map-dynamic.tsx");
     expect(map).toContain('item.status === "pending" || item.status === "completed"');
     expect(map).toContain("闖關進度 {submitted}/6");
+
+    const learningProgress = read("app/student/_components/student-learning-progress.tsx");
+    expect(learningProgress).toContain('w.status==="pending"||w.status==="completed"');
+    expect(learningProgress).toContain("unlockedTools:earnedWeeks");
   });
 
   it("教師稽核可看完整填答、選擇題與整體完成狀態", () => {
