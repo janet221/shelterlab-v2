@@ -174,4 +174,16 @@ describe("前五週寶物跨週應用", () => {
     expect(classroomMap).toContain("setInterval(refresh, 5000)");
     expect(classroomMap).toContain('schoolName: progress.schoolName');
   });
+
+  it("班級已有學生後鎖定班級代碼，但不鎖定學校設定", () => {
+    const migration = read("supabase/migrations/202609240004_lock_enrolled_class_code.sql");
+    const settings = read("app/teacher/settings/settings-form.tsx");
+    const service = read("lib/classroom/service.ts");
+
+    expect(migration).toContain("Cannot change enrolled class code");
+    expect(migration).not.toContain("Cannot change enrolled school");
+    expect(settings).toContain("readOnly={classCodeLocked}");
+    expect(settings).toContain("已有學生加入，班級代碼已鎖定。");
+    expect(service).toContain("已有學生加入，班級代碼不可更改。");
+  });
 });

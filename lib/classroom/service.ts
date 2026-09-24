@@ -47,6 +47,7 @@ function checked<T>({ data, error }: { data: T; error: { code?: string; message?
   if (error) {
     if (error.code === "42501") throw new RequestError(403, "您沒有此班級或學生的操作權限。");
     if (error.code === "40001") throw new RequestError(409, "進度已變更，請重新整理後再操作。");
+    if (error.code === "23514" && error.message?.includes("Cannot change enrolled class code")) throw new RequestError(409, "已有學生加入，班級代碼不可更改。");
     if (error.code === "23514" && error.message?.includes("Class capacity below enrollment")) throw new RequestError(409, "班級人數不可小於目前已加入的學生人數。");
     if (error.code === "23514") throw new RequestError(409, "目前狀態不允許此操作，請重新整理後再試。");
     if (error.code === "23505") throw new RequestError(409, "這個班級代碼已被使用，請設定另一組代碼。");

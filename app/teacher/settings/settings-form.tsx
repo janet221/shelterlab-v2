@@ -29,6 +29,7 @@ export default function SettingsForm() {
   }, []);
 
   const school = schools?.schools.find((item) => item.id === schoolId);
+  const classCodeLocked = Boolean(dashboard?.classroom?.enrollments.length);
   const selectedStudent = dashboard?.classroom?.enrollments.find((item) => item.student.id === studentId)?.student;
   const resetTarget = selectedStudent ? `${selectedStudent.displayName}（帳號 ${selectedStudent.id.slice(0, 8)}）` : "全班學生";
 
@@ -91,7 +92,7 @@ export default function SettingsForm() {
         <label className="block">縣市<input readOnly value={school?.county || ""} className={fieldClass} /></label>
         <label className="block">年級<select name="grade" defaultValue={dashboard.classroom?.grade || "高一"} className={fieldClass}>{["高一", "高二", "高三"].map((grade) => <option key={grade}>{grade}</option>)}</select></label>
         <label className="block">班級人數<input type="number" name="studentCount" min={1} max={200} defaultValue={dashboard.classroom?.studentCount || 30} required className={fieldClass} /></label>
-        <label className="block">班級代碼<input name="classCode" minLength={8} maxLength={64} pattern="[A-Za-z0-9][A-Za-z0-9-]{7,63}" defaultValue={dashboard.classroom?.joinCode || ""} required autoComplete="off" spellCheck={false} className={`${fieldClass} uppercase`} placeholder="例如 SHELTER-2026" /></label>
+        <label className="block">班級代碼<input name="classCode" minLength={8} maxLength={64} pattern="[A-Za-z0-9][A-Za-z0-9-]{7,63}" defaultValue={dashboard.classroom?.joinCode || ""} required readOnly={classCodeLocked} aria-readonly={classCodeLocked} autoComplete="off" spellCheck={false} className={`${fieldClass} uppercase ${classCodeLocked ? "cursor-not-allowed bg-stone-100 text-stone-500" : ""}`} placeholder="例如 SHELTER-2026" />{classCodeLocked && <span className="mt-2 block text-xs font-bold text-amber-800">已有學生加入，班級代碼已鎖定。</span>}</label>
         <p className="text-xs text-stone-500">學生首次註冊時會使用此碼，且不可與其他班級重複。</p>
         <button disabled={busy || !school} className={buttonClass}>{busy ? "儲存中…" : "儲存並載入在地設定"}</button>
       </form>
