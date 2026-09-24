@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import StudentProfileModal, { type StudentProfileView } from "./student-profile-modal";
 import {
   buildWeekMapNodes,
   getCompletedCount,
@@ -308,11 +309,16 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
   );
 }
 
-export default function StudentMapDynamic({ classCode, progress }: { classCode?: string; progress: StudentMapProgress }) {
+export default function StudentMapDynamic({ profile, progress, onIdentitySaved }: { profile: StudentProfileView; progress: StudentMapProgress; onIdentitySaved: (identity: { realName: string; studentNumber: string }) => void }) {
   const nodes = buildWeekMapNodes(progress.weeks);
   const completed = getCompletedCount(progress.weeks);
   const progressPercent = Math.round((completed / 6) * 100);
   const stageSize = useViewportCoverStage();
+  const [profileOpen, setProfileOpen] = useState(profile.requiresIdentity);
+
+  useEffect(() => {
+    if (profile.requiresIdentity) setProfileOpen(true);
+  }, [profile.requiresIdentity]);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -372,6 +378,8 @@ export default function StudentMapDynamic({ classCode, progress }: { classCode?:
       </div>
 
       <div className="fixed left-4 top-4 z-50 flex max-w-[calc(100vw-2rem)] flex-wrap items-start gap-2 sm:left-6 sm:top-6">
+        <Link href="/" className="rounded-full border border-white/75 bg-[#FFFDF8]/94 px-4 py-2 text-xs font-bold text-[#51483F] shadow-sm backdrop-blur-sm transition hover:bg-white sm:text-sm">← 返回首頁</Link>
+
         <div className="rounded-full border border-white/75 bg-[#FFFDF8]/94 px-4 py-2 shadow-sm backdrop-blur-sm">
           <div className="flex items-center gap-2 text-xs font-bold text-[#51483F] sm:text-sm">
             <span aria-hidden="true">◆</span>
@@ -387,12 +395,16 @@ export default function StudentMapDynamic({ classCode, progress }: { classCode?:
 
         <ToolInventory progress={progress} />
 
-        {classCode && (
-          <div className="rounded-full border border-white/75 bg-[#FFFDF8]/94 px-4 py-2 text-xs font-bold text-[#51483F] shadow-sm backdrop-blur-sm sm:text-sm">
-            班級代碼：<span className="tracking-wider">{classCode}</span>
-          </div>
-        )}
+        <button type="button" onClick={() => setProfileOpen(true)} className="rounded-full border border-white/75 bg-[#FFFDF8]/94 px-4 py-2 text-xs font-bold text-[#51483F] shadow-sm backdrop-blur-sm transition hover:bg-white sm:text-sm">個人中心</button>
       </div>
+
+      <StudentProfileModal
+        open={profileOpen}
+        profile={profile}
+        weeks={progress.weeks}
+        onClose={() => { if (!profile.requiresIdentity) setProfileOpen(false); }}
+        onSaved={(identity) => { onIdentitySaved(identity); setProfileOpen(false); }}
+      />
     </main>
   );
 }

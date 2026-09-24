@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { analyzeCoa, buildQuestionSet, chooseContrasts, COA_FIELDS, countyData, elapsedDays, median, parseCsv, parseDate } from "@/lib/classroom/coa";
 import { applyTranslationChoices } from "@/lib/classroom/translator";
 import { hashPassword, newToken, tokenHash, verifyPassword } from "@/lib/classroom/security";
-import { gameAuditSubmissionSchema, settingsSchema, submissionSchema, validateAnswers } from "@/lib/classroom/service";
+import { gameAuditSubmissionSchema, settingsSchema, studentIdentitySchema, submissionSchema, validateAnswers } from "@/lib/classroom/service";
 import { courseWeekLabel } from "@/lib/classroom/course";
 import { assertSameOrigin, body } from "@/lib/classroom/http";
 import { z } from "zod";
@@ -80,6 +80,11 @@ describe("authoritative COA classroom evidence", () => {
     expect(gameAuditSubmissionSchema.safeParse(input).success).toBe(true);
     expect(gameAuditSubmissionSchema.safeParse({ ...input, audit: { ...input.audit, completed: false } }).success).toBe(false);
     expect(gameAuditSubmissionSchema.safeParse({ ...input, audit: { ...input.audit, entries: [] } }).success).toBe(false);
+  });
+  it("requires a real name and a classroom-safe student number", () => {
+    expect(studentIdentitySchema.safeParse({ realName: "王小明", studentNumber: "CK-1024" }).success).toBe(true);
+    expect(studentIdentitySchema.safeParse({ realName: "", studentNumber: "CK-1024" }).success).toBe(false);
+    expect(studentIdentitySchema.safeParse({ realName: "王小明", studentNumber: "含 空白" }).success).toBe(false);
   });
   it("uses the approved six-week labels and rejects shortened courses", () => {
     expect(courseWeekLabel(1)).toBe("第一週｜角色與處境");

@@ -1,32 +1,48 @@
 "use client";
+
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { api, buttonClass } from "@/app/_components/classroom-ui";
-import DataLens from "@/app/_components/data-lens";
-import CaseComparison from "@/app/_components/case-comparison";
-import type { teacherDashboard, localWorkbench } from "@/lib/classroom/service";
+import type { teacherDashboard } from "@/lib/classroom/service";
 import { courseWeekLabel } from "@/lib/classroom/course";
+
 type Dashboard = Awaited<ReturnType<typeof teacherDashboard>>;
-type Local = Awaited<ReturnType<typeof localWorkbench>>;
-const submittedDate = (value: Date | string) => new Date(value);
-export default function TeacherDashboard({ reviewsOnly = false }: { reviewsOnly?: boolean }) {
-  const [dashboard, setDashboard] = useState<Dashboard | null>(null), [local, setLocal] = useState<Local | null>(null), [error, setError] = useState(""), [page, setPage] = useState(0);
-  const refresh = useCallback(async () => { try { setDashboard(await api<Dashboard>("/api/classroom/dashboard")); setError(""); } catch (e) { setError((e as Error).message); } }, []);
-  useEffect(() => { void refresh(); const timer = setInterval(refresh, 10000); return () => clearInterval(timer); }, [refresh]);
-  const county = dashboard?.classroom?.county;
-  useEffect(() => { if (county && !reviewsOnly) { setLocal(null); setPage(0); api<Local>("/api/classroom/local").then(setLocal).catch(e => setError(e.message)); } }, [county, reviewsOnly]);
-  return <main className="mx-auto max-w-7xl space-y-8 px-5 py-10"><header><p className="font-bold text-[#7f7165]">教師工作區</p><h1 className="mt-2 text-3xl font-bold">{reviewsOnly ? "學生作業審核工作台" : "在地動保課程工作台"}</h1><p className="mt-3 text-stone-600">{dashboard?.classroom ? `${dashboard.classroom.schoolName} · ${dashboard.classroom.county} · ${dashboard.classroom.grade} · ${dashboard.classroom.plannedWeeks} 週` : "先設定班級，即可自動載入在地資料。"}</p></header><p role="alert" className="text-red-800">{error}</p>{!dashboard && !error && <p role="status">載入中…</p>}
+const STATUS_LABEL = { locked: "未解鎖", in_progress: "進行中", pending: "稽核中", completed: "已完成" } as const;
+
+export default function TeacherDashboard() {
+  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
+  const [error, setError] = useState("");
+  const refresh = useCallback(async () => {
+    try { setDashboard(await api<Dashboard>("/api/classroom/dashboard")); setError(""); }
+    catch (cause) { setError((cause as Error).message); }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+    const timer = setInterval(refresh, 10000);
+    return () => clearInterval(timer);
+  }, [refresh]);
+
+  return <main className="mx-auto max-w-7xl space-y-8 px-5 py-10">
+    <header>
+      <p className="font-bold text-[#7f7165]">教師工作區</p>
+      <h1 className="mt-2 text-3xl font-bold">學習進度追蹤</h1>
+      <p className="mt-3 text-stone-600">{dashboard?.classroom ? `${dashboard.classroom.schoolName} · ${dashboard.classroom.county} · ${dashboard.classroom.grade}` : "先完成班級設定，即可追蹤學生進度。"}</p>
+    </header>
+    {error && <p role="alert" className="rounded-xl bg-red-50 p-4 text-red-800">{error}</p>}
+    {!dashboard && !error && <p role="status">載入中…</p>}
     {dashboard && !dashboard.classroom && <Link className={buttonClass} href="/teacher/settings">設定我的班級</Link>}
-    {dashboard?.classroom && <><section className="rounded-2xl border bg-white p-6"><div className="flex flex-wrap justify-between gap-4"><h2 className="text-xl font-bold">等待審核中 · {dashboard.pending.length} 份</h2><button className="underline" onClick={refresh}>立即更新</button></div><p className="mt-2 text-sm text-stone-600">每十秒同步一次。教師通過後才會解鎖下一週。</p>{dashboard.pending.length === 0 ? <p className="mt-5">目前沒有待審作業。</p> : <ul className="mt-4 divide-y">{dashboard.pending.map(w => <li className="grid gap-3 py-4 md:grid-cols-[1fr_1fr_auto] md:items-center" key={w.id}><span><strong>{w.student.displayName}</strong><span className="mt-1 block text-sm text-stone-500">帳號 {w.student.id.slice(0, 8)}</span></span><span><strong>{courseWeekLabel(w.week)}</strong><time className="mt-1 block text-sm text-stone-500" dateTime={w.submittedAt ? submittedDate(w.submittedAt).toISOString() : undefined}>{w.submittedAt ? `提交於 ${new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeStyle: "short" }).format(submittedDate(w.submittedAt))}` : "尚無提交時間"}</time></span><Link className="font-bold text-[#7f7165] underline" href={`/teacher/reviews/${w.id}`}>逐題檢視與批改</Link></li>)}</ul>}</section>
-    {!reviewsOnly && <><section className="rounded-2xl bg-[#7f7165] p-6 text-white"><h2 className="font-bold">邀請學生加入</h2><p className="my-3 font-mono text-2xl tracking-wider">{dashboard.classroom.joinCode}</p><p>學生建立帳號時輸入班級代碼，即可加入。已加入 {dashboard.classroom.enrollments.length}／{dashboard.classroom.studentCount} 人。</p></section>
-    {!local && !error && <p role="status">正在計算在地資料…</p>}{local && <><section className="rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">{county}快照統計</h2><div className="my-5 grid gap-4 sm:grid-cols-3">{[["OPEN 紀錄", local.count], ["有效日期樣本", local.validDays], ["推定留所天數中位數", local.medianDays ?? "無法計算"]].map(([title, value]) => <div key={title} className="rounded-xl bg-stone-50 p-4"><p>{title}</p><p className="mt-2 text-3xl font-bold">{value}</p></div>)}</div><p>使用 2026-09-05 分析快照；OPEN 僅代表當時狀態，不代表現在仍待認養。</p><DataLens metadata={local.metadata} /></section>
-    <CaseComparison set={local.comparison} />
-    <section className="rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">高中引導式問題</h2><ol className="mt-4 list-decimal space-y-4 pl-5">{local.comparison.questions.map(q => <li key={q.id}><p className="text-sm text-stone-600">{q.fact}</p><p className="mt-1 font-bold">{q.prompt}</p></li>)}</ol><DataLens metadata={local.metadata} /></section>
-    <section className="rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">毛色紀錄分布</h2><div className="my-5 space-y-2">{Object.entries(local.animals.reduce<Record<string, number>>((counts, a) => { counts[a.colour] = (counts[a.colour] || 0) + 1; return counts; }, {})).sort((a, b) => b[1] - a[1]).map(([colour, count]) => <div key={colour} className="grid grid-cols-[6rem_1fr_4rem] items-center gap-3 text-sm"><span>{colour}</span><div className="h-4 rounded bg-stone-100"><div className="h-full rounded bg-[#87958e]" style={{ width: `${count / Math.max(1, local.count) * 100}%` }} /></div><span>{count} 筆</span></div>)}</div><DataLens metadata={{ ...local.metadata, formulas: [...local.metadata.formulas, "毛色長條比例 ＝ 該毛色 OPEN 紀錄數 ÷ 本縣市所有納入紀錄數"] }} /></section>
-    <section className="rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">待認養動物清單（快照）</h2><div className="my-4 overflow-x-auto"><table className="w-full text-left text-sm"><caption className="sr-only">縣市 OPEN 動物紀錄</caption><thead><tr>{["識別碼", "收容所", "毛色", "資料建立日", "推定留所天數"].map(h => <th className="p-2" key={h}>{h}</th>)}</tr></thead><tbody>{local.animals.slice(page * 25, page * 25 + 25).map(a => <tr className="border-t" key={a.id}><td className="p-2">{a.id}</td><td>{a.shelter}</td><td>{a.colour}</td><td>{a.createdDate || "缺漏"}</td><td>{a.days ?? "無法計算"}</td></tr>)}</tbody></table></div>{!local.count && <p>來源中沒有此縣市可用紀錄。</p>}<div className="flex gap-5"><button disabled={page === 0} onClick={() => setPage(p => p - 1)} className="disabled:opacity-40">上一頁</button><span>{page + 1}／{Math.max(1, Math.ceil(local.count / 25))}</span><button disabled={(page + 1) * 25 >= local.count} onClick={() => setPage(p => p + 1)} className="disabled:opacity-40">下一頁</button></div><DataLens metadata={local.metadata} /></section>
-    <section><h2 className="mb-4 text-2xl font-bold">同縣市公立收容所</h2><p className="mb-4">以學校縣市篩選，不使用學生住址，也不宣稱是距離最近的單位。</p><div className="grid gap-4 md:grid-cols-2">{local.shelters.map(s => <article className="rounded-2xl border bg-white p-5" key={s.id}><a className="font-bold underline" href={s.url} target="_blank" rel="noreferrer">{s.name}</a><p>{s.phone}</p><DataLens metadata={s.metadata} /></article>)}</div>{!local.shelters.length && <p>此縣市目前沒有可用的公立收容所備援紀錄。</p>}</section>
-    <section><h2 className="mb-4 text-2xl font-bold">推薦愛學網教材</h2>{local.learning_resources.map(r => <article key={r.url} className="rounded-2xl border bg-white p-5"><a className="font-bold underline" href={r.url} target="_blank" rel="noreferrer">{r.title}</a><p className="mt-2">{r.reason}</p><DataLens metadata={r.metadata} /></article>)}</section></>}
-    </>}
+
+    {dashboard?.classroom && <>
+      <section className="rounded-2xl border bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-xl font-bold">等待稽核 · {dashboard.pending.length} 份</h2><p className="mt-2 text-sm text-stone-600">每十秒同步一次；通過後會自動解鎖下一週。</p></div><button className="underline" onClick={refresh}>立即更新</button></div>
+        {dashboard.pending.length === 0 ? <p className="mt-5">目前沒有待稽核關卡。</p> : <ul className="mt-4 divide-y">{dashboard.pending.map((work) => <li className="grid gap-3 py-4 md:grid-cols-[1fr_1fr_auto] md:items-center" key={work.id}><span><strong>{work.student.displayName}</strong><small className="mt-1 block text-stone-500">學號 {work.student.studentNumber || "未填寫"}</small></span><span><strong>{courseWeekLabel(work.week)}</strong><small className="mt-1 block text-stone-500">{work.submittedAt ? new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeStyle: "short" }).format(new Date(work.submittedAt)) : "尚無送出時間"}</small></span><Link className="font-bold text-[#7f7165] underline" href={`/teacher/reviews/${work.id}`}>檢視全部填答</Link></li>)}</ul>}
+      </section>
+
+      <section className="rounded-2xl border bg-white p-6">
+        <div className="flex flex-wrap items-end justify-between gap-4"><div><h2 className="text-xl font-bold">全班學習進度</h2><p className="mt-2 text-sm text-stone-600">{dashboard.classroom.enrollments.length}／{dashboard.classroom.studentCount} 位學生已加入</p></div><code className="rounded-lg bg-stone-100 px-3 py-2 font-bold tracking-wider">{dashboard.classroom.joinCode}</code></div>
+        {dashboard.classroom.enrollments.length ? <div className="mt-5 overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead><tr><th className="p-3">學生</th>{[1, 2, 3, 4, 5, 6].map((week) => <th className="p-3" key={week}>第 {week} 週</th>)}</tr></thead><tbody>{dashboard.classroom.enrollments.map((enrollment) => <tr className="border-t" key={enrollment.student.id}><td className="p-3"><strong>{enrollment.student.displayName}</strong><small className="block text-stone-500">{enrollment.student.studentNumber || "未填學號"}</small></td>{[1, 2, 3, 4, 5, 6].map((week) => { const work = enrollment.weeks.find((item) => item.week === week); const status = work?.status || "locked"; return <td className="p-3" key={week}>{work?.status === "pending" ? <Link className="font-bold text-amber-700 underline" href={`/teacher/reviews/${work.id}`}>{STATUS_LABEL[status]}</Link> : STATUS_LABEL[status]}</td>; })}</tr>)}</tbody></table></div> : <p className="mt-5">目前尚無學生加入。</p>}
+      </section>
     </>}
   </main>;
 }

@@ -31,5 +31,9 @@ export default function StudentMapProgressBridge({
     };
   }, [learningProgress.completedWeeks, previewMode, progress, ready]);
 
-  return <StudentMapDynamic progress={effectiveProgress} />;
+  return <StudentMapDynamic
+    profile={{ realName: "體驗學生", studentNumber: "DEMO", classCode: "DEMO-CLASS", schoolName: "體驗學校", county: "", grade: "", requiresIdentity: false }}
+    progress={effectiveProgress}
+    onIdentitySaved={() => undefined}
+  />;
 }

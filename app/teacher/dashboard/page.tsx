@@ -1,5 +1,5 @@
-import TeacherDashboard from "../workbench";
+import { redirect } from "next/navigation";
 
 export default function TeacherDashboardPage() {
-  return <TeacherDashboard />;
+  redirect("/teacher/reviews");
 }

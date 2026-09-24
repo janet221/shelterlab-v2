@@ -6,6 +6,10 @@ import { buildQuestionSet, countyData } from "./coa";
 import type { QuestionSet, SubmittedAnswer, WeekGameAudit } from "./data-types";
 
 export const settingsSchema = z.object({ classId: z.string().uuid().optional(), classCode: z.string().trim().min(8).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()), schoolId: z.string().min(1).max(40), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.literal(6) }).strict();
+export const studentIdentitySchema = z.object({
+  realName: z.string().trim().min(2, "請填寫真實姓名。").max(100),
+  studentNumber: z.string().trim().min(1, "請填寫學號。").max(40).regex(/^[A-Za-z0-9_-]+$/, "學號只能包含英文字母、數字、底線或連字號。")
+}).strict();
 export const submissionSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), answers: z.array(z.object({ questionId: z.string().max(40), text: z.string().trim().min(10).max(3000), selectedAnimalIds: z.array(z.string().max(60)).min(1).max(4) }).strict()).length(3) }).strict();
 const auditEntrySchema = z.object({
   id: z.string().min(1).max(700),
@@ -32,7 +36,7 @@ export const reviewSchema = z.object({ version: z.number().int().nonnegative(), 
 export const resetSchema = z.object({ classId: z.string().uuid(), confirmation: z.literal("RESET"), targets: z.array(z.object({ studentId: z.string().uuid(), generation: z.number().int().nonnegative() }).strict()).min(1).max(200) }).strict();
 const statuses = { Locked: "locked", "In Progress": "in_progress", Pending: "pending", Completed: "completed" } as const;
 type DbStatus = keyof typeof statuses;
-type Profile = { id: string; display_name: string; class_id: string | null; progress_generation: number; is_course_completed: boolean; course_completed_at: string | null };
+type Profile = { id: string; display_name: string; real_name: string; student_number: string; class_id: string | null; progress_generation: number; is_course_completed: boolean; course_completed_at: string | null };
 type ClassRow = { id: string; name: string; teacher_id: string; class_code: string; school_id: string | null; school_name: string | null; county: string | null; grade: string | null; student_count: number };
 type ProgressRow = { student_id: string; week_number: number; status: DbStatus; version: number; submitted_at: string | null; reviewed_at: string | null; feedback: string; question_set: QuestionSet | null; answers: SubmittedAnswer[] | null; game_audit: WeekGameAudit | null };
 async function client() {
@@ -55,7 +59,7 @@ function mapWeek(row: ProgressRow) {
 }
 async function profile(studentId: string) {
   const db = await client();
-  const data = checked(await db.from("profiles").select("id,display_name,class_id,progress_generation,is_course_completed,course_completed_at").eq("id", studentId).eq("role", "student").maybeSingle()) as Profile | null;
+  const data = checked(await db.from("profiles").select("id,display_name,real_name,student_number,class_id,progress_generation,is_course_completed,course_completed_at").eq("id", studentId).eq("role", "student").maybeSingle()) as Profile | null;
   if (!data) throw new RequestError(404, "找不到您可存取的學生。");
   return data;
 }
@@ -73,10 +77,18 @@ export async function saveSettings(_teacherId: string, input: z.infer<typeof set
 }
 export async function studentProgress(studentId: string) {
   const db = await client(), student = await profile(studentId);
-  const classroom = checked(await db.from("classes").select("name,school_name,county,class_code").eq("id", student.class_id).single());
+  const classroom = checked(await db.from("classes").select("name,school_name,county,grade,class_code").eq("id", student.class_id).single());
   if (!classroom) throw new RequestError(404, "找不到學生所屬班級。");
   const weeks = checked(await db.from("student_progress").select("*").eq("student_id", studentId).order("week_number")) as ProgressRow[];
-  return { enrolled: true as const, generation: student.progress_generation, isCourseCompleted: student.is_course_completed, courseCompletedAt: student.course_completed_at, schoolName: classroom.school_name || classroom.name, classCode: classroom.class_code, county: classroom.county, plannedWeeks: 6, weeks: weeks.map(mapWeek) };
+  return { enrolled: true as const, generation: student.progress_generation, isCourseCompleted: student.is_course_completed, courseCompletedAt: student.course_completed_at, realName: student.real_name || "", studentNumber: student.student_number || "", requiresIdentity: !student.real_name?.trim() || !student.student_number?.trim(), schoolName: classroom.school_name || classroom.name, classCode: classroom.class_code, county: classroom.county, grade: classroom.grade || "", plannedWeeks: 6, weeks: weeks.map(mapWeek) };
+}
+export async function updateStudentIdentity(studentId: string, input: z.infer<typeof studentIdentitySchema>) {
+  const db = await client();
+  const result = await db.from("profiles").update({ real_name: input.realName, student_number: input.studentNumber, display_name: input.realName }).eq("id", studentId).eq("role", "student").select("real_name,student_number").single();
+  if (result.error?.code === "23505") throw new RequestError(409, "此學號已由同班其他學生使用，請確認後再試。");
+  const data = checked(result) as { real_name: string; student_number: string } | null;
+  if (!data) throw new RequestError(404, "找不到可更新的學生資料。");
+  return { realName: data.real_name, studentNumber: data.student_number, requiresIdentity: false as const };
 }
 export async function studentWeek(studentId: string, week: number) {
   if (!Number.isInteger(week) || week < 1 || week > 6) throw new RequestError(404, "找不到週次。");
@@ -116,10 +128,10 @@ export async function submitGameAudit(studentId: string, week: number, input: z.
 export async function teacherDashboard(teacherId: string) {
   const db = await client();
   const classes = checked(await db.from("classes").select("*").eq("teacher_id", teacherId).order("created_at")) as ClassRow[];
-  const students = classes.length ? checked(await db.from("profiles").select("id,display_name,class_id,progress_generation,is_course_completed,course_completed_at").eq("role", "student").in("class_id", classes.map(c => c.id)).order("created_at")) as Profile[] : [];
+  const students = classes.length ? checked(await db.from("profiles").select("id,display_name,real_name,student_number,class_id,progress_generation,is_course_completed,course_completed_at").eq("role", "student").in("class_id", classes.map(c => c.id)).order("created_at")) as Profile[] : [];
   const records = students.length ? checked(await db.from("student_progress").select("student_id,week_number,status,version,submitted_at,reviewed_at,feedback").in("student_id", students.map(s => s.id))) as ProgressRow[] : [];
   const classrooms = classes.map(c => ({ id: c.id, name: c.name, schoolId: c.school_id || "", schoolName: c.school_name || c.name, county: c.county || "", grade: c.grade || "", studentCount: c.student_count, plannedWeeks: 6, joinCode: c.class_code,
-    enrollments: students.filter(s => s.class_id === c.id).map(s => ({ student: { id: s.id, displayName: s.display_name || "未填姓名" }, generation: s.progress_generation, isCourseCompleted: s.is_course_completed, weeks: records.filter(w => w.student_id === s.id).map(mapWeek) })) }));
+    enrollments: students.filter(s => s.class_id === c.id).map(s => ({ student: { id: s.id, displayName: s.real_name || s.display_name || "未填姓名", realName: s.real_name || "", studentNumber: s.student_number || "" }, generation: s.progress_generation, isCourseCompleted: s.is_course_completed, weeks: records.filter(w => w.student_id === s.id).map(mapWeek) })) }));
   const pending = classrooms.flatMap(c => c.enrollments.flatMap(e => e.weeks.filter(w => w.status === "pending").map(w => ({ ...w, student: e.student, generation: e.generation, classId: c.id, className: c.name })))).sort((a, b) => (a.submittedAt || "").localeCompare(b.submittedAt || ""));
   return { classroom: classrooms[0] ?? null, classrooms, pending };
 }
@@ -130,7 +142,7 @@ export async function teacherSubmission(teacherId: string, id: string) {
   const classroom = checked(await db.from("classes").select("id").eq("id", student.class_id).eq("teacher_id", teacherId).maybeSingle());
   if (!classroom) throw new RequestError(404, "找不到您可審核的作業。");
   const record = checked(await db.from("student_progress").select("*").eq("student_id", student.id).eq("week_number", Number(match[2])).single()) as ProgressRow;
-  return { ...mapWeek(record), studentId: student.id, generation: student.progress_generation, enrollment: { student: { displayName: student.display_name, id: student.id } } };
+  return { ...mapWeek(record), studentId: student.id, generation: student.progress_generation, enrollment: { student: { displayName: student.real_name || student.display_name || "未填姓名", realName: student.real_name || "", studentNumber: student.student_number || "", id: student.id } } };
 }
 export async function reviewWeek(teacherId: string, id: string, input: z.infer<typeof reviewSchema>) {
   const record = await teacherSubmission(teacherId, id), db = await client();

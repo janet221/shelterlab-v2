@@ -73,6 +73,10 @@ function sectionName(element: Element | null) {
   return compact(heading?.textContent, "本週關卡");
 }
 
+function auditSurface(element: Element | null) {
+  return element?.closest("[class*='stagePaper'], [class*='stageCard'], [class*='stageShell']");
+}
+
 function entryId(kind: WeekAuditEntry["kind"], section: string, prompt: string) {
   return `${kind}:${section}:${prompt}`.slice(0, 700);
 }
@@ -93,7 +97,7 @@ function upsert(accountId: string, week: number, entry: WeekAuditEntry) {
 }
 
 function registerUnanswered(accountId: string, week: number, root: HTMLElement) {
-  root.querySelectorAll("fieldset, textarea, select, input[type='checkbox'], input[type='radio'], button[aria-pressed]").forEach((element) => {
+  root.querySelectorAll("[class*='stagePaper'] fieldset, [class*='stagePaper'] textarea, [class*='stagePaper'] select, [class*='stagePaper'] input[type='checkbox'], [class*='stagePaper'] input[type='radio'], [class*='stagePaper'] button[aria-pressed], [class*='stageCard'] fieldset, [class*='stageCard'] textarea, [class*='stageCard'] select, [class*='stageCard'] input[type='checkbox'], [class*='stageCard'] input[type='radio'], [class*='stageCard'] button[aria-pressed]").forEach((element) => {
     const kind: WeekAuditEntry["kind"] = element instanceof HTMLTextAreaElement ? "text"
       : element instanceof HTMLSelectElement ? "select"
         : element instanceof HTMLInputElement ? "checkbox" : "choice";
@@ -111,6 +115,7 @@ function registerUnanswered(accountId: string, week: number, root: HTMLElement) 
 
 function capture(accountId: string, week: number, target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return;
+  if (!auditSurface(target)) return;
   const section = sectionName(target);
   const prompt = target.closest("fieldset")
     ? compact(target.closest("fieldset")?.querySelector("legend")?.textContent, nearestHeading(target))
@@ -137,6 +142,7 @@ function capture(accountId: string, week: number, target: EventTarget | null) {
   }
   const button = target.closest("button");
   if (!button || button.disabled) return;
+  if (button.closest("nav, [class*='stageRail'], [class*='buttonRow'], [class*='stageActions'], [class*='completionActions']")) return;
   const answer = compact(button.textContent, "未命名操作");
   if (/^(上一|下一|返回|關閉|開啟|重新體驗|收下寶物|完成任務)/.test(answer)) return;
   if (button.hasAttribute("aria-pressed")) {

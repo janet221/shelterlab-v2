@@ -30,6 +30,7 @@ function GameAuditReview({ audit }: { audit: WeekGameAudit }) {
   return <section className="space-y-5" aria-label="完整關卡填答稽核">
     <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
       <h2 className="text-xl font-bold">完整關卡填答狀況</h2>
+      <p className="mt-2 text-sm text-stone-600">以下只呈現學生在米白色遊戲區塊內的問答、選擇與責任配套挑戰。</p>
       <p className="mt-2">整體完成狀態：<strong>{audit.completed ? "已完成完整關卡" : "尚未完成"}</strong></p>
       <p>已填答／互動 {answered} 項，共記錄 {audit.entries.length} 項；未填答 {audit.entries.length - answered} 項。</p>
       <p className="mt-1 text-sm text-stone-600">完成時間：{new Date(audit.completedAt).toLocaleString("zh-TW")}</p>
@@ -48,10 +49,6 @@ function GameAuditReview({ audit }: { audit: WeekGameAudit }) {
         </div>
       </article>)}
     </section>)}
-    <details className="rounded-2xl border border-stone-200 bg-white p-5">
-      <summary className="cursor-pointer font-bold">檢視完整關卡狀態資料</summary>
-      <pre className="mt-4 max-h-[32rem] overflow-auto whitespace-pre-wrap rounded-xl bg-stone-950 p-4 text-xs text-stone-100">{JSON.stringify(audit.gameState, null, 2)}</pre>
-    </details>
   </section>;
 }
 
@@ -107,7 +104,7 @@ export default function Review({ id }: { id: string }) {
     <h1 className="text-3xl font-bold">完整關卡填答稽核</h1>
     {error && <div role="alert" className="fixed right-5 top-20 z-[100] max-w-sm rounded-2xl border border-red-300 bg-red-50 px-5 py-4 text-red-900 shadow-xl">審核失敗：{error}</div>}
     {ready ? <>
-      <p>{record.enrollment.student.displayName} · 帳號 {record.enrollment.student.id.slice(0, 8)} · {courseWeekLabel(record.week)} · {record.status === "pending" ? "等待審核中" : "目前不可批改"}</p>
+      <p>{record.enrollment.student.displayName} · 學號 {record.enrollment.student.studentNumber || "未填寫"} · {courseWeekLabel(record.week)} · {record.status === "pending" ? "等待審核中" : "目前不可批改"}</p>
       {gameAudit ? <GameAuditReview audit={gameAudit} /> : <LegacyReview questionSet={questionSet!} answers={answers} />}
       <label className="block font-bold">教師回饋<textarea value={feedback} onChange={(event) => setFeedback(event.target.value)} maxLength={3000} rows={4} className={fieldClass} /></label>
       <div className="flex gap-4"><button className={buttonClass} disabled={busy || record.status !== "pending"} onClick={decide}>{busy ? "審核中…" : record.week === 6 ? "審核通過並完成課程" : "審核通過並解鎖下一週"}</button></div>

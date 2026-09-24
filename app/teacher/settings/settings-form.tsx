@@ -91,10 +91,8 @@ export default function SettingsForm() {
         <p id="county-note" className="text-xs">由學校名錄鎖定，後端會再次核對。</p>
         <label className="block">年級<select name="grade" defaultValue={dashboard.classroom?.grade || "高一"} className={fieldClass}>{["高一", "高二", "高三"].map((grade) => <option key={grade}>{grade}</option>)}</select></label>
         <label className="block">班級人數<input type="number" name="studentCount" min={1} max={200} defaultValue={dashboard.classroom?.studentCount || 30} required className={fieldClass} /></label>
-        <label className="block">班級程式碼<input name="classCode" minLength={8} maxLength={64} pattern="[A-Za-z0-9][A-Za-z0-9-]{7,63}" defaultValue={dashboard.classroom?.joinCode || ""} required autoComplete="off" spellCheck={false} className={`${fieldClass} uppercase`} placeholder="例如 SHELTER-2026" /></label>
+        <label className="block">班級代碼<input name="classCode" minLength={8} maxLength={64} pattern="[A-Za-z0-9][A-Za-z0-9-]{7,63}" defaultValue={dashboard.classroom?.joinCode || ""} required autoComplete="off" spellCheck={false} className={`${fieldClass} uppercase`} placeholder="例如 SHELTER-2026" /></label>
         <p className="text-xs text-stone-500">8–64 個英文字母、數字或連字號。學生首次註冊時會使用此代碼，且不可與其他班級重複。</p>
-        <label className="block">課程週數<input value="6 週" readOnly className={fieldClass} /></label>
-        <p className="text-xs">ShelterLab 採固定六週闖關；學生完成前一週並經教師通過後，才會解鎖下一週。</p>
         <button disabled={busy || !school} className={buttonClass}>{busy ? "儲存中…" : "儲存並載入在地設定"}</button>
       </form>
 

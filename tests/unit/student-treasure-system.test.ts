@@ -53,15 +53,26 @@ describe("前五週寶物跨週應用", () => {
     expect(weekSix).not.toContain("isTreasureUnlockedForWeek");
   });
 
-  it("學生地圖不再顯示頂部班級橫幅，班級代碼改放在探索工具旁", () => {
+  it("學生地圖提供返回首頁、個人中心與不可略過的首次身分定錨", () => {
     const classroomMap = read("app/student/_components/classroom-map.tsx");
     const studentMap = read("app/student/_components/student-map-dynamic.tsx");
+    const profileModal = read("app/student/_components/student-profile-modal.tsx");
 
     expect(classroomMap).not.toContain("<ClassroomNav");
-    expect(classroomMap).not.toContain("progress.schoolName");
-    expect(classroomMap).toContain("classCode={progress.classCode}");
+    expect(classroomMap).toContain("requiresIdentity");
+    expect(classroomMap).toContain("schoolName: progress.schoolName");
     expect(studentMap).toContain("<ToolInventory progress={progress} />");
-    expect(studentMap).toContain("班級代碼：");
+    expect(studentMap).toContain("返回首頁");
+    expect(studentMap).toContain("個人中心");
+    expect(studentMap).not.toContain("班級代碼：");
+    expect(profileModal).toContain("首次登入身分確認");
+    expect(profileModal).toContain("完成前無法關閉此視窗");
+    expect(profileModal).toContain("學生真實姓名");
+    expect(profileModal).toContain("學號");
+    expect(profileModal).toContain("所屬班級代碼");
+    expect(profileModal).toContain("目前通關進度");
+    expect(profileModal).toContain("profile.schoolName");
+    expect(profileModal).not.toContain("onMouseDown");
   });
 
   it("六週完整互動內容直接記錄稽核資料且不顯示底部送審區", () => {
@@ -86,6 +97,34 @@ describe("前五週寶物跨週應用", () => {
     expect(review).toContain("選擇題");
     expect(review).toContain("尚未填答");
     expect(review).toContain("gameAudit");
-    expect(review).toContain("完整關卡狀態資料");
+    expect(review).toContain("米白色遊戲區塊內");
+    expect(review).not.toContain("JSON.stringify(audit.gameState");
+  });
+
+  it("教師端只保留學習進度追蹤與設定", () => {
+    const nav = read("app/_components/classroom-ui.tsx");
+    const settings = read("app/teacher/settings/settings-form.tsx");
+    const dashboard = read("app/teacher/dashboard/page.tsx");
+    const generator = read("app/teacher/lesson-generator/page.tsx");
+
+    expect(nav).toContain("學習進度追蹤");
+    expect(nav).toContain("設定");
+    expect(nav).not.toContain("課程工作台");
+    expect(nav).not.toContain("在地教案產生器");
+    expect(settings).toContain("班級代碼");
+    expect(settings).not.toContain("課程週數");
+    expect(settings).not.toContain("採固定六週闖關");
+    expect(dashboard).toContain('redirect("/teacher/reviews")');
+    expect(generator).toContain('redirect("/teacher/reviews")');
+  });
+
+  it("資料遷移固定測試班級的學校、縣市並加入學生身分欄位", () => {
+    const migration = read("supabase/migrations/202609240002_student_identity_and_default_class.sql");
+    expect(migration).toContain("real_name");
+    expect(migration).toContain("student_number");
+    expect(migration).toContain("SHELTER-TEST-0923");
+    expect(migration).toContain("353301");
+    expect(migration).toContain("建國中學");
+    expect(migration).toContain("臺北市");
   });
 });
