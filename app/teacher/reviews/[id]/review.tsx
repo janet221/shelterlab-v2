@@ -33,7 +33,7 @@ function GameAuditReview({ audit }: { audit: WeekGameAudit }) {
     return [...result.entries()];
   }, [audit.entries]);
 
-  return <section className="space-y-5" aria-label="完整關卡填答稽核">
+  return <section className="space-y-5" aria-label="完整關卡填答審查">
     <p className="text-sm text-stone-600">完成時間：{new Date(audit.completedAt).toLocaleString("zh-TW")}</p>
     {groups.map(([section, entries]) => <section key={section} className="space-y-3 rounded-2xl border border-stone-200 bg-[#fffaf0] p-5">
       <h2 className="text-xl font-bold">{section}</h2>
@@ -102,7 +102,7 @@ export default function Review({ id }: { id: string }) {
   const ready = record && (gameAudit || questionSet);
   return <main className="mx-auto max-w-5xl space-y-6 px-5 py-10">
     <Link className="underline" href="/teacher/reviews">← 返回待審清單</Link>
-    <h1 className="text-3xl font-bold">完整關卡填答稽核</h1>
+    <h1 className="text-3xl font-bold">完整關卡填答審查</h1>
     {error && <div role="alert" className="fixed right-5 top-20 z-[100] max-w-sm rounded-2xl border border-red-300 bg-red-50 px-5 py-4 text-red-900 shadow-xl">審核失敗：{error}</div>}
     {ready ? <>
       <p>{record.enrollment.student.displayName} · 學號 {record.enrollment.student.studentNumber || "未填寫"} · {courseWeekLabel(record.week)} · {record.status === "pending" ? "等待審核中" : "目前不可批改"}</p>

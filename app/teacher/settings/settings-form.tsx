@@ -111,7 +111,7 @@ export default function SettingsForm() {
       {dashboard.classroom && <section className="mt-8 rounded-2xl border-2 border-red-300 bg-red-50 p-6" aria-labelledby="danger-zone-title">
         <p className="text-sm font-bold uppercase tracking-widest text-red-700">Danger Zone</p>
         <h2 id="danger-zone-title" className="mt-2 text-xl font-bold text-red-950">重製學生地圖解鎖進度</h2>
-        <p className="my-3 text-red-900">第一週恢復為進行中，第二至第六週重新鎖定，並取消全課程結案。作答內容會留在稽核紀錄中。</p>
+        <p className="my-3 text-red-900">第一週恢復為進行中，第二至第六週重新鎖定，並取消全課程結案。作答內容會留在審查紀錄中。</p>
         <label className="block font-bold text-red-950">重製範圍<select value={studentId} onChange={(event) => setStudentId(event.target.value)} className={fieldClass}><option value="">全班學生</option>{dashboard.classroom.enrollments.map((item) => <option key={item.student.id} value={item.student.id}>{item.student.displayName} · 帳號 {item.student.id.slice(0, 8)}</option>)}</select></label>
         <button type="button" disabled={busy || dashboard.classroom.enrollments.length === 0} className="mt-4 rounded-xl bg-red-700 px-5 py-3 font-bold text-white hover:bg-red-800 disabled:opacity-40" onClick={() => setShowResetModal(true)}>重製學生地圖解鎖進度</button>
       </section>}

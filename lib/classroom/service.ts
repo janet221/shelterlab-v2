@@ -122,7 +122,7 @@ export async function submitWeek(studentId: string, week: number, input: z.infer
 export async function submitGameAudit(studentId: string, week: number, input: z.infer<typeof gameAuditSubmissionSchema>) {
   const record = await studentWeek(studentId, week);
   if (record.status !== "in_progress" || record.version !== input.version || record.generation !== input.generation) throw new RequestError(409, "進度已變更或已送審，請重新載入。");
-  if (input.audit.week !== week) throw new RequestError(400, "關卡稽核資料與週次不符。");
+  if (input.audit.week !== week) throw new RequestError(400, "關卡審查資料與週次不符。");
   const audit = input.audit as WeekGameAudit;
   const db = await client();
   checked(await db.rpc("shelterlab_submit_game_audit", { p_student_id: studentId, p_week: week, p_generation: input.generation, p_version: input.version, p_game_audit: audit }));

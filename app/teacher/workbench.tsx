@@ -7,7 +7,7 @@ import type { teacherDashboard } from "@/lib/classroom/service";
 import { courseWeekLabel } from "@/lib/classroom/course";
 
 type Dashboard = Awaited<ReturnType<typeof teacherDashboard>>;
-const STATUS_LABEL = { locked: "未解鎖", in_progress: "進行中", pending: "稽核中", completed: "已完成" } as const;
+const STATUS_LABEL = { locked: "未解鎖", in_progress: "進行中", pending: "審查中", completed: "已完成" } as const;
 
 export default function TeacherDashboard() {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -61,8 +61,8 @@ export default function TeacherDashboard() {
 
     {dashboard?.classroom && <>
       <section className="rounded-2xl border bg-white p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-xl font-bold">等待稽核 · {dashboard.pending.length} 份</h2><p className="mt-2 text-sm text-stone-600">每十秒同步一次；通過後會自動解鎖下一週。</p></div><button className="underline" onClick={refresh}>立即更新</button></div>
-        {dashboard.pending.length === 0 ? <p className="mt-5">目前沒有待稽核關卡。</p> : <ul className="mt-4 divide-y">{dashboard.pending.map((work) => <li className="grid gap-3 py-4 md:grid-cols-[1fr_1fr_auto] md:items-center" key={work.id}><span><strong>{work.student.displayName}</strong><small className="mt-1 block text-stone-500">學號 {work.student.studentNumber || "未填寫"}</small></span><span><strong>{courseWeekLabel(work.week)}</strong><small className="mt-1 block text-stone-500">{work.submittedAt ? new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeStyle: "short" }).format(new Date(work.submittedAt)) : "尚無送出時間"}</small></span><Link className="font-bold text-[#7f7165] underline" href={`/teacher/reviews/${work.id}`}>檢視全部填答</Link></li>)}</ul>}
+        <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-xl font-bold">等待審查 · {dashboard.pending.length} 份</h2><p className="mt-2 text-sm text-stone-600">每十秒同步一次；通過後會自動解鎖下一週。</p></div><button className="underline" onClick={refresh}>立即更新</button></div>
+        {dashboard.pending.length === 0 ? <p className="mt-5">目前沒有待審查關卡。</p> : <ul className="mt-4 divide-y">{dashboard.pending.map((work) => <li className="grid gap-3 py-4 md:grid-cols-[1fr_1fr_auto] md:items-center" key={work.id}><span><strong>{work.student.displayName}</strong><small className="mt-1 block text-stone-500">學號 {work.student.studentNumber || "未填寫"}</small></span><span><strong>{courseWeekLabel(work.week)}</strong><small className="mt-1 block text-stone-500">{work.submittedAt ? new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeStyle: "short" }).format(new Date(work.submittedAt)) : "尚無送出時間"}</small></span><Link className="font-bold text-[#7f7165] underline" href={`/teacher/reviews/${work.id}`}>檢視全部填答</Link></li>)}</ul>}
       </section>
 
       <section className="rounded-2xl border bg-white p-6">

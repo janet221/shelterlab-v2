@@ -96,7 +96,7 @@ describe("前五週寶物跨週應用", () => {
     expect(game).toContain("stage: 6, completed: true");
   });
 
-  it("六週完整互動內容直接記錄稽核資料且不顯示底部送審區", () => {
+  it("六週完整互動內容直接記錄審查資料且不顯示底部送審區", () => {
     const weekPage = read("app/student/week/[week]/page.tsx");
     const tracker = read("app/student/week/[week]/_components/week-audit-tracker.tsx");
 
@@ -120,10 +120,10 @@ describe("前五週寶物跨週應用", () => {
     expect(learningProgress).toContain("unlockedTools:earnedWeeks");
   });
 
-  it("教師稽核只呈現可批改的填答與完成時間", () => {
+  it("教師審查只呈現可批改的填答與完成時間", () => {
     const review = read("app/teacher/reviews/[id]/review.tsx");
 
-    expect(review).toContain("完整關卡填答稽核");
+    expect(review).toContain("完整關卡填答審查");
     expect(review).toContain("完成時間：");
     expect(review).toContain("選擇題");
     expect(review).toContain("gameAudit");

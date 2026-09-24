@@ -18,7 +18,7 @@ const WEEK_NAMES = ["第一週", "第二週", "第三週", "第四週", "第五�
 const STATUS_NAMES: Record<WeekStatus, string> = {
   locked: "尚未解鎖",
   in_progress: "進行中",
-  pending: "稽核中",
+  pending: "審查中",
   completed: "已完成"
 };
 
