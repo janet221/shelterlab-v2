@@ -5,7 +5,9 @@ import RealisticNotebookIntro from "./realistic-notebook-intro";
 import WeekOneGame from "./week-one-game";
 import styles from "./week-one-experience.module.css";
 
-const COURSE_INTRO_STORAGE_KEY = "shelterlab-course-intro-v8";
+// Bump the content key whenever the restored course notebook must be shown
+// once again to students who completed an older introduction.
+const COURSE_INTRO_STORAGE_KEY = "shelterlab-course-intro-v9";
 
 export default function WeekOneExperience() {
   const [showNotebook, setShowNotebook] = useState<boolean | null>(null);

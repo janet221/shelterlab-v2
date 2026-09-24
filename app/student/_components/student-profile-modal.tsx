@@ -73,7 +73,7 @@ export default function StudentProfileModal({ open, profile, weeks, onClose, onS
         </div>
         {!forced && <button type="button" className="rounded-full border border-stone-300 px-3 py-1 font-bold" aria-label="關閉個人中心" onClick={onClose}>×</button>}
       </div>
-      {forced && <p id="identity-required-note" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">請先填寫真實姓名與學號。完成前無法關閉此視窗或操作六週地圖。</p>}
+      {forced && <p id="identity-required-note" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">請填寫真實姓名與學號。</p>}
 
       <form className="mt-6 space-y-4" onSubmit={submit}>
         <label className="block font-bold">學生真實姓名<input className={fieldClass} value={realName} onChange={(event) => setRealName(event.target.value)} required minLength={2} maxLength={100} autoComplete="name" /></label>

@@ -66,13 +66,24 @@ describe("前五週寶物跨週應用", () => {
     expect(studentMap).toContain("個人中心");
     expect(studentMap).not.toContain("班級代碼：");
     expect(profileModal).toContain("首次登入身分確認");
-    expect(profileModal).toContain("完成前無法關閉此視窗");
+    expect(profileModal).toContain("請填寫真實姓名與學號。");
+    expect(profileModal).not.toContain("完成前無法關閉此視窗");
     expect(profileModal).toContain("學生真實姓名");
     expect(profileModal).toContain("學號");
     expect(profileModal).toContain("所屬班級代碼");
     expect(profileModal).toContain("目前通關進度");
     expect(profileModal).toContain("profile.schoolName");
     expect(profileModal).not.toContain("onMouseDown");
+  });
+
+  it("第一週會重新顯示完整翻書教案，並在完成後才進入遊戲", () => {
+    const experience = read("app/student/week/[week]/_components/week-one-experience.tsx");
+    const notebook = read("app/student/week/[week]/_components/realistic-notebook-intro.tsx");
+
+    expect(experience).toContain('shelterlab-course-intro-v9');
+    expect(experience).toContain("<RealisticNotebookIntro onComplete={finishNotebook} />");
+    expect(notebook).toContain("第 1 週｜先入為主與證據");
+    expect(notebook).toContain("進入第一週");
   });
 
   it("六週完整互動內容直接記錄稽核資料且不顯示底部送審區", () => {

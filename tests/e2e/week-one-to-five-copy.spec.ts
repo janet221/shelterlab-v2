@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
-    if (!localStorage.getItem("shelterlab-course-intro-v8")) localStorage.setItem("shelterlab-course-intro-v8", "1");
+    if (!localStorage.getItem("shelterlab-course-intro-v9")) localStorage.setItem("shelterlab-course-intro-v9", "1");
     if (!localStorage.getItem("shelterlab-learning-progress-v2")) localStorage.setItem("shelterlab-learning-progress-v2", JSON.stringify({
       schemaVersion: 2,
       completedWeeks: [1, 2, 3, 4, 5],
