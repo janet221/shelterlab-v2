@@ -7,3 +7,10 @@ test-results
 .env.local
 *.log
 tsconfig.tsbuildinfo
+
+# Large datasets and local data files
+*.xlsx
+*.csv
+data/**
+!data/**/
+!data/**/*.ts
