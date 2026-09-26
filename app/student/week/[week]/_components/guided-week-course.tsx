@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import RewardUnlockModal from "@/app/student/_components/reward-unlock-modal";
 import { useStudentLearningProgress } from "@/app/student/_components/student-learning-progress";
 import { getLearningTool, type WeekNumber } from "@/lib/student-map";
 import { getOpenDataCourseCase, type CourseCaseWeek } from "@/lib/student-open-data-cases";
@@ -83,7 +82,6 @@ export default function GuidedWeekCourse({ week, onShowIntro }: { week: WeekNumb
   const [markdown, setMarkdown] = useState("");
   const [saved, setSaved] = useState<SavedCourse>(EMPTY);
   const [ready, setReady] = useState(false);
-  const [rewardOpen, setRewardOpen] = useState(false);
   const storageKey = `shelterlab-guided-week-${week}-v2`;
   const parsed = useMemo(() => parseWeek(markdown, week), [markdown, week]);
   const approved = getStudentCourseTitles(week);
@@ -138,14 +136,13 @@ export default function GuidedWeekCourse({ week, onShowIntro }: { week: WeekNumb
     setSaved((current) => ({ ...current, notes: { ...current.notes, [noteKey]: value } }));
   };
 
-  const next = () => {
+  const next = async () => {
     if (saved.stage < parsed.sections.length - 1) {
       setSaved((current) => ({ ...current, stage: current.stage + 1 }));
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    completeWeek(week);
-    setRewardOpen(true);
+    if (await completeWeek(week)) router.push("/student");
   };
 
   if (!ready || !section) {
@@ -274,7 +271,6 @@ export default function GuidedWeekCourse({ week, onShowIntro }: { week: WeekNumb
           </div>
         </article>
       </div>
-      <RewardUnlockModal week={week} open={rewardOpen} onClose={() => router.push("/student")} />
     </main>
   );
 }

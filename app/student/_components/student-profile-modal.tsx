@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { api, buttonClass, fieldClass } from "@/app/_components/classroom-ui";
 import { parseStudentReviewFeedback } from "@/lib/classroom/review-guidelines";
-import type { StudentMapProgress, WeekStatus } from "@/lib/student-map";
+import type { ReviewMilestone, StudentMapProgress, WeekStatus } from "@/lib/student-map";
 
 export type StudentProfileView = {
   realName: string;
@@ -29,10 +29,11 @@ export function currentProgressLabel(weeks: StudentMapProgress["weeks"]) {
   return `${WEEK_NAMES[active.week - 1]}${STATUS_NAMES[active.status]}`;
 }
 
-export default function StudentProfileModal({ open, profile, weeks, onClose, onSaved }: {
+export default function StudentProfileModal({ open, profile, weeks, reviewHistory, onClose, onSaved }: {
   open: boolean;
   profile: StudentProfileView;
   weeks: StudentMapProgress["weeks"];
+  reviewHistory: ReviewMilestone[];
   onClose: () => void;
   onSaved: (identity: { realName: string; studentNumber: string }) => void;
 }) {
@@ -50,9 +51,13 @@ export default function StudentProfileModal({ open, profile, weeks, onClose, onS
 
   if (!open) return null;
   const forced = profile.requiresIdentity;
-  const reviews = weeks.flatMap((week) => {
+  const liveReviews = weeks.flatMap((week) => {
     const review = parseStudentReviewFeedback(week.feedback);
-    return review ? [{ week: week.week, reviewedAt: week.reviewedAt, ...review }] : [];
+    return review?.decision === "reject" ? [{ week: week.week, reviewedAt: week.reviewedAt, ...review }] : [];
+  });
+  const milestones = reviewHistory.flatMap((entry) => {
+    const review = parseStudentReviewFeedback(entry.feedback);
+    return review?.decision === "approve" ? [{ ...entry, ...review }] : [{ ...entry, decision: "approve" as const, items: [] }];
   });
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -92,19 +97,23 @@ export default function StudentProfileModal({ open, profile, weeks, onClose, onS
           <div><dt className="font-bold text-stone-500">年級</dt><dd className="mt-1 font-bold">{profile.grade || "尚未設定"}</dd></div>
         </dl>
 
+        {!forced && <section className="rounded-2xl border border-red-200 bg-red-50 p-4">
+          <h3 className="font-bold text-red-950">即時評語</h3>
+          {liveReviews.length === 0 ? <p className="mt-2 text-sm text-stone-600">目前沒有待修正的教師評語。</p> : <div className="mt-3 space-y-3">
+            {liveReviews.map((review) => <article key={`${review.week}-${review.reviewedAt ?? "review"}`} className="rounded-xl border border-red-200 bg-white p-3">
+              <h4 className="font-bold text-red-800">{WEEK_NAMES[review.week - 1]} · 不通過，請修正</h4>
+              <ul className="mt-3 space-y-3">{review.items.map((item) => <li key={item.entryId} className="rounded-lg bg-red-50 p-3 text-sm"><p className="font-bold">{item.prompt}</p><p className="mt-1 whitespace-pre-wrap text-stone-700">{item.comment}</p></li>)}</ul>
+              <a href={`/student/week/${review.week}#revision-answer`} className="mt-3 inline-flex rounded-xl bg-red-800 px-4 py-2 text-sm font-bold text-white">前往填答題修正</a>
+            </article>)}
+          </div>}
+        </section>}
+
         {!forced && <section className="rounded-2xl border border-[#e3d9c8] bg-white p-4">
-          <h3 className="font-bold">各關教師評語</h3>
-          {reviews.length === 0 ? <p className="mt-2 text-sm text-stone-500">目前尚無教師評語。</p> : <div className="mt-3 space-y-3">
-            {reviews.map((review) => <details key={`${review.week}-${review.reviewedAt ?? "review"}`} className="rounded-xl border border-stone-200 bg-[#fffaf0] p-3" open={review.decision === "reject"}>
-              <summary className="cursor-pointer font-bold">
-                {WEEK_NAMES[review.week - 1]} · <span className={review.decision === "approve" ? "text-emerald-700" : "text-red-700"}>{review.decision === "approve" ? "通過" : "不通過，請修正"}</span>
-              </summary>
-              {review.items.length ? <ul className="mt-3 space-y-3">
-                {review.items.map((item) => <li key={item.entryId} className="rounded-lg bg-white p-3 text-sm">
-                  <p className="font-bold">{item.prompt}</p>
-                  <p className="mt-1 whitespace-pre-wrap text-stone-700">{item.comment}</p>
-                </li>)}
-              </ul> : <p className="mt-2 text-sm text-stone-600">教師已通過本週審查，未另留評語。</p>}
+          <h3 className="font-bold">歷史評語</h3>
+          {milestones.length === 0 ? <p className="mt-2 text-sm text-stone-500">尚無已通關里程碑。</p> : <div className="mt-3 space-y-3">
+            {milestones.map((review) => <details key={review.id} className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+              <summary className="cursor-pointer font-bold text-emerald-800">{WEEK_NAMES[review.week - 1]} · 已通過</summary>
+              {review.items.length ? <ul className="mt-3 space-y-3">{review.items.map((item) => <li key={item.entryId} className="rounded-lg bg-white p-3 text-sm"><p className="font-bold">{item.prompt}</p><p className="mt-1 whitespace-pre-wrap text-stone-700">{item.comment}</p></li>)}</ul> : <p className="mt-2 text-sm text-stone-600">本週已通過，教師未另留評語。</p>}
             </details>)}
           </div>}
         </section>}

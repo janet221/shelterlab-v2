@@ -11,7 +11,7 @@ export function isGradableAuditEntry(entry: WeekAuditEntry) {
   const excludedLabel = `${entry.section} ${entry.prompt}`;
   return entry.answered &&
     entry.answers.length > 0 &&
-    entry.kind !== "action" &&
+    entry.kind === "text" &&
     !excludedLabel.includes("互動題目") &&
     !excludedLabel.includes("影像觀察站");
 }
@@ -79,9 +79,10 @@ export function parseQuestionReviewComments(value: string | null | undefined): Q
 }
 
 export function serializeQuestionReviewComments(comments: QuestionReviewComments, entries: WeekAuditEntry[] = [], decision: ReviewDecision = "approve") {
+  const gradableIds = new Set(entries.filter(isGradableAuditEntry).map((entry) => entry.id));
   const questionComments = Object.fromEntries(Object.entries(comments).flatMap(([id, comment]) => {
     const normalized = comment.trim().slice(0, 500);
-    return normalized ? [[id, normalized]] : [];
+    return normalized && gradableIds.has(id) ? [[id, normalized]] : [];
   }));
   const entryById = new Map(entries.map((entry) => [entry.id, entry]));
   const items = Object.entries(questionComments).flatMap(([entryId, comment]) => {

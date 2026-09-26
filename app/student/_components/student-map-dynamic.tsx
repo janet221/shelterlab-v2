@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import StudentProfileModal, { type StudentProfileView } from "./student-profile-modal";
+import RewardUnlockModal from "./reward-unlock-modal";
 import {
   buildWeekMapNodes,
   getCompletedCount,
@@ -113,7 +114,9 @@ function LearningToolIcon({ kind, muted = false }: { kind: LearningToolKind; mut
 }
 
 function StatusBadge({ node }: { node: WeekMapNode }) {
-  const config = node.status === "locked"
+  const config = node.needsRevision
+    ? { symbol: "✎", cls: "bg-[#A94D45]", text: "教師退回，待修正" }
+    : node.status === "locked"
     ? { symbol: "🔒", cls: "bg-[#77736D]", text: "未解鎖" }
     : node.status === "pending"
       ? { symbol: "⌛", cls: "bg-[#C58F3D]", text: "等待審核" }
@@ -182,14 +185,15 @@ function EarnedToolBadge({ node }: { node: WeekMapNode }) {
 function WeekNodeButton({ node }: { node: WeekMapNode }) {
   const router = useRouter();
   const locked = node.week !== 1 && node.status === "locked";
+  const statusLabel = node.needsRevision ? "教師退回，待修正" : STATUS_LABEL[node.status];
 
   return (
     <button
       type="button"
       disabled={locked}
       onClick={() => !locked && router.push(node.route)}
-      aria-label={`${node.label} ${node.title}，${STATUS_LABEL[node.status]}`}
-      title={`${node.label}｜${node.title}｜${STATUS_LABEL[node.status]}`}
+      aria-label={`${node.label} ${node.title}，${statusLabel}`}
+      title={`${node.label}｜${node.title}｜${statusLabel}`}
       className="group absolute z-10 -translate-x-1/2 -translate-y-1/2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#E0B14C]/70 disabled:cursor-not-allowed"
       style={{
         position: "absolute",
@@ -236,7 +240,7 @@ function WeekNodeButton({ node }: { node: WeekMapNode }) {
 function ToolInventory({ progress }: { progress: StudentMapProgress }) {
   const [open, setOpen] = useState(false);
   const earnedWeeks = new Set(
-    progress.weeks.filter((item) => item.status === "pending" || item.status === "completed").map((item) => item.week)
+    progress.weeks.filter((item) => item.status === "completed").map((item) => item.week)
   );
   const earnedCount = LEARNING_TOOLS.filter((tool) => earnedWeeks.has(tool.week)).length;
 
@@ -250,7 +254,7 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
       >
         <div className="flex items-center gap-2 text-xs font-bold text-[#51483F] sm:text-sm">
           <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#E8C66D]/35 text-[11px]">▣</span>
-          <span>探索工具 {earnedCount}/5</span>
+          <span>探索工具 {earnedCount}/{LEARNING_TOOLS.length}</span>
         </div>
         <div className="mt-1 flex gap-1.5">
           {LEARNING_TOOLS.map((tool) => {
@@ -269,7 +273,7 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
         <div className="absolute left-0 top-[calc(100%+10px)] w-[330px] rounded-2xl border border-[#E0D5C6] bg-[#FFFDF8]/97 p-3 shadow-[0_14px_34px_rgba(68,55,40,0.18)] backdrop-blur-md sm:w-[390px]">
           <div className="px-2 pb-2">
             <p className="text-sm font-black text-[#443A31]">探索工具包</p>
-            <p className="mt-1 text-xs leading-5 text-[#776B60]">完成一週取得工具，下一週只啟用指定的一件；第五週工具作為最終收藏。</p>
+            <p className="mt-1 text-xs leading-5 text-[#776B60]">每週經教師審核通過後取得一件工具；第六週寶物代表完成整段行動旅程。</p>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {LEARNING_TOOLS.map((tool) => {
@@ -303,13 +307,16 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
   );
 }
 
-export default function StudentMapDynamic({ profile, progress, onIdentitySaved }: { profile: StudentProfileView; progress: StudentMapProgress; onIdentitySaved: (identity: { realName: string; studentNumber: string }) => void }) {
+export default function StudentMapDynamic({ profile, progress, onIdentitySaved, onRewardClaimed }: { profile: StudentProfileView; progress: StudentMapProgress; onIdentitySaved: (identity: { realName: string; studentNumber: string }) => void; onRewardClaimed: (week: WeekNumber) => Promise<void> }) {
   const nodes = buildWeekMapNodes(progress.weeks);
   const completed = getCompletedCount(progress.weeks);
-  const submitted = progress.weeks.filter((item) => item.status === "pending" || item.status === "completed").length;
-  const progressPercent = Math.round((submitted / 6) * 100);
+  const pending = progress.weeks.filter((item) => item.status === "pending").length;
+  const progressPercent = Math.round((completed / 6) * 100);
   const stageSize = useViewportCoverStage();
   const [profileOpen, setProfileOpen] = useState(profile.requiresIdentity);
+  const [rewardBusy, setRewardBusy] = useState(false);
+  const [rewardError, setRewardError] = useState("");
+  const pendingReward = progress.pendingRewards?.[0];
 
   useEffect(() => {
     if (profile.requiresIdentity) setProfileOpen(true);
@@ -378,7 +385,7 @@ export default function StudentMapDynamic({ profile, progress, onIdentitySaved }
         <div className="rounded-full border border-white/75 bg-[#FFFDF8]/94 px-4 py-2 shadow-sm backdrop-blur-sm">
           <div className="flex items-center gap-2 text-xs font-bold text-[#51483F] sm:text-sm">
             <span aria-hidden="true">◆</span>
-            <span>闖關進度 {submitted}/6{submitted > completed ? "・待審" : ""}</span>
+            <span>通關進度 {completed}/6{pending > 0 ? `・${pending} 關待審` : ""}</span>
           </div>
           <div className="mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-[#E7E0D7] sm:w-32">
             <div
@@ -397,8 +404,24 @@ export default function StudentMapDynamic({ profile, progress, onIdentitySaved }
         open={profileOpen}
         profile={profile}
         weeks={progress.weeks}
+        reviewHistory={progress.reviewHistory ?? []}
         onClose={() => { if (!profile.requiresIdentity) setProfileOpen(false); }}
         onSaved={(identity) => { onIdentitySaved(identity); setProfileOpen(false); }}
+      />
+      <RewardUnlockModal
+        week={pendingReward?.week ?? 1}
+        open={Boolean(pendingReward)}
+        busy={rewardBusy}
+        error={rewardError}
+        primaryLabel="收下寶物"
+        onClose={async () => {
+          if (!pendingReward) return;
+          setRewardBusy(true);
+          setRewardError("");
+          try { await onRewardClaimed(pendingReward.week); }
+          catch (cause) { setRewardError((cause as Error).message); }
+          finally { setRewardBusy(false); }
+        }}
       />
     </main>
   );

@@ -5,6 +5,7 @@ const foundation = readFileSync("supabase/migrations/202609230001_foundation.sql
 const workflow = readFileSync("supabase/migrations/202609230002_progress_workflow.sql", "utf8");
 const annotations = readFileSync("supabase/migrations/202609230003_step5_local_lesson_annotations.sql", "utf8");
 const reviewCycle = readFileSync("supabase/migrations/202609240005_review_revision_cycle.sql", "utf8");
+const completionLoop = readFileSync("supabase/migrations/202609260001_review_completion_loop.sql", "utf8");
 
 describe("six-week Supabase progress workflow", () => {
   it("creates exactly six rows with only week one unlocked", () => {
@@ -39,6 +40,27 @@ describe("six-week Supabase progress workflow", () => {
     expect(reviewCycle).toContain("case when p_decision = 'reject' then 'return'");
     expect(reviewCycle).toContain("p_week + 1 and status = 'Locked'");
     expect(reviewCycle).toContain("grant execute on function public.shelterlab_review_progress");
+  });
+
+  it("archives approvals, emits one reward and clears obsolete revision feedback", () => {
+    expect(completionLoop).toContain("create table if not exists public.student_review_history");
+    expect(completionLoop).toContain("create table if not exists public.student_reward_claims");
+    expect(completionLoop).toContain("insert into public.student_review_history");
+    expect(completionLoop).toContain("insert into public.student_reward_claims");
+    expect(completionLoop).toContain("action = 'return'");
+    expect(completionLoop).toContain("generation = v_generation");
+    expect(completionLoop).toContain("delete from public.progress_audit");
+    expect(completionLoop).toContain("create or replace function public.shelterlab_claim_reward");
+  });
+
+  it("preserves submitted game state on revision and unlocks only the immediate next week", () => {
+    expect(completionLoop).toContain("and new.feedback = ''");
+    expect(completionLoop).toContain("and new.reviewed_by is null");
+    expect(completionLoop).toContain("return new;");
+    expect(completionLoop).toContain("week_number = p_week + 1");
+    expect(completionLoop).toContain("and status = 'Locked'");
+    expect(completionLoop).toContain("jsonb_array_elements(p_audit->'entries')");
+    expect(completionLoop).toContain("coalesce(entry->>'kind', '') = 'text'");
   });
 });
 

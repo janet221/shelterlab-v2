@@ -1,6 +1,6 @@
 import { requireAccount } from "@/lib/classroom/auth";
 import { body, endpoint, RequestError } from "@/lib/classroom/http";
-import { gameAuditSubmissionSchema, localWorkbench, resetProgress, resetSchema, reviewSchema, reviewWeek, saveSettings, schoolChoices, settingsSchema, studentIdentitySchema, studentProgress, studentWeek, submissionSchema, submitGameAudit, submitWeek, teacherDashboard, teacherSubmission, updateStudentIdentity } from "@/lib/classroom/service";
+import { claimReward, gameAuditSubmissionSchema, localWorkbench, resetProgress, resetSchema, reviewSchema, reviewWeek, saveSettings, schoolChoices, settingsSchema, studentIdentitySchema, studentProgress, studentWeek, submissionSchema, submitGameAudit, submitWeek, teacherDashboard, teacherSubmission, updateStudentIdentity } from "@/lib/classroom/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,6 +36,9 @@ export async function POST(request: Request, context: Context) {
     }
     if (path[0] === "weeks" && path.length === 2) {
       const student = await requireAccount("student"); return submitWeek(student.id, weekNumber(path[1]), await body(request, submissionSchema));
+    }
+    if (path[0] === "rewards" && path.length === 3 && path[2] === "claim") {
+      const student = await requireAccount("student"); return claimReward(student.id, weekNumber(path[1]));
     }
     const teacher = await requireAccount("teacher");
     if (route === "settings") return saveSettings(teacher.id, await body(request, settingsSchema));

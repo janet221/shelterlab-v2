@@ -21,6 +21,7 @@ export default function StudentMapProgressBridge({
     const nextWeek = ([1, 2, 3, 4, 5, 6] as const).find((week) => !completed.has(week));
 
     return {
+      ...progress,
       weeks: progress.weeks.map((item) => {
         if (completed.has(item.week)) return { ...item, status: "completed" as const };
         if (item.week === nextWeek && item.status === "locked") {
@@ -35,5 +36,6 @@ export default function StudentMapProgressBridge({
     profile={{ realName: "體驗學生", studentNumber: "DEMO", classCode: "DEMO-CLASS", schoolName: "體驗學校", county: "", grade: "", requiresIdentity: false }}
     progress={effectiveProgress}
     onIdentitySaved={() => undefined}
+    onRewardClaimed={async () => undefined}
   />;
 }

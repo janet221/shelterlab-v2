@@ -15,7 +15,8 @@ export type LearningToolKind =
   | "hypothesis-notes"
   | "care-planner"
   | "label-folder"
-  | "observation-lens";
+  | "observation-lens"
+  | "action-resource-booklet";
 
 export interface WeekProgress {
   week: WeekNumber;
@@ -25,8 +26,23 @@ export interface WeekProgress {
   feedback?: string;
 }
 
+export interface ReviewMilestone {
+  id: string;
+  week: WeekNumber;
+  generation: number;
+  feedback: string;
+  reviewedAt: string;
+}
+
+export interface PendingReward {
+  week: WeekNumber;
+  earnedAt: string;
+}
+
 export interface StudentMapProgress {
   weeks: WeekProgress[];
+  reviewHistory?: ReviewMilestone[];
+  pendingRewards?: PendingReward[];
 }
 
 export interface WeekMapConfig {
@@ -42,6 +58,7 @@ export interface WeekMapConfig {
 
 export interface WeekMapNode extends WeekMapConfig {
   status: WeekStatus;
+  needsRevision: boolean;
 }
 
 export interface LearningTool {
@@ -55,7 +72,7 @@ export interface LearningTool {
 
 /**
  * 通關獎勵採「學習工具」。完成一週後取得該週工具，並在下一週指定環節使用一次。
- * 第五週工具是前五週的最終收藏，第六週不使用寶物。物品只表示完成學習歷程，
+ * 第六週寶物是結業里程碑，不作為後續關卡的解鎖條件。物品只表示完成學習歷程，
  * 不代表學生的偏好或倫理立場較正確。
  */
 export const LEARNING_TOOLS: LearningTool[] = [
@@ -98,6 +115,14 @@ export const LEARNING_TOOLS: LearningTool[] = [
     shortName: "視角鏡",
     description: "面對零撲殺與流浪動物公共議題時，同時檢視犬隻福利、居民安全、生態、收容資源與政策條件。",
     image: "/student-map/rewards/reward-5-multi-perspective-lens.png"
+  },
+  {
+    week: 6,
+    kind: "action-resource-booklet",
+    name: "行動資源手冊",
+    shortName: "資源手冊",
+    description: "把查證過的需求、聯絡方式、安全條件與替代方案整理成可執行、可追蹤的負責任行動。",
+    image: "/student-map/rewards/reward-6-action-resource-booklet.png"
   }
 ];
 
@@ -258,12 +283,13 @@ export function buildWeekMapNodes(progress: WeekProgress[]): WeekMapNode[] {
   return WEEK_MAP_CONFIG.map((config) => {
     const recordedStatus = statusByWeek.get(config.week) ?? "locked";
 
+    const source = progress.find((item) => item.week === config.week);
+    let needsRevision = false;
+    try { needsRevision = recordedStatus === "in_progress" && JSON.parse(source?.feedback || "null")?.decision === "reject"; } catch {}
     return {
       ...config,
-      // 第一週是課程入口，即使舊的本機紀錄異常也不可被鎖住。
-      status: config.week === 1 && recordedStatus === "locked"
-        ? "in_progress"
-        : recordedStatus
+      status: recordedStatus,
+      needsRevision
     };
   });
 }

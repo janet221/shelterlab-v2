@@ -10,7 +10,7 @@ import {
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
-describe("前五週寶物跨週應用", () => {
+describe("六週寶物與審核閉環", () => {
   it("保留第一週寶物 id 與圖片，只修正名稱和用途", () => {
     expect(getLearningTool(1)).toMatchObject({
       kind: "data-lens",
@@ -20,7 +20,7 @@ describe("前五週寶物跨週應用", () => {
     });
   });
 
-  it("每週只指定前一週取得的工具，第六週沒有寶物", () => {
+  it("每週只使用指定的既有工具，並保留第六週通關寶物", () => {
     expect(ACTIVE_TREASURE_BY_WEEK).toEqual({
       1: null,
       2: "data-lens",
@@ -30,6 +30,7 @@ describe("前五週寶物跨週應用", () => {
       6: null
     });
     expect(getActiveTreasureForWeek(6)).toBeNull();
+    expect(getLearningTool(6)).toMatchObject({ kind: "action-resource-booklet", week: 6 });
   });
 
   it("以前一週完成或既有 unlockedTools 紀錄判定相容解鎖", () => {
@@ -88,10 +89,10 @@ describe("前五週寶物跨週應用", () => {
     expect(experience).toContain("<RealisticNotebookIntro onComplete={() => setShowNotebook(false)} />");
     expect(notebook).toContain("第 1 週｜先入為主與證據");
     expect(notebook).toContain("進入第一週");
-    expect(game).toContain("帶著工具返回地圖");
-    expect(game).toContain("重新體驗第一週");
-    expect(game).toContain('primaryLabel="收下工具並返回地圖"');
-    expect(game).toContain("submissionRef.current = completeWeekOne()");
+    expect(game).toContain("正在送交教師稽核");
+    expect(game).toContain("送出後內容會鎖定");
+    expect(game).not.toContain("<RewardUnlockModal");
+    expect(game).toContain("const saved = await completeWeekOne()");
     expect(game).toContain('router.push("/student")');
     expect(game).toContain("stage: 6, completed: true");
   });
@@ -104,7 +105,7 @@ describe("前五週寶物跨週應用", () => {
       expect(weekPage).toContain(component);
     }
     expect(weekPage).toContain("studentWeek(account.id, weekNumber)");
-    expect(weekPage).toContain("status={work.status} reviewFeedback={work.feedback}");
+    expect(weekPage).toContain("submittedAudit={work.gameAudit}");
     expect(weekPage).not.toContain("WeekSubmission");
     expect(tracker).toContain("shelterlab-week-complete");
     expect(tracker).toContain("game-audit");
@@ -112,12 +113,13 @@ describe("前五週寶物跨週應用", () => {
     expect(tracker).toContain('work.status === "pending" || work.status === "completed"');
 
     const map = read("app/student/_components/student-map-dynamic.tsx");
-    expect(map).toContain('item.status === "pending" || item.status === "completed"');
-    expect(map).toContain("闖關進度 {submitted}/6");
+    expect(map).toContain('item.status === "completed"');
+    expect(map).toContain("通關進度 {completed}/6");
+    expect(map).toContain("<RewardUnlockModal");
 
     const learningProgress = read("app/student/_components/student-learning-progress.tsx");
-    expect(learningProgress).toContain('w.status==="pending"||w.status==="completed"');
-    expect(learningProgress).toContain("unlockedTools:earnedWeeks");
+    expect(learningProgress).toContain('w.status==="completed"');
+    expect(learningProgress).toContain("unlockedTools:completedWeeks");
   });
 
   it("教師審查只呈現可批改的填答與完成時間", () => {
@@ -125,7 +127,6 @@ describe("前五週寶物跨週應用", () => {
 
     expect(review).toContain("完整關卡填答審查");
     expect(review).toContain("完成時間：");
-    expect(review).toContain("選擇題");
     expect(review).toContain("gameAudit");
     expect(review).toContain("isGradableAuditEntry");
     expect(review).toContain("教師評語");

@@ -473,7 +473,7 @@ export default function WeekFourExperience() {
     setFeedback({ kind: "correct", title: "分類解碼完成一筆", body: item.explanation });
   };
 
-  const next = () => {
+  const next = async () => {
     if (!canContinue) return;
     setFeedback(null);
     if (saved.stage < 5) {
@@ -482,15 +482,10 @@ export default function WeekFourExperience() {
       scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    completeWeek(4);
-    setSaved((current) => ({ ...current, completed: true }));
-    scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const replay = () => {
-    setSaved({ ...EMPTY, hearts: { ...DEFAULT_HEARTS } });
-    setFeedback(null);
-    scrollTo({ top: 0, behavior: "smooth" });
+    if (await completeWeek(4)) {
+      setSaved((current) => ({ ...current, completed: true }));
+      router.push("/student");
+    } else setFeedback({ kind: "wrong", title: "尚未送出", body: "請確認網路後再送出；目前作答都已保留。" });
   };
 
   const taskHeading = (number: string, title: string, description: string, progress: string) => (
@@ -527,13 +522,12 @@ export default function WeekFourExperience() {
           <article className={`${base.stagePaper} ${styles.completionPaper}`}>
             <section className={styles.completionHero}>
               <p>第四週任務完成</p>
-              <h1>獲得新的探究工具</h1>
+              <h1>已送交教師稽核</h1>
               <div className={styles.rewardStage}><span aria-hidden="true" /><img src={REWARD.image} alt={REWARD.name} /></div>
-              <h2>{REWARD.name}</h2>
-              <p>你已學會把遊蕩犬放回流入、繁殖與流出的系統，看見動保、生態、居民與第一線工作者共同面對的限制，也知道科學不是一句口號，而是可檢查的方法與證據界線。</p>
+              <h2>通過後獲得：{REWARD.name}</h2>
+              <p>作答已鎖定；教師通過後，寶物與下一週會一起解鎖。</p>
               <div className={styles.completionActions}>
-                <button type="button" className={base.paperButton} onClick={() => router.push("/student")}>收下寶物，回到地圖</button>
-                <button type="button" className={base.secondaryButton} onClick={replay}>重新體驗第四週</button>
+                <button type="button" className={base.paperButton} onClick={() => router.push("/student")}>返回地圖等待審核</button>
               </div>
             </section>
           </article>
@@ -668,7 +662,7 @@ export default function WeekFourExperience() {
 
           <div className={base.buttonRow}>
             <button type="button" className={base.secondaryButton} disabled={saved.stage === 0} onClick={() => { setFeedback(null); setSaved((current) => ({ ...current, stage: Math.max(0, current.stage - 1) })); }}>← 上一環節</button>
-            <button type="button" className={base.paperButton} disabled={!canContinue} onClick={next}>{saved.stage === 5 ? "完成第四週並解鎖工具" : "完成任務，前往下一環節 →"}</button>
+            <button type="button" className={base.paperButton} disabled={!canContinue} onClick={() => void next()}>{saved.stage === 5 ? "完成第四週並送交稽核" : "完成任務，前往下一環節 →"}</button>
           </div>
         </article>
       </div>

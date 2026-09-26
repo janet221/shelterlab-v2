@@ -74,13 +74,17 @@ describe("authoritative COA classroom evidence", () => {
         week: 3,
         completed: true,
         completedAt: "2026-09-24T08:00:00.000Z",
-        entries: [{ id: "choice:責任配套挑戰:情境題", section: "責任配套挑戰", prompt: "情境題", kind: "choice", answers: ["安排備援照顧者"], answered: true, updatedAt: "2026-09-24T07:59:00.000Z" }],
+        entries: [
+          { id: "choice:責任配套挑戰:情境題", section: "責任配套挑戰", prompt: "情境題", kind: "choice", answers: ["安排備援照顧者"], answered: true, updatedAt: "2026-09-24T07:59:00.000Z" },
+          { id: "text:責任配套挑戰:說明理由", section: "責任配套挑戰", prompt: "說明理由", kind: "text", answers: ["我會先安排備援照顧者。"], answered: true, updatedAt: "2026-09-24T07:59:30.000Z" }
+        ],
         gameState: { selectedPlan: "backup-carer" }
       }
     } as const;
     expect(gameAuditSubmissionSchema.safeParse(input).success).toBe(true);
     expect(gameAuditSubmissionSchema.safeParse({ ...input, audit: { ...input.audit, completed: false } }).success).toBe(false);
     expect(gameAuditSubmissionSchema.safeParse({ ...input, audit: { ...input.audit, entries: [] } }).success).toBe(false);
+    expect(gameAuditSubmissionSchema.safeParse({ ...input, audit: { ...input.audit, entries: input.audit.entries.slice(0, 1) } }).success).toBe(false);
   });
   it("shows only gradable answers and persists per-question teacher comments", () => {
     const base = { id: "entry-1", section: "資料深思", prompt: "資料支持什麼結論？", kind: "text" as const, answers: ["目前資料只能支持差異，不能證明原因。"], answered: true, updatedAt: "2026-09-24T08:00:00.000Z" };
@@ -88,6 +92,9 @@ describe("authoritative COA classroom evidence", () => {
     expect(isGradableAuditEntry({ ...base, section: "影像觀察站" })).toBe(false);
     expect(isGradableAuditEntry({ ...base, prompt: "互動題目" })).toBe(false);
     expect(isGradableAuditEntry({ ...base, kind: "action" })).toBe(false);
+    expect(isGradableAuditEntry({ ...base, kind: "choice" })).toBe(false);
+    expect(isGradableAuditEntry({ ...base, kind: "select" })).toBe(false);
+    expect(isGradableAuditEntry({ ...base, kind: "checkbox" })).toBe(false);
     expect(isGradableAuditEntry({ ...base, answered: false, answers: [] })).toBe(false);
     for (let week = 1; week <= 6; week += 1) expect(gradingGuidelines(week)).toHaveLength(4);
     expect(gradingGuidelines(1, base)[0]).toContain(base.prompt);

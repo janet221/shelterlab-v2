@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, type ReactNode, type SyntheticEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type SyntheticEvent } from "react";
 import { api } from "@/app/_components/classroom-ui";
 import type { WeekAuditEntry, WeekGameAudit } from "@/lib/classroom/data-types";
 import { learningStorage } from "@/lib/classroom/browser-storage";
@@ -107,6 +107,10 @@ function registerUnanswered(accountId: string, week: number, root: HTMLElement) 
       ? compact(element.querySelector("legend")?.textContent, nearestHeading(element))
       : nearestHeading(element);
     const id = entryId(kind, section, prompt);
+    if (kind === "text") {
+      element.setAttribute("data-audit-entry-id", id);
+      element.setAttribute("data-revision-answer", "true");
+    }
     const current = readAudit(accountId, week);
     if (!current.entries.some((entry) => entry.id === id)) {
       upsert(accountId, week, { id, section, prompt, kind, answers: [], answered: false, updatedAt: new Date().toISOString() });
@@ -126,7 +130,10 @@ function capture(accountId: string, week: number, target: EventTarget | null) {
   if (target instanceof HTMLTextAreaElement || (target instanceof HTMLInputElement && !["checkbox", "radio"].includes(target.type))) {
     const answer = target.value.trim();
     const kind = "text" as const;
-    upsert(accountId, week, { id: entryId(kind, section, prompt), section, prompt, kind, answers: answer ? [answer.slice(0, 3000)] : [], answered: Boolean(answer), updatedAt });
+    const id = entryId(kind, section, prompt);
+    target.setAttribute("data-audit-entry-id", id);
+    target.setAttribute("data-revision-answer", "true");
+    upsert(accountId, week, { id, section, prompt, kind, answers: answer ? [answer.slice(0, 3000)] : [], answered: Boolean(answer), updatedAt });
     return;
   }
   if (target instanceof HTMLSelectElement) {
@@ -159,9 +166,47 @@ function capture(accountId: string, week: number, target: EventTarget | null) {
   upsert(accountId, week, { id: entryId(kind, section, prompt), section, prompt, kind, answers: [answer], answered: true, updatedAt });
 }
 
-export default function WeekAuditTracker({ accountId, week, status, reviewFeedback, children }: { accountId: string; week: number; status: string; reviewFeedback?: string; children: ReactNode }) {
+export default function WeekAuditTracker({ accountId, week, status, reviewFeedback, submittedAudit, children }: { accountId: string; week: number; status: string; reviewFeedback?: string; submittedAudit?: WeekGameAudit | null; children: ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const review = parseStudentReviewFeedback(reviewFeedback);
+  const isRevision = status === "in_progress" && review?.decision === "reject";
+  const [revisionReady, setRevisionReady] = useState(!isRevision);
+
+  useLayoutEffect(() => {
+    if (!isRevision) { setRevisionReady(true); return; }
+    if (submittedAudit?.gameState) {
+      for (const key of WEEK_STATE_KEYS[week] ?? []) {
+        const saved = submittedAudit.gameState[key];
+        if (saved === undefined) continue;
+        try {
+          const storage = week === 1 ? learningStorage : window.localStorage;
+          storage.setItem(key, JSON.stringify(saved));
+        } catch {}
+      }
+      writeAudit(accountId, { ...submittedAudit, completed: false, completedAt: "" });
+    }
+    for (const key of WEEK_STATE_KEYS[week] ?? []) {
+      try {
+        const storage = week === 1 ? learningStorage : window.localStorage;
+        const raw = storage.getItem(key);
+        if (!raw) continue;
+        const state = JSON.parse(raw) as Record<string, unknown>;
+        if (week === 1 && state.weekOne && typeof state.weekOne === "object") {
+          const weekOne = state.weekOne as Record<string, unknown>;
+          state.weekOne = { ...weekOne, completed: false, completedAt: null, stage: Math.min(Number(weekOne.stage) || 5, 5) };
+        } else {
+          if ("completed" in state) state.completed = false;
+          if ("completedAt" in state) state.completedAt = null;
+          if (week === 6) { state.status = "draft"; state.stage = 5; state.furthestStage = Math.max(Number(state.furthestStage) || 0, 5); }
+        }
+        storage.setItem(key, JSON.stringify(state));
+      } catch {}
+    }
+    const audit = readAudit(accountId, week);
+    writeAudit(accountId, { ...audit, completed: false, completedAt: "" });
+    setRevisionReady(true);
+  }, [accountId, isRevision, submittedAudit, week]);
 
   const submitCompletedAudit = useCallback(async (): Promise<boolean> => {
     const current = readAudit(accountId, week);
@@ -186,7 +231,7 @@ export default function WeekAuditTracker({ accountId, week, status, reviewFeedba
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    if (!root || !revisionReady) return;
     registerUnanswered(accountId, week, root);
     const observer = new MutationObserver(() => registerUnanswered(accountId, week, root));
     observer.observe(root, { childList: true, subtree: true });
@@ -195,34 +240,31 @@ export default function WeekAuditTracker({ accountId, week, status, reviewFeedba
       if (detail?.week === week) window.setTimeout(() => void submitCompletedAudit().then((saved) => detail.resolve?.(saved)), 150);
     };
     window.addEventListener("shelterlab-week-complete", onComplete);
-    if (readAudit(accountId, week).completed && !(status === "in_progress" && review?.decision === "reject")) void submitCompletedAudit();
+    if (isRevision) {
+      window.setTimeout(() => {
+        const requested = review?.items[0]?.entryId;
+        const targets = Array.from(root.querySelectorAll<HTMLElement>("[data-revision-answer='true']"));
+        const target = targets.find((element) => element.dataset.auditEntryId === requested) ?? targets[0];
+        if (target) {
+          target.id = "revision-answer";
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+          target.focus({ preventScroll: true });
+        }
+      }, 250);
+    } else if (readAudit(accountId, week).completed) void submitCompletedAudit();
     return () => {
       observer.disconnect();
       window.removeEventListener("shelterlab-week-complete", onComplete);
     };
-  }, [accountId, review?.decision, status, submitCompletedAudit, week]);
+  }, [accountId, isRevision, revisionReady, review?.items, submitCompletedAudit, week]);
 
-  const beginRevision = () => {
-    const audit = readAudit(accountId, week);
-    writeAudit(accountId, { ...audit, completed: false, completedAt: "" });
-    for (const key of WEEK_STATE_KEYS[week] ?? []) {
-      try {
-        const storage = week === 1 ? learningStorage : window.localStorage;
-        const raw = storage.getItem(key);
-        if (!raw) continue;
-        const state = JSON.parse(raw) as Record<string, unknown>;
-        if (week === 1 && state.weekOne && typeof state.weekOne === "object") {
-          const weekOne = state.weekOne as Record<string, unknown>;
-          state.weekOne = { ...weekOne, completed: false, completedAt: null, stage: Math.min(Number(weekOne.stage) || 5, 5) };
-        } else {
-          state.completed = false;
-          if ("completedAt" in state) state.completedAt = null;
-        }
-        storage.setItem(key, JSON.stringify(state));
-      } catch {}
-    }
-    window.location.reload();
-  };
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+    if (status === "pending") content.setAttribute("inert", "");
+    else content.removeAttribute("inert");
+    return () => content.removeAttribute("inert");
+  }, [status]);
 
   const record = (event: SyntheticEvent) => capture(accountId, week, event.target);
   return <div ref={rootRef} className="student-week-audit" onClickCapture={record} onInputCapture={record} onChangeCapture={record}>
@@ -230,9 +272,12 @@ export default function WeekAuditTracker({ accountId, week, status, reviewFeedba
       <div className="mx-auto max-w-5xl">
         <p className="font-black">教師審查：{review.decision === "approve" ? "通過" : "不通過，請依評語修正"}</p>
         {review.items.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">{review.items.map((item) => <li key={item.entryId}><strong>{item.prompt}：</strong>{item.comment}</li>)}</ul>}
-        {review.decision === "reject" && <button type="button" className="mt-3 rounded-xl bg-red-800 px-4 py-2 text-sm font-bold text-white" onClick={beginRevision}>開始修正本週作答</button>}
+        {review.decision === "reject" && <p className="mt-3 text-sm font-bold">已保留其他選擇題與互動結果，並自動定位到需要修改的填答題。</p>}
       </div>
     </aside>}
-    {children}
+    {status === "pending" && <aside className="sticky top-0 z-[105] border-b border-amber-200 bg-amber-50 px-5 py-4 text-center font-bold text-amber-950 shadow-sm">作業稽核中；送出內容已鎖定，待教師審核後才可繼續。 <a className="ml-3 underline" href="/student">返回六週地圖</a></aside>}
+    <div ref={contentRef} aria-disabled={status === "pending"} className={status === "pending" ? "pointer-events-none select-none opacity-75" : ""}>
+      {revisionReady ? children : <main className="p-10 text-center font-bold">正在還原已送出的作答狀態並前往填答題…</main>}
+    </div>
   </div>;
 }

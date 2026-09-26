@@ -2,10 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import RewardUnlockModal from "@/app/student/_components/reward-unlock-modal";
+import { useEffect, useMemo, useState } from "react";
 import { useStudentLearningProgress } from "@/app/student/_components/student-learning-progress";
-import { getLearningTool } from "@/lib/student-map";
 import { getOpenDataCourseCase } from "@/lib/student-open-data-cases";
 import { getStudentCourseTitles } from "@/lib/student-course-titles";
 import styles from "./week-one-game.module.css";
@@ -134,11 +132,8 @@ export default function WeekOneGame() {
   const { progress, ready, updateWeekOne, completeWeekOne, resetWeekOne } = useStudentLearningProgress();
   const draft = progress.weekOne;
   const stage = draft.stage;
-  const reward = getLearningTool(1);
-  const [rewardOpen, setRewardOpen] = useState(false);
   const [savingCompletion, setSavingCompletion] = useState(false);
   const [completionError, setCompletionError] = useState("");
-  const submissionRef = useRef<Promise<boolean> | null>(null);
   const [flipped, setFlipped] = useState<string[]>([]);
   const [roleChoice, setRoleChoice] = useState<PathId | "">("");
   const [challengeId, setChallengeId] = useState<PathId | null>(null);
@@ -230,37 +225,17 @@ export default function WeekOneGame() {
     setFeedback(null);
   };
 
-  const finish = () => {
+  const finish = async () => {
     updateWeekOne({ stage: 6, completed: true, completedAt: new Date().toISOString() });
-    submissionRef.current = completeWeekOne();
-    setCompletionError("");
-    setRewardOpen(true);
-  };
-
-  const saveCompletion = async () => {
     setSavingCompletion(true);
     setCompletionError("");
-    const saved = await (submissionRef.current ?? completeWeekOne());
+    const saved = await completeWeekOne();
     if (!saved) {
-      submissionRef.current = null;
       setCompletionError("作答尚未成功送出，請確認網路連線後再試一次。");
-    }
-    setSavingCompletion(false);
-    return saved;
-  };
-
-  const collectAndReturn = async () => {
-    if (await saveCompletion()) {
-      setRewardOpen(false);
+    } else {
       router.push("/student");
     }
-  };
-
-  const replayWeekOne = async () => {
-    if (await saveCompletion()) {
-      setRewardOpen(false);
-      resetWeekOne();
-    }
+    setSavingCompletion(false);
   };
 
   if (!ready) return <main className={styles.experience}><div className={styles.loading}>正在整理你的學習紀錄…</div></main>;
@@ -407,20 +382,10 @@ export default function WeekOneGame() {
       </StagePaper>}
 
       {stage >= 6 && <StagePaper>
-        <div className={styles.stageHeader}><p className={styles.stageLabel}>第一週完成</p><h2 className={styles.stageTitle}>探究工具「{reward.name}」已解鎖</h2><p className={styles.stageLead}>你已完成四種犬隻身分體驗、影像責任檢核與 Open Data 判讀。</p></div>
-        <div className={styles.scenePanel}><img src={reward.image} alt={reward.name} style={{ maxWidth: 220, width: "100%" }} /></div>
-        <div className={styles.buttonRow}><PaperButton onClick={() => router.push("/student")}>帶著工具返回地圖</PaperButton><PaperButton onClick={resetWeekOne} secondary>重新體驗第一週</PaperButton></div>
+        <div className={styles.stageHeader}><p className={styles.stageLabel}>第一週作答完成</p><h2 className={styles.stageTitle}>正在送交教師稽核</h2><p className={styles.stageLead}>送出後內容會鎖定；教師通過時，寶物與下一週會一起解鎖。</p></div>
+        {completionError && <p role="alert" className="rounded-xl bg-red-50 p-4 font-bold text-red-800">{completionError}</p>}
+        <div className={styles.buttonRow}><PaperButton onClick={() => void finish()} disabled={savingCompletion}>{savingCompletion ? "送出中…" : "重新送出作答"}</PaperButton><PaperButton onClick={resetWeekOne} secondary>返回填答檢查</PaperButton></div>
       </StagePaper>}
     </div>
-    <RewardUnlockModal
-      open={rewardOpen}
-      week={1}
-      onClose={collectAndReturn}
-      primaryLabel="收下工具並返回地圖"
-      busy={savingCompletion}
-      error={completionError}
-      secondaryLabel="重新體驗第一週"
-      onSecondary={replayWeekOne}
-    />
   </main>;
 }

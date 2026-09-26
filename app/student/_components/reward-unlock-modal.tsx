@@ -56,9 +56,9 @@ export default function RewardUnlockModal({
         aria-describedby="reward-unlock-description"
         className="w-full max-w-[420px] rounded-[28px] border-[3px] border-[#67594b] bg-[#fffaf0] px-6 py-7 text-center shadow-[0_24px_70px_rgba(45,37,29,0.32)]"
       >
-        <p className="text-xs font-black tracking-[0.16em] text-[#8a745d]">第 {week} 週關卡完成</p>
+        <p className="text-xs font-black tracking-[0.16em] text-[#8a745d]">教師審核通過 · 第 {week} 週</p>
         <h2 id="reward-unlock-title" className="mt-2 font-serif text-3xl font-black text-[#39736a]">
-          取得新的探究工具
+          得到寶物！
         </h2>
 
         <div className="mx-auto mt-5 flex h-[200px] w-[200px] items-center justify-center rounded-[34px] border-2 border-[#ddcca8] bg-[#fff5d9] p-3 shadow-inner">

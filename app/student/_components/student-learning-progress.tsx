@@ -89,7 +89,8 @@ function normalizeLearningTools(value: unknown): LearningToolKind[] {
     "hypothesis-notes",
     "care-planner",
     "label-folder",
-    "observation-lens"
+    "observation-lens",
+    "action-resource-booklet"
   ];
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is LearningToolKind => allowed.includes(item as LearningToolKind));
@@ -193,8 +194,7 @@ export function StudentLearningProgressProvider({ children, accountId }: { child
    if(previous!==null&&previous!==generation){clearLearningDrafts();learningStorage.setItem("generation",generation);window.location.assign("/student");return;}
    learningStorage.setItem("generation",generation);
    const completedWeeks=result.weeks.filter(w=>w.status==="completed").map(w=>w.week);
-   const earnedWeeks=result.weeks.filter(w=>w.status==="pending"||w.status==="completed").map(w=>w.week);
-   setProgress(p=>({...p,completedWeeks,unlockedTools:earnedWeeks.filter(w=>w<=5).map(w=>getLearningTool(w).kind)}));
+   setProgress(p=>({...p,completedWeeks,unlockedTools:completedWeeks.map(w=>getLearningTool(w).kind)}));
   }catch{/* No local fallback can approve a week; page/API gates remain authoritative. */}};
   void refresh();const timer=setInterval(refresh,5000);window.addEventListener("classroom-progress",refresh);
   return()=>{stopped=true;clearInterval(timer);window.removeEventListener("classroom-progress",refresh);};

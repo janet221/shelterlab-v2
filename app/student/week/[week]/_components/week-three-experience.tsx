@@ -316,7 +316,7 @@ export default function WeekThreeExperience() {
     ? `再選 ${3 - correctData} 項可查證資料`
     : !saved.boundaryConfirmed
         ? "請先確認資料解讀界線"
-        : "完成第三週並解鎖工具";
+        : "完成第三週並送交稽核";
 
   const loseHeart = (stage: number, message: string, reset: (current: SavedWeekThree) => SavedWeekThree) => {
     setSaved((current) => {
@@ -390,7 +390,7 @@ export default function WeekThreeExperience() {
     setFeedback({ kind: "correct", title: "責任盤點已記錄", body: item.explanation });
   };
 
-  const next = () => {
+  const next = async () => {
     if (!canContinue) return;
     setFeedback(null);
     if (saved.stage < 5) {
@@ -398,17 +398,11 @@ export default function WeekThreeExperience() {
       setSaved((current) => ({ ...current, stage, furthest: Math.max(current.furthest, stage) }));
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
-      completeWeek(3);
-      setSaved((current) => ({ ...current, completed: true }));
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (await completeWeek(3)) {
+        setSaved((current) => ({ ...current, completed: true }));
+        router.push("/student");
+      } else setFeedback({ kind: "wrong", title: "尚未送出", body: "請確認網路後再送出；目前作答都已保留。" });
     }
-  };
-
-  const replayWeek = () => {
-    setSaved({ ...EMPTY, hearts: { ...DEFAULT_HEARTS } });
-    setFeedback(null);
-    setHistoryDialog(null);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (!ready) return <main className={base.experience}><div className={styles.loading}>正在整理第三週的學習卡片…</div></main>;
@@ -423,17 +417,15 @@ export default function WeekThreeExperience() {
         <article className={`${base.stagePaper} ${styles.completionPaper}`}>
           <section className={styles.completionHero}>
             <p>第三週任務完成</p>
-            <h1>獲得新的探究工具</h1>
+            <h1>已送交教師稽核</h1>
             <div className={styles.rewardStage}>
               <span className={styles.rewardGlow} aria-hidden="true" />
               <img src={REWARD.image} alt={REWARD.name} />
             </div>
-            <h2>{REWARD.name}</h2>
-            <p className={styles.rewardDescription}>{REWARD.description}</p>
-            <p className={styles.completionNote}>你已學會不讓品種標籤代替個體觀察，並能用資料提出問題、查找證據與辨認推論界線。</p>
+            <h2>通過後獲得：{REWARD.name}</h2>
+            <p className={styles.rewardDescription}>作答已鎖定；教師通過後，寶物與下一週會一起解鎖。</p>
             <div className={styles.completionActions}>
-              <button type="button" className={base.paperButton} onClick={() => router.push("/student")}>收下寶物，回到地圖</button>
-              <button type="button" className={base.secondaryButton} onClick={replayWeek}>重新體驗第三週</button>
+              <button type="button" className={base.paperButton} onClick={() => router.push("/student")}>返回地圖等待審核</button>
             </div>
           </section>
         </article>
@@ -678,7 +670,7 @@ export default function WeekThreeExperience() {
 
           <div className={base.buttonRow}>
             <button type="button" className={base.secondaryButton} disabled={saved.stage === 0} onClick={() => { setFeedback(null); setSaved((current) => ({ ...current, stage: Math.max(0, current.stage - 1) })); }}>← 上一環節</button>
-            <button type="button" className={base.paperButton} disabled={!canContinue} onClick={next}>{saved.stage === 5 ? finalButtonLabel : "完成任務，前往下一環節 →"}</button>
+            <button type="button" className={base.paperButton} disabled={!canContinue} onClick={() => void next()}>{saved.stage === 5 ? finalButtonLabel : "完成任務，前往下一環節 →"}</button>
           </div>
         </StagePaper>
       </div>

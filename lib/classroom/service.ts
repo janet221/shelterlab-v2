@@ -30,7 +30,7 @@ export const gameAuditSubmissionSchema = z.object({
     completedAt: z.string().datetime(),
     entries: z.array(auditEntrySchema).min(1).max(500),
     gameState: z.record(z.string(), z.unknown())
-  }).strict()
+  }).strict().refine((audit) => audit.entries.some((entry) => entry.kind === "text" && entry.answered && entry.answers.length > 0), { message: "至少需要一題已完成的填答題。", path: ["entries"] })
 }).strict();
 export const reviewSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), decision: z.enum(["approve", "reject"]), feedback: z.string().trim().max(12000) }).strict();
 export const resetSchema = z.object({ classId: z.string().uuid(), confirmation: z.literal("RESET"), targets: z.array(z.object({ studentId: z.string().uuid(), generation: z.number().int().nonnegative() }).strict()).min(1).max(200) }).strict();
@@ -39,6 +39,8 @@ type DbStatus = keyof typeof statuses;
 type Profile = { id: string; display_name: string; real_name: string; student_number: string; class_id: string | null; progress_generation: number; is_course_completed: boolean; course_completed_at: string | null };
 type ClassRow = { id: string; name: string; teacher_id: string; class_code: string; school_id: string | null; school_name: string | null; county: string | null; grade: string | null; student_count: number };
 type ProgressRow = { student_id: string; week_number: number; status: DbStatus; version: number; submitted_at: string | null; reviewed_at: string | null; feedback: string; question_set: QuestionSet | null; answers: SubmittedAnswer[] | null; game_audit: WeekGameAudit | null };
+type ReviewHistoryRow = { id: string; week_number: number; generation: number; feedback: string; reviewed_at: string };
+type RewardClaimRow = { week_number: number; earned_at: string; claimed_at: string | null };
 async function client() {
   const { createServerSupabaseClient } = await import("@/lib/supabase/server");
   return createServerSupabaseClient();
@@ -83,7 +85,25 @@ export async function studentProgress(studentId: string) {
   const classroom = checked(await db.from("classes").select("name,school_name,county,grade,class_code").eq("id", student.class_id).single());
   if (!classroom) throw new RequestError(404, "找不到學生所屬班級。");
   const weeks = checked(await db.from("student_progress").select("*").eq("student_id", studentId).order("week_number")) as ProgressRow[];
-  return { enrolled: true as const, generation: student.progress_generation, isCourseCompleted: student.is_course_completed, courseCompletedAt: student.course_completed_at, realName: student.real_name || "", studentNumber: student.student_number || "", requiresIdentity: !student.real_name?.trim() || !student.student_number?.trim(), schoolName: classroom.school_name || classroom.name, classCode: classroom.class_code, county: classroom.county, grade: classroom.grade || "", plannedWeeks: 6, weeks: weeks.map(mapWeek) };
+  const reviewHistory = checked(await db.from("student_review_history").select("id,week_number,generation,feedback,reviewed_at").eq("student_id", studentId).order("reviewed_at", { ascending: false })) as ReviewHistoryRow[];
+  const rewardClaims = checked(await db.from("student_reward_claims").select("week_number,earned_at,claimed_at").eq("student_id", studentId).eq("generation", student.progress_generation).order("earned_at")) as RewardClaimRow[];
+  return {
+    enrolled: true as const,
+    generation: student.progress_generation,
+    isCourseCompleted: student.is_course_completed,
+    courseCompletedAt: student.course_completed_at,
+    realName: student.real_name || "",
+    studentNumber: student.student_number || "",
+    requiresIdentity: !student.real_name?.trim() || !student.student_number?.trim(),
+    schoolName: classroom.school_name || classroom.name,
+    classCode: classroom.class_code,
+    county: classroom.county,
+    grade: classroom.grade || "",
+    plannedWeeks: 6,
+    weeks: weeks.map(mapWeek),
+    reviewHistory: reviewHistory.map((item) => ({ id: item.id, week: item.week_number, generation: item.generation, feedback: item.feedback, reviewedAt: item.reviewed_at })),
+    pendingRewards: rewardClaims.filter((item) => !item.claimed_at).map((item) => ({ week: item.week_number, earnedAt: item.earned_at }))
+  };
 }
 export async function updateStudentIdentity(studentId: string, input: z.infer<typeof studentIdentitySchema>) {
   const db = await client();
@@ -152,6 +172,12 @@ export async function reviewWeek(teacherId: string, id: string, input: z.infer<t
   const record = await teacherSubmission(teacherId, id), db = await client();
   checked(await db.rpc("shelterlab_review_progress", { p_student_id: record.studentId, p_week: record.week, p_decision: input.decision, p_generation: input.generation, p_version: input.version, p_feedback: input.feedback }));
   return { ok: true, decision: input.decision };
+}
+export async function claimReward(studentId: string, week: number) {
+  if (!Number.isInteger(week) || week < 1 || week > 6) throw new RequestError(404, "找不到寶物獎勵。");
+  const db = await client();
+  checked(await db.rpc("shelterlab_claim_reward", { p_week: week }));
+  return { ok: true, week, studentId };
 }
 export async function resetProgress(_teacherId: string, input: z.infer<typeof resetSchema>) {
   const db = await client();
