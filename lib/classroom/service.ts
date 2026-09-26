@@ -3,7 +3,7 @@ import { getSchoolDirectorySnapshot } from "@/lib/government-open-data";
 import { FALLBACK_ACTION_ORGANIZATIONS } from "@/data/action-organizations";
 import { RequestError } from "./http";
 import { buildQuestionSet, countyData } from "./coa";
-import type { QuestionSet, SubmittedAnswer, WeekGameAudit } from "./data-types";
+import type { QuestionSet, ReviewHistoryEntry, SubmittedAnswer, WeekGameAudit } from "./data-types";
 
 export const settingsSchema = z.object({ classId: z.string().uuid().optional(), teacherName: z.string().trim().min(1, "請填寫教師姓名或稱謂。").max(100), classCode: z.string().trim().min(8).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()), schoolId: z.string().min(1).max(40), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.literal(6) }).strict();
 export const studentIdentitySchema = z.object({
@@ -38,7 +38,7 @@ const statuses = { Locked: "locked", "In Progress": "in_progress", Pending: "pen
 type DbStatus = keyof typeof statuses;
 type Profile = { id: string; display_name: string; real_name: string; student_number: string; class_id: string | null; progress_generation: number; is_course_completed: boolean; course_completed_at: string | null };
 type ClassRow = { id: string; name: string; teacher_id: string; class_code: string; school_id: string | null; school_name: string | null; county: string | null; grade: string | null; student_count: number };
-type ProgressRow = { student_id: string; week_number: number; status: DbStatus; version: number; submitted_at: string | null; reviewed_at: string | null; feedback: string; question_set: QuestionSet | null; answers: SubmittedAnswer[] | null; game_audit: WeekGameAudit | null };
+type ProgressRow = { student_id: string; week_number: number; status: DbStatus; version: number; submitted_at: string | null; reviewed_at: string | null; feedback: string; feedback_history?: ReviewHistoryEntry[] | null; question_set: QuestionSet | null; answers: SubmittedAnswer[] | null; game_audit: WeekGameAudit | null };
 async function client() {
   const { createServerSupabaseClient } = await import("@/lib/supabase/server");
   return createServerSupabaseClient();
@@ -57,7 +57,7 @@ function checked<T>({ data, error }: { data: T; error: { code?: string; message?
   return data;
 }
 function mapWeek(row: ProgressRow) {
-  return { id: `${row.student_id}_${row.week_number}`, week: row.week_number, status: statuses[row.status], version: row.version, submittedAt: row.submitted_at, reviewedAt: row.reviewed_at, feedback: row.feedback, questionSet: row.question_set, answers: row.answers, gameAudit: row.game_audit };
+  return { id: `${row.student_id}_${row.week_number}`, week: row.week_number, status: statuses[row.status], version: row.version, submittedAt: row.submitted_at, reviewedAt: row.reviewed_at, feedback: row.feedback, feedbackHistory: row.feedback_history ?? [], questionSet: row.question_set, answers: row.answers, gameAudit: row.game_audit };
 }
 async function profile(studentId: string) {
   const db = await client();

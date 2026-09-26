@@ -5,6 +5,7 @@ const foundation = readFileSync("supabase/migrations/202609230001_foundation.sql
 const workflow = readFileSync("supabase/migrations/202609230002_progress_workflow.sql", "utf8");
 const annotations = readFileSync("supabase/migrations/202609230003_step5_local_lesson_annotations.sql", "utf8");
 const reviewCycle = readFileSync("supabase/migrations/202609240005_review_revision_cycle.sql", "utf8");
+const feedbackHistory = readFileSync("supabase/migrations/202609260001_review_feedback_history.sql", "utf8");
 
 describe("six-week Supabase progress workflow", () => {
   it("creates exactly six rows with only week one unlocked", () => {
@@ -39,6 +40,15 @@ describe("six-week Supabase progress workflow", () => {
     expect(reviewCycle).toContain("case when p_decision = 'reject' then 'return'");
     expect(reviewCycle).toContain("p_week + 1 and status = 'Locked'");
     expect(reviewCycle).toContain("grant execute on function public.shelterlab_review_progress");
+  });
+
+  it("archives approved feedback, clears the live revision message, and unlocks only on approval", () => {
+    expect(feedbackHistory).toContain("add column if not exists feedback_history jsonb");
+    expect(feedbackHistory).toContain("feedback_history = feedback_history || jsonb_build_array");
+    expect(feedbackHistory).toContain("feedback = '', version = version + 1");
+    expect(feedbackHistory).toContain("if p_decision = 'reject' then");
+    expect(feedbackHistory).toContain("p_week + 1 and status = 'Locked'");
+    expect(feedbackHistory.indexOf("if p_decision = 'reject' then")).toBeLessThan(feedbackHistory.indexOf("p_week + 1 and status = 'Locked'"));
   });
 });
 

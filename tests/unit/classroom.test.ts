@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { analyzeCoa, buildQuestionSet, chooseContrasts, COA_FIELDS, countyData, elapsedDays, median, parseCsv, parseDate } from "@/lib/classroom/coa";
+import { createHash } from "node:crypto";
+import { analyzeCoa, buildQuestionSet, chooseContrasts, COA_FIELDS, elapsedDays, median, parseCsv, parseDate } from "@/lib/classroom/coa";
 import { applyTranslationChoices } from "@/lib/classroom/translator";
 import { hashPassword, newToken, tokenHash, verifyPassword } from "@/lib/classroom/security";
 import { gameAuditSubmissionSchema, reviewSchema, settingsSchema, studentIdentitySchema, submissionSchema, validateAnswers } from "@/lib/classroom/service";
@@ -38,8 +39,11 @@ describe("authoritative COA classroom evidence", () => {
     const result = analyzeCoa([], "連江縣"), set = buildQuestionSet(result, 1, "連江縣");
     expect(set.cases).toEqual([]); expect(set.medianDays).toBeNull(); expect(set.comparisonNote).toContain("不足");
   });
-  it("reads the actual project CSV and keeps question facts tied to its checksum", async () => {
-    const data = await countyData("高雄市"), set = buildQuestionSet(data, 1, "高雄市");
+  it("keeps fixture-derived question facts tied to their checksum without loading local datasets", () => {
+    const rows = [row("fixture-a", { shelter_address: "高雄市公開設施" }), row("fixture-b", { shelter_address: "高雄市公開設施", animal_colour: "白色", animal_createtime: "2026/9/3" })];
+    const csv = `${COA_FIELDS.join(",")}\n${rows.map(item => COA_FIELDS.map(field => item[field as keyof typeof item] ?? "").join(",")).join("\n")}\n`;
+    const checksum = createHash("sha256").update(csv).digest("hex");
+    const data = analyzeCoa(parseCsv(csv), "高雄市", checksum), set = buildQuestionSet(data, 1, "高雄市");
     expect(data.count).toBeGreaterThan(0); expect(set.cases.length).toBeGreaterThanOrEqual(2);
     expect(set.metadata.checksum).toMatch(/^[a-f0-9]{64}$/); expect(set.questions[0].fact).toContain(String(data.medianDays));
     expect(set.medianDays).toBe(median(data.animals.flatMap(a => a.days === null ? [] : [a.days])));

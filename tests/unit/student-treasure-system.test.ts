@@ -112,11 +112,12 @@ describe("前五週寶物跨週應用", () => {
     expect(tracker).toContain('work.status === "pending" || work.status === "completed"');
 
     const map = read("app/student/_components/student-map-dynamic.tsx");
-    expect(map).toContain('item.status === "pending" || item.status === "completed"');
-    expect(map).toContain("闖關進度 {submitted}/6");
+    expect(map).toContain('item.status === "completed"');
+    expect(map).not.toContain('item.status === "pending" || item.status === "completed"');
+    expect(map).toContain("闖關進度 {completed}/6");
 
     const learningProgress = read("app/student/_components/student-learning-progress.tsx");
-    expect(learningProgress).toContain('w.status==="pending"||w.status==="completed"');
+    expect(learningProgress).toContain("const earnedWeeks=completedWeeks");
     expect(learningProgress).toContain("unlockedTools:earnedWeeks");
   });
 
@@ -139,6 +140,11 @@ describe("前五週寶物跨週應用", () => {
     expect(review).not.toContain("已填答／互動");
     expect(review).not.toContain("尚未填答");
     expect(review).not.toContain("JSON.stringify(audit.gameState");
+
+    const tracker = read("app/student/week/[week]/_components/week-audit-tracker.tsx");
+    expect(tracker).toContain("歷史評語");
+    expect(tracker).toContain("scrollIntoView");
+    expect(tracker).toContain("target?.focus");
   });
 
   it("教師端只保留學習進度追蹤與設定", () => {

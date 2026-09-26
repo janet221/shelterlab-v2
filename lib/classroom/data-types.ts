@@ -30,3 +30,11 @@ export type WeekGameAudit = {
   entries: WeekAuditEntry[];
   gameState: Record<string, unknown>;
 };
+
+export type ReviewHistoryEntry = {
+  decision: "approve";
+  feedback: string;
+  reviewedAt: string;
+  reviewedBy: string;
+  submittedVersion: number;
+};

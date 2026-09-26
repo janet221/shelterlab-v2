@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, type ReactNode, type SyntheticEvent } from "react";
 import { api } from "@/app/_components/classroom-ui";
-import type { WeekAuditEntry, WeekGameAudit } from "@/lib/classroom/data-types";
+import type { ReviewHistoryEntry, WeekAuditEntry, WeekGameAudit } from "@/lib/classroom/data-types";
 import { learningStorage } from "@/lib/classroom/browser-storage";
 import { parseStudentReviewFeedback } from "@/lib/classroom/review-guidelines";
 
@@ -159,7 +159,7 @@ function capture(accountId: string, week: number, target: EventTarget | null) {
   upsert(accountId, week, { id: entryId(kind, section, prompt), section, prompt, kind, answers: [answer], answered: true, updatedAt });
 }
 
-export default function WeekAuditTracker({ accountId, week, status, reviewFeedback, children }: { accountId: string; week: number; status: string; reviewFeedback?: string; children: ReactNode }) {
+export default function WeekAuditTracker({ accountId, week, status, reviewFeedback, reviewHistory = [], children }: { accountId: string; week: number; status: string; reviewFeedback?: string; reviewHistory?: ReviewHistoryEntry[]; children: ReactNode }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const review = parseStudentReviewFeedback(reviewFeedback);
 
@@ -202,6 +202,26 @@ export default function WeekAuditTracker({ accountId, week, status, reviewFeedba
     };
   }, [accountId, review?.decision, status, submitCompletedAudit, week]);
 
+  useEffect(() => {
+    if (status !== "in_progress" || review?.decision !== "reject") return;
+    const key = `${AUDIT_KEY_PREFIX}:revision-target:${accountId}:${week}`;
+    const targetId = sessionStorage.getItem(key);
+    if (!targetId) return;
+    const timer = window.setTimeout(() => {
+      const target = Array.from(rootRef.current?.querySelectorAll("textarea") ?? []).find((element) => {
+        const section = sectionName(element);
+        const prompt = element.closest("fieldset")
+          ? compact(element.closest("fieldset")?.querySelector("legend")?.textContent, nearestHeading(element))
+          : nearestHeading(element);
+        return entryId("text", section, prompt) === targetId;
+      });
+      target?.scrollIntoView({ behavior: "smooth", block: "center" });
+      target?.focus({ preventScroll: true });
+      sessionStorage.removeItem(key);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [accountId, review?.decision, status, week]);
+
   const beginRevision = () => {
     const audit = readAudit(accountId, week);
     writeAudit(accountId, { ...audit, completed: false, completedAt: "" });
@@ -221,6 +241,8 @@ export default function WeekAuditTracker({ accountId, week, status, reviewFeedba
         storage.setItem(key, JSON.stringify(state));
       } catch {}
     }
+    const firstCommentedAnswer = review?.items.find((item) => item.comment.trim());
+    if (firstCommentedAnswer) sessionStorage.setItem(`${AUDIT_KEY_PREFIX}:revision-target:${accountId}:${week}`, firstCommentedAnswer.entryId);
     window.location.reload();
   };
 
@@ -232,6 +254,16 @@ export default function WeekAuditTracker({ accountId, week, status, reviewFeedba
         {review.items.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">{review.items.map((item) => <li key={item.entryId}><strong>{item.prompt}：</strong>{item.comment}</li>)}</ul>}
         {review.decision === "reject" && <button type="button" className="mt-3 rounded-xl bg-red-800 px-4 py-2 text-sm font-bold text-white" onClick={beginRevision}>開始修正本週作答</button>}
       </div>
+    </aside>}
+    {reviewHistory.length > 0 && <aside className="mx-auto my-4 max-w-5xl rounded-2xl border border-stone-200 bg-white px-5 py-4 text-stone-800 shadow-sm">
+      <h2 className="font-black">歷史評語</h2>
+      <ul className="mt-2 space-y-3 text-sm">{reviewHistory.map((item, index) => {
+        const archived = parseStudentReviewFeedback(item.feedback);
+        return <li key={`${item.reviewedAt}-${index}`} className="rounded-xl bg-stone-50 p-3">
+          <p className="font-bold">第 {index + 1} 次通過 · {new Date(item.reviewedAt).toLocaleString("zh-TW")}</p>
+          {archived?.items.length ? <ul className="mt-2 list-disc space-y-1 pl-5">{archived.items.map((entry) => <li key={entry.entryId}><strong>{entry.prompt}：</strong>{entry.comment}</li>)}</ul> : <p className="mt-1 text-stone-600">本次通過未附加文字評語。</p>}
+        </li>;
+      })}</ul>
     </aside>}
     {children}
   </div>;

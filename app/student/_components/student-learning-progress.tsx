@@ -193,7 +193,7 @@ export function StudentLearningProgressProvider({ children, accountId }: { child
    if(previous!==null&&previous!==generation){clearLearningDrafts();learningStorage.setItem("generation",generation);window.location.assign("/student");return;}
    learningStorage.setItem("generation",generation);
    const completedWeeks=result.weeks.filter(w=>w.status==="completed").map(w=>w.week);
-   const earnedWeeks=result.weeks.filter(w=>w.status==="pending"||w.status==="completed").map(w=>w.week);
+    const earnedWeeks=completedWeeks;
    setProgress(p=>({...p,completedWeeks,unlockedTools:earnedWeeks.filter(w=>w<=5).map(w=>getLearningTool(w).kind)}));
   }catch{/* No local fallback can approve a week; page/API gates remain authoritative. */}};
   void refresh();const timer=setInterval(refresh,5000);window.addEventListener("classroom-progress",refresh);

@@ -236,7 +236,7 @@ function WeekNodeButton({ node }: { node: WeekMapNode }) {
 function ToolInventory({ progress }: { progress: StudentMapProgress }) {
   const [open, setOpen] = useState(false);
   const earnedWeeks = new Set(
-    progress.weeks.filter((item) => item.status === "pending" || item.status === "completed").map((item) => item.week)
+    progress.weeks.filter((item) => item.status === "completed").map((item) => item.week)
   );
   const earnedCount = LEARNING_TOOLS.filter((tool) => earnedWeeks.has(tool.week)).length;
 
@@ -306,8 +306,7 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
 export default function StudentMapDynamic({ profile, progress, onIdentitySaved }: { profile: StudentProfileView; progress: StudentMapProgress; onIdentitySaved: (identity: { realName: string; studentNumber: string }) => void }) {
   const nodes = buildWeekMapNodes(progress.weeks);
   const completed = getCompletedCount(progress.weeks);
-  const submitted = progress.weeks.filter((item) => item.status === "pending" || item.status === "completed").length;
-  const progressPercent = Math.round((submitted / 6) * 100);
+  const progressPercent = Math.round((completed / 6) * 100);
   const stageSize = useViewportCoverStage();
   const [profileOpen, setProfileOpen] = useState(profile.requiresIdentity);
 
@@ -378,7 +377,7 @@ export default function StudentMapDynamic({ profile, progress, onIdentitySaved }
         <div className="rounded-full border border-white/75 bg-[#FFFDF8]/94 px-4 py-2 shadow-sm backdrop-blur-sm">
           <div className="flex items-center gap-2 text-xs font-bold text-[#51483F] sm:text-sm">
             <span aria-hidden="true">◆</span>
-            <span>闖關進度 {submitted}/6{submitted > completed ? "・待審" : ""}</span>
+            <span>闖關進度 {completed}/6</span>
           </div>
           <div className="mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-[#E7E0D7] sm:w-32">
             <div

@@ -51,5 +51,5 @@ export default async function WeekPage({ params }: WeekPageProps) {
             : weekNumber === 6 ? <WeekSixExperience />
               : <GuidedWeekCourse week={weekNumber} />;
 
-  return <WeekAuditTracker accountId={account.id} week={weekNumber} status={work.status} reviewFeedback={work.feedback}>{experience}</WeekAuditTracker>;
+  return <WeekAuditTracker accountId={account.id} week={weekNumber} status={work.status} reviewFeedback={work.feedback} reviewHistory={work.feedbackHistory}>{experience}</WeekAuditTracker>;
 }
