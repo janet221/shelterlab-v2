@@ -4,23 +4,63 @@ import { z } from "zod";
 export class RequestError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
+
 export function assertSameOrigin(request: Request) {
   const origin = request.headers.get("origin");
-  const expected = new URL(process.env.NEXT_PUBLIC_SITE_URL || request.url).origin;
-  if (!origin || origin !== expected) throw new RequestError(403, "請從本站頁面送出操作。");
+  if (!origin) {
+    throw new RequestError(403, "請從本站頁面送出操作。");
+  }
+
+  const originUrl = new URL(origin);
+  const host = request.headers.get("host") || request.headers.get("x-forwarded-host");
+
+  // 1. 支援本機任意 Port（localhost / 127.0.0.1）
+  const isLocalhost = originUrl.hostname === "localhost" || originUrl.hostname === "127.0.0.1";
+  
+  // 2. 支援 Vercel 預覽 / 正式網域（動態比對當下請求的 host）
+  const matchesHost = host && originUrl.host === host;
+
+  // 3. 支援環境變數設定的網址
+  let matchesConfigured = false;
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    try {
+      matchesConfigured = originUrl.origin === new URL(process.env.NEXT_PUBLIC_SITE_URL).origin;
+    } catch {}
+  }
+
+  if (!matchesHost && !isLocalhost && !matchesConfigured) {
+    throw new RequestError(403, "請從本站頁面送出操作。");
+  }
 }
+
 export async function body<T>(request: Request, schema: z.ZodType<T>): Promise<T> {
   assertSameOrigin(request);
   if (!request.headers.get("content-type")?.includes("application/json")) throw new RequestError(415, "請使用 JSON 資料。");
   const reader = request.body?.getReader();
   if (!reader) throw new RequestError(400, "缺少資料。");
   const chunks: Uint8Array[] = []; let size = 0;
-  while (true) { const part = await reader.read(); if (part.done) break; size += part.value.length; if (size > 100_000) { await reader.cancel(); throw new RequestError(413, "作答內容過長。"); } chunks.push(part.value); }
-  try { return schema.parse(JSON.parse(Buffer.concat(chunks).toString("utf8"))); }
-  catch { throw new RequestError(400, "欄位格式不正確，請確認必填資料與字數。"); }
+  while (true) { 
+    const part = await reader.read(); 
+    if (part.done) break; 
+    size += part.value.length; 
+    if (size > 100_000) { 
+      await reader.cancel(); 
+      throw new RequestError(413, "作答內容過長。"); 
+    } 
+    chunks.push(part.value); 
+  }
+  try { 
+    return schema.parse(JSON.parse(Buffer.concat(chunks).toString("utf8"))); 
+  }
+  catch { 
+    throw new RequestError(400, "欄位格式不正確，請確認必填資料與字數。"); 
+  }
 }
+
 export async function endpoint(action: () => Promise<unknown>) {
-  try { return NextResponse.json(await action(), { headers: { "Cache-Control": "no-store" } }); }
+  try { 
+    return NextResponse.json(await action(), { headers: { "Cache-Control": "no-store" } }); 
+  }
   catch (error) {
     if (error instanceof RequestError) return NextResponse.json({ error: error.message }, { status: error.status });
     const code = (error as { code?: string }).code;

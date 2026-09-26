@@ -125,7 +125,7 @@ describe("六週寶物與審核閉環", () => {
   it("教師審查只呈現可批改的填答與完成時間", () => {
     const review = read("app/teacher/reviews/[id]/review.tsx");
 
-    expect(review).toContain("完整關卡填答審查");
+    expect(review).toContain("每周關卡填答題審查");
     expect(review).toContain("完成時間：");
     expect(review).toContain("gameAudit");
     expect(review).toContain("isGradableAuditEntry");
