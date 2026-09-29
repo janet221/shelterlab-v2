@@ -362,7 +362,7 @@ function QuizBlock({ items, answers, order, onAnswer }: {
   );
 }
 
-export default function WeekFourExperience() {
+export default function WeekFourExperience({ auditDemo = false }: { auditDemo?: boolean }) {
   const router = useRouter();
   const { completeWeek, progress } = useStudentLearningProgress();
   const [saved, setSaved] = useState<SavedWeekFour>(EMPTY);
@@ -382,6 +382,8 @@ export default function WeekFourExperience() {
     } catch {}
     setReady(true);
   }, []);
+
+  useEffect(() => { if (auditDemo) setSaved((current) => ({ ...current, stage: 5, furthest: Math.max(current.furthest, 5), completed: false })); }, [auditDemo]);
 
   useEffect(() => {
     if (!ready) return;

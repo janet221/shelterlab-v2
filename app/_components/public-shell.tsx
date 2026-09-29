@@ -36,6 +36,7 @@ export function Brand({ inverse = false, gold = false, href = "/" }: { inverse?:
           src="/logo.png"
           alt="ShelterLab"
           fill
+          sizes="(min-width: 1024px) 10rem, (min-width: 640px) 8rem, 7rem"
           className={`object-contain object-left transition-all ${
             gold ? "brightness-0 invert-[.78] sepia saturate-[1.7] hue-rotate-[356deg]" : inverse ? "invert brightness-200" : ""
           }`}

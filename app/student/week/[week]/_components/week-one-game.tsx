@@ -127,7 +127,7 @@ function StagePaper({ children, onPrevious, blackboard = false }: { children: Re
   </section>;
 }
 
-export default function WeekOneGame() {
+export default function WeekOneGame({ auditDemo = false, evaluatorPreview = false, completedReview = false }: { auditDemo?: boolean; evaluatorPreview?: boolean; completedReview?: boolean }) {
   const router = useRouter();
   const { progress, ready, updateWeekOne, completeWeekOne, resetWeekOne } = useStudentLearningProgress();
   const draft = progress.weekOne;
@@ -144,6 +144,16 @@ export default function WeekOneGame() {
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
   const [challengeOrder, setChallengeOrder] = useState<string[]>([]);
   const [quizOptionOrders, setQuizOptionOrders] = useState<number[][]>(QUIZ.map((item) => item.options.map((_, index) => index)));
+
+  useEffect(() => {
+    if (!ready || !auditDemo || stage === 5) return;
+    updateWeekOne({ stage: 5, completed: false, completedAt: null });
+  }, [auditDemo, ready, stage, updateWeekOne]);
+
+  useEffect(() => {
+    if (!ready || !evaluatorPreview || auditDemo) return;
+    resetWeekOne();
+  }, [auditDemo, evaluatorPreview, ready, resetWeekOne]);
 
   useEffect(() => {
     if (!ready) return;
@@ -182,13 +192,13 @@ export default function WeekOneGame() {
   const chooseRole = (id: PathId) => {
     setReminder("");
     setRoleChoice(id);
-    if (completedPaths.includes(id)) setReminder("你已經完成這項挑戰。請選擇尚未完成的犬隻生活路徑。");
+    if (completedPaths.includes(id) && !completedReview) setReminder("你已經完成這項挑戰。請選擇尚未完成的犬隻生活路徑。");
   };
 
   const beginChallenge = () => {
-    if (!roleChoice || completedPaths.includes(roleChoice)) return;
+    if (!roleChoice || (completedPaths.includes(roleChoice) && !completedReview)) return;
     setChallengeId(roleChoice);
-    setFiled([]);
+    setFiled(completedReview ? CHALLENGES[roleChoice].items.filter((item)=>item.required).map((item)=>item.id) : []);
     setHearts(3);
     setFeedback(null);
     updateWeekOne({ firstImpression: roleChoice, stage: 2 });
@@ -301,7 +311,9 @@ export default function WeekOneGame() {
           <section className={styles.costPanel}><p className={styles.tradeoffLabel}>牠可能承受</p><ul>{selectedRole.cost.map((item) => <li key={item}>{item}</li>)}</ul></section>
         </div>}
         <div className={styles.buttonRow}>
-          {allPathsComplete
+          {completedReview && selectedRole
+            ? <PaperButton onClick={beginChallenge}>下一步，檢視這項挑戰</PaperButton>
+            : allPathsComplete
             ? <PaperButton onClick={() => updateWeekOne({ stage: 4 })}>四項體驗完成，前往影像觀察站</PaperButton>
             : <PaperButton onClick={beginChallenge} disabled={!selectedRole || completedPaths.includes(selectedRole.id)}>下一步，進入這項挑戰</PaperButton>}
         </div>

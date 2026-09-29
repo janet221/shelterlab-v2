@@ -1,18 +1,25 @@
-import { requireAccount } from "@/lib/classroom/auth";
+import { isEvaluatorAccount, requireAccount } from "@/lib/classroom/auth";
 import { body, endpoint, RequestError } from "@/lib/classroom/http";
-import { claimReward, gameAuditSubmissionSchema, localWorkbench, resetProgress, resetSchema, reviewSchema, reviewWeek, saveSettings, schoolChoices, settingsSchema, studentIdentitySchema, studentProgress, studentWeek, submissionSchema, submitGameAudit, submitWeek, teacherDashboard, teacherSubmission, updateStudentIdentity } from "@/lib/classroom/service";
+import { claimReward, gameAuditSubmissionSchema, localWorkbench, resetProgress, resetSchema, reviewSchema, reviewWeek, saveSettings, schoolChoices, settingsSchema, studentIdentitySchema, studentProgress, studentWeek, submissionSchema, submitGameAudit, submitWeek, teacherDashboard, teacherStudentIdentitySchema, teacherSubmission, updateStudentIdentity, updateStudentIdentityByTeacher } from "@/lib/classroom/service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ path: string[] }> };
 const weekNumber = (value: string) => { const n = Number(value); if (!Number.isInteger(n) || n < 1 || n > 6) throw new RequestError(404, "找不到週次。"); return n; };
-export async function GET(_request: Request, context: Context) {
+export async function GET(request: Request, context: Context) {
   return endpoint(async () => {
     const path = (await context.params).path, route = path.join("/");
-    if (route === "progress") return studentProgress((await requireAccount("student")).id);
-    if (path[0] === "weeks" && path.length === 2) return studentWeek((await requireAccount("student")).id, weekNumber(path[1]));
+    if (route === "progress") {
+      const student = await requireAccount("student");
+      return { ...await studentProgress(student.id), evaluatorMode: isEvaluatorAccount(student) };
+    }
+    if (path[0] === "weeks" && path.length === 2) {
+      const student = await requireAccount("student");
+      const evaluatorPreview = new URL(request.url).searchParams.get("evaluator") === "1" && isEvaluatorAccount(student);
+      return studentWeek(student.id, weekNumber(path[1]), evaluatorPreview);
+    }
     const teacher = await requireAccount("teacher");
-    if (route === "schools") return schoolChoices();
+    if (route === "schools") return schoolChoices(new URL(request.url).searchParams.get("county") ?? undefined);
     if (route === "dashboard") return teacherDashboard(teacher.id);
     if (route === "local") {
       const { classroom } = await teacherDashboard(teacher.id);
@@ -42,6 +49,7 @@ export async function POST(request: Request, context: Context) {
     }
     const teacher = await requireAccount("teacher");
     if (route === "settings") return saveSettings(teacher.id, await body(request, settingsSchema));
+    if (path[0] === "students" && path.length === 2) return updateStudentIdentityByTeacher(teacher.id, path[1], await body(request, teacherStudentIdentitySchema));
     if (route === "reset") {
       return resetProgress(teacher.id, await body(request, resetSchema));
     }

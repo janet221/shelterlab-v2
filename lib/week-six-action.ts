@@ -39,6 +39,31 @@ export const DEFAULT_ACTION_PROFILE:ActionProfile = { age:16, county:"", weeklyT
 export const DEFAULT_ACTION_RECORD:ActionRecord = { actionType:"", plannedDate:"", status:"not_started", adultSupportNote:"", conditionsToConfirm:"", nextStep:"", alternativePlan:"", reflection:"" };
 export function createWeekSixDraft():WeekSixJourneyDraft { return { version:2, stage:0, furthestStage:0, profile:{...DEFAULT_ACTION_PROFILE}, selectedSchoolId:"", resourceCategoryFilter:"all", actionFilter:"all", selectedOrganizationId:"", comparisonOrganizationIds:[], safetyAnswers:{}, contactMethod:"phone", contactDrafts:{phone:"",email:"",visit_proposal:"",school_proposal:""}, actionRecord:{...DEFAULT_ACTION_RECORD}, updatedAt:new Date().toISOString(), status:"draft", openDataDate:"" }; }
 
+export const WEEK_SIX_MIN_RESPONSE_LENGTH = 30;
+const LOW_QUALITY_RESPONSES = new Set(["略", "不知道", "不清楚", "沒有", "無", "隨便", "123", "不知道啦"]);
+function normalizedMeaningfulText(value:string){return value.normalize("NFKC").replace(/\s+/g,"").trim();}
+export function weekSixTextQualityError(value:string,label:string,minLength=WEEK_SIX_MIN_RESPONSE_LENGTH){
+  const text=normalizedMeaningfulText(value);
+  if(!text||LOW_QUALITY_RESPONSES.has(text)||/^\d+$/.test(text)||/^(.)\1{4,}$/u.test(text))return`「${label}」請不要只填略、數字或重複字元，請寫下完整且具體的內容喔！`;
+  if([...text].length<minLength)return`「${label}」請至少填寫 ${minLength} 個字，寫下更完整的志工反思與收穫喔！`;
+  return"";
+}
+export function validateWeekSixDraftQuality(draft:Pick<WeekSixJourneyDraft,"profile"|"contactMethod"|"contactDrafts"|"actionRecord">){
+  if(!Number.isInteger(draft.profile.age)||draft.profile.age<12||draft.profile.age>100)return"請確認年齡格式正確，並填寫 12 至 100 歲之間的整數。";
+  if(draft.contactMethod==="email"){
+    const emails=draft.contactDrafts.email.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi)??[];
+    const suspicious=draft.contactDrafts.email.match(/\b[^\s@]+@[^\s@]+\b/g)??[];
+    if(suspicious.length>emails.length)return"Email 格式似乎不完整，請確認帳號、@ 與網域是否正確。";
+  }
+  const record=draft.actionRecord;
+  if(!record.actionType.trim()||!record.plannedDate||!record.adultSupportNote.trim())return"請先完成預計行動、日期與成人協助安排。";
+  for(const [key,label] of [["conditionsToConfirm","安全與資格條件"],["nextStep","下一步與時間規劃"],["alternativePlan","替代方案"],["reflection","行前預期成果與反思"]] as const){
+    const error=weekSixTextQualityError(record[key],label);
+    if(error)return error;
+  }
+  return"";
+}
+
 export const SAFETY_SCENARIOS = [
  {id:"injured",question:"路邊犬隻明顯受傷、受困，且仍有呼吸，你會先怎麼做？",options:[["move","沒有防護就直接把犬隻抱上車"],["1959","保持安全距離、記錄位置與狀況，撥 1959 動物保護專線"],["post","只把照片貼到社群等待網友處理"]],answer:"1959",explanation:"受傷或受困動物可向 1959 通報。先確保自己與交通安全，提供清楚位置與可觀察狀況，不自行冒險接觸。"},
  {id:"chasing",question:"犬群正在車道追車，已危及用路人安全，你會怎麼做？",options:[["ignore","等隔天再說"],["chase","跑進車道驅趕犬群"],["110","先到安全處，若危險正在發生就撥 110，並可再向 1959 通報犬隻問題"]],answer:"110",explanation:"正在發生、影響交通或人身安全的事件可先撥 110；犬隻後續處理可由 1959 轉介地方動保機關。"},

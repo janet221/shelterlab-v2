@@ -19,21 +19,24 @@ const WEEK_NAMES = ["第一週", "第二週", "第三週", "第四週", "第五�
 const STATUS_NAMES: Record<WeekStatus, string> = {
   locked: "尚未解鎖",
   in_progress: "進行中",
+  returned: "已退件，等待修正",
   pending: "審查中",
   completed: "已完成"
 };
 
 export function currentProgressLabel(weeks: StudentMapProgress["weeks"]) {
-  const active = weeks.find((week) => week.status === "pending") ?? weeks.find((week) => week.status === "in_progress") ?? weeks.find((week) => week.status !== "completed");
+  const active = weeks.find((week) => week.status === "returned") ?? weeks.find((week) => week.status === "pending") ?? weeks.find((week) => week.status === "in_progress") ?? weeks.find((week) => week.status !== "completed");
   if (!active) return "六週全部完成";
   return `${WEEK_NAMES[active.week - 1]}${STATUS_NAMES[active.status]}`;
 }
 
-export default function StudentProfileModal({ open, profile, weeks, reviewHistory, onClose, onSaved }: {
+export default function StudentProfileModal({ open, profile, weeks, reviewHistory, isCourseCompleted=false, courseCompletedAt, onClose, onSaved }: {
   open: boolean;
   profile: StudentProfileView;
   weeks: StudentMapProgress["weeks"];
   reviewHistory: ReviewMilestone[];
+  isCourseCompleted?: boolean;
+  courseCompletedAt?: string | null;
   onClose: () => void;
   onSaved: (identity: { realName: string; studentNumber: string }) => void;
 }) {
@@ -84,6 +87,12 @@ export default function StudentProfileModal({ open, profile, weeks, reviewHistor
         {!forced && <button type="button" className="rounded-full border border-stone-300 px-3 py-1 font-bold" aria-label="關閉個人中心" onClick={onClose}>×</button>}
       </div>
       {forced && <p id="identity-required-note" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-900">請填寫真實姓名與學號。</p>}
+      {!forced && isCourseCompleted && <section className="mt-5 rounded-2xl border-2 border-emerald-300 bg-emerald-50 p-5 text-center shadow-sm" aria-label="六週課程結業證明">
+        <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">ShelterLab Certificate</p>
+        <h3 className="mt-2 text-xl font-black text-emerald-950">六週生命教育課程結業證明</h3>
+        <p className="mt-2 text-sm leading-6 text-emerald-900">恭喜 {profile.realName || "同學"} 完成六週學習與動保行動承諾。</p>
+        {courseCompletedAt && <p className="mt-1 text-xs text-emerald-700">完成日期：{new Intl.DateTimeFormat("zh-TW",{dateStyle:"long"}).format(new Date(courseCompletedAt))}</p>}
+      </section>}
 
       <form className="mt-6 space-y-4" onSubmit={submit}>
         <label className="block font-bold">學生真實姓名<input className={fieldClass} value={realName} onChange={(event) => setRealName(event.target.value)} required minLength={2} maxLength={100} autoComplete="name" /></label>
@@ -98,11 +107,11 @@ export default function StudentProfileModal({ open, profile, weeks, reviewHistor
         </dl>
 
         {!forced && <section className="rounded-2xl border border-red-200 bg-red-50 p-4">
-          <h3 className="font-bold text-red-950">即時評語</h3>
+          <h3 className="font-bold text-red-950">教師即時評語</h3>
           {liveReviews.length === 0 ? <p className="mt-2 text-sm text-stone-600">目前沒有待修正的教師評語。</p> : <div className="mt-3 space-y-3">
             {liveReviews.map((review) => <article key={`${review.week}-${review.reviewedAt ?? "review"}`} className="rounded-xl border border-red-200 bg-white p-3">
               <h4 className="font-bold text-red-800">{WEEK_NAMES[review.week - 1]} · 不通過，請修正</h4>
-              <ul className="mt-3 space-y-3">{review.items.map((item) => <li key={item.entryId} className="rounded-lg bg-red-50 p-3 text-sm"><p className="font-bold">{item.prompt}</p><p className="mt-1 whitespace-pre-wrap text-stone-700">{item.comment}</p></li>)}</ul>
+              <div className="mt-3 space-y-2">{review.items.map((item) => <p key={item.entryId} className="whitespace-pre-wrap rounded-lg bg-red-50 p-3 text-sm leading-6 text-stone-700">{item.comment}</p>)}</div>
               <a href={`/student/week/${review.week}#revision-answer`} className="mt-3 inline-flex rounded-xl bg-red-800 px-4 py-2 text-sm font-bold text-white">前往填答題修正</a>
             </article>)}
           </div>}

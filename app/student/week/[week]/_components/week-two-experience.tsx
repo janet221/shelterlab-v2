@@ -137,7 +137,7 @@ function QuizBlock({ items, answers, order, onAnswer }: { items: readonly QuizIt
   return <div className={styles.quizGrid}>{items.map((item, index) => <fieldset className={styles.quizCard} key={item.question}><legend><span>{index + 1}</span>{item.question}</legend><div className={styles.choiceGrid}>{order[index].map((optionIndex) => <button type="button" key={item.options[optionIndex]} aria-pressed={answers[index] === optionIndex} className={answers[index] === optionIndex ? styles.correctChoice : ""} onClick={() => onAnswer(index, optionIndex)}>{item.options[optionIndex]}</button>)}</div>{answers[index] === item.answer && <p className={styles.answerNote}><strong>判讀重點</strong>{item.note}</p>}</fieldset>)}</div>;
 }
 
-export default function WeekTwoExperience() {
+export default function WeekTwoExperience({ auditDemo = false }: { auditDemo?: boolean }) {
   const router = useRouter();
   const { completeWeek, progress } = useStudentLearningProgress();
   const [saved, setSaved] = useState<SavedWeekTwo>(EMPTY);
@@ -146,6 +146,7 @@ export default function WeekTwoExperience() {
   const [orders, setOrders] = useState<Orders>(INITIAL_ORDERS);
 
   useEffect(() => { try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { const parsed = JSON.parse(raw) as Partial<SavedWeekTwo>; if (parsed.contentVersion === CONTENT_VERSION) setSaved({ ...EMPTY, ...parsed, hearts: { ...DEFAULT_HEARTS, ...(parsed.hearts ?? {}) }, treasureAnswers: parsed.treasureAnswers ?? {}, treasureCompleted: parsed.treasureCompleted ?? Boolean(parsed.completed) }); } } catch {} setReady(true); }, []);
+  useEffect(() => { if (auditDemo) setSaved((current) => ({ ...current, stage: 5, furthest: Math.max(current.furthest, 5), completed: false })); }, [auditDemo]);
   useEffect(() => { if (!ready) return; try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {} }, [ready, saved]);
   useEffect(() => { if (!ready) return; setOrders((current) => { if (saved.stage === 0) return { ...current, law: LAW_QUESTIONS.map((item, i) => visitShuffle(item.options.map((_, j) => j), `week2-law-${i}`)), lawFiles: visitShuffle(LAW_FILES.map((item) => item.id), "week2-law-files") }; if (saved.stage === 1) return { ...current, time: TIME_QUESTIONS.map((item, i) => visitShuffle(item.options.map((_, j) => j), `week2-time-${i}`)), timeFiles: visitShuffle(TIME_ACTIONS.map((item) => item.id), "week2-time-files") }; if (saved.stage === 2) return { ...current, money: MONEY_QUESTIONS.map((item, i) => visitShuffle(item.options.map((_, j) => j), `week2-money-${i}`)), moneyFiles: visitShuffle(MONEY_FILES.map((item) => item.id), "week2-money-files") }; if (saved.stage === 3) return { ...current, emotion: EMOTION_QUESTIONS.map((item, i) => visitShuffle(item.options.map((_, j) => j), `week2-emotion-${i}`)), familyFiles: visitShuffle(FAMILY_FILES.map((item) => item.id), "week2-family-files") }; if (saved.stage === 4) return { ...current, video: VIDEO_QUESTIONS.map((item, i) => visitShuffle(item.options.map((_, j) => j), `week2-video-${i}`)) }; return { ...current, dataFiles: visitShuffle(DATA_FILES.map((item) => item.id), "week2-data-files") }; }); }, [ready, saved.stage]);
 

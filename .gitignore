@@ -11,8 +11,11 @@ tsconfig.tsbuildinfo
 # Large datasets and local data files
 *.xlsx
 *.csv
-data/**
-!data/**/
-!data/**/*.ts
+data/
+**/data/
 .vercel
 .env*
+
+# Local Codex workspace folders
+work/
+outputs/

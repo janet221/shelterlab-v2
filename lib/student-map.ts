@@ -1,6 +1,8 @@
+import type { ReviewHistoryEntry } from "./classroom/data-types";
+
 export type WeekNumber = 1 | 2 | 3 | 4 | 5 | 6;
 
-export type WeekStatus = "locked" | "in_progress" | "pending" | "completed";
+export type WeekStatus = "locked" | "in_progress" | "returned" | "pending" | "completed";
 
 export type WeekVisual =
   | "shepherd"
@@ -24,6 +26,8 @@ export interface WeekProgress {
   submittedAt?: string | null;
   reviewedAt?: string | null;
   feedback?: string;
+  rejectionCount?: number;
+  feedbackHistory?: ReviewHistoryEntry[];
 }
 
 export interface ReviewMilestone {
@@ -43,6 +47,8 @@ export interface StudentMapProgress {
   weeks: WeekProgress[];
   reviewHistory?: ReviewMilestone[];
   pendingRewards?: PendingReward[];
+  isCourseCompleted?: boolean;
+  courseCompletedAt?: string | null;
 }
 
 export interface WeekMapConfig {
@@ -285,7 +291,7 @@ export function buildWeekMapNodes(progress: WeekProgress[]): WeekMapNode[] {
 
     const source = progress.find((item) => item.week === config.week);
     let needsRevision = false;
-    try { needsRevision = recordedStatus === "in_progress" && JSON.parse(source?.feedback || "null")?.decision === "reject"; } catch {}
+    try { needsRevision = recordedStatus === "returned" || (recordedStatus === "in_progress" && JSON.parse(source?.feedback || "null")?.decision === "reject"); } catch {}
     return {
       ...config,
       status: recordedStatus,

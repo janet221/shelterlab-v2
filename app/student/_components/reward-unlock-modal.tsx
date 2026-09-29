@@ -12,6 +12,7 @@ type RewardUnlockModalProps = {
   error?: string;
   secondaryLabel?: string;
   onSecondary?: () => void | Promise<void>;
+  eyebrow?: string;
 };
 
 export default function RewardUnlockModal({
@@ -22,7 +23,8 @@ export default function RewardUnlockModal({
   busy = false,
   error = "",
   secondaryLabel,
-  onSecondary
+  onSecondary,
+  eyebrow
 }: RewardUnlockModalProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const reward = getLearningTool(week);
@@ -56,7 +58,7 @@ export default function RewardUnlockModal({
         aria-describedby="reward-unlock-description"
         className="w-full max-w-[420px] rounded-[28px] border-[3px] border-[#67594b] bg-[#fffaf0] px-6 py-7 text-center shadow-[0_24px_70px_rgba(45,37,29,0.32)]"
       >
-        <p className="text-xs font-black tracking-[0.16em] text-[#8a745d]">教師審核通過 · 第 {week} 週</p>
+        <p className="text-xs font-black tracking-[0.16em] text-[#8a745d]">{eyebrow ?? `教師審核通過 · 第 ${week} 週`}</p>
         <h2 id="reward-unlock-title" className="mt-2 font-serif text-3xl font-black text-[#39736a]">
           得到寶物！
         </h2>

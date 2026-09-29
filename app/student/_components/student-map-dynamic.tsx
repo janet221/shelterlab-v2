@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import StudentProfileModal, { type StudentProfileView } from "./student-profile-modal";
 import RewardUnlockModal from "./reward-unlock-modal";
+import { clearEvaluatorDemoStates, evaluatorDemoStates, evaluatorPreviewReward, isEvaluatorPreviewUnlocked, setEvaluatorDemoState, setEvaluatorPreviewReward, setEvaluatorPreviewUnlocked, type EvaluatorDemoState } from "@/lib/classroom/browser-storage";
 import {
   buildWeekMapNodes,
   getCompletedCount,
@@ -20,6 +21,7 @@ import {
 const STATUS_LABEL: Record<WeekStatus, string> = {
   locked: "未解鎖",
   in_progress: "進行中",
+  returned: "已退件",
   pending: "等待審核",
   completed: "已完成"
 };
@@ -27,6 +29,7 @@ const STATUS_LABEL: Record<WeekStatus, string> = {
 const IMAGE_STATE_CLASS: Record<WeekStatus, string> = {
   locked: "grayscale opacity-55 saturate-0",
   in_progress: "opacity-100 saturate-100",
+  returned: "opacity-100 saturate-100",
   pending: "opacity-100 saturate-100",
   completed: "opacity-100 saturate-100"
 };
@@ -227,6 +230,12 @@ function WeekNodeButton({ node }: { node: WeekMapNode }) {
           </div>
         )}
 
+        {node.status === "returned" && (
+          <div className="absolute bottom-[2%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-red-300 bg-red-50/95 px-3 py-1 text-[11px] font-bold text-red-800 shadow-sm">
+            已退件，請修正
+          </div>
+        )}
+
         {node.status === "in_progress" && (
           <div className="absolute bottom-[2%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#DDBB6D] bg-[#FFF8E5]/95 px-3 py-1 text-[11px] font-bold text-[#6C5424] opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">
             點擊進入
@@ -239,6 +248,7 @@ function WeekNodeButton({ node }: { node: WeekMapNode }) {
 
 function ToolInventory({ progress }: { progress: StudentMapProgress }) {
   const [open, setOpen] = useState(false);
+  const [detailWeek, setDetailWeek] = useState<WeekNumber|null>(null);
   const earnedWeeks = new Set(
     progress.weeks.filter((item) => item.status === "completed").map((item) => item.week)
   );
@@ -290,11 +300,12 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
                   <div className="h-10 w-10 shrink-0 rounded-lg bg-white/75 p-1">
                     <LearningToolIcon kind={tool.kind} muted={!earned} />
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs font-black text-[#4A4037]">{earned ? tool.name : `第 ${tool.week} 週`}</p>
                     <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#776B60]">
                       {earned ? tool.description : "完成關卡後取得"}
                     </p>
+                    {earned && <button type="button" onClick={()=>setDetailWeek(tool.week)} className="mt-1.5 rounded-lg border border-[#d7bd7a] bg-white px-2 py-1 text-[10px] font-black text-[#765b27] hover:bg-[#fff3cf]">查看完整介紹</button>}
                   </div>
                 </div>
               );
@@ -303,12 +314,24 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
 
         </div>
       )}
+      {detailWeek && (()=>{const tool=getLearningTool(detailWeek);return <div className="fixed inset-0 z-[160] grid place-items-center bg-stone-950/55 p-5" role="presentation" onMouseDown={(event)=>{if(event.currentTarget===event.target)setDetailWeek(null)}}><section className="w-full max-w-md rounded-3xl border-2 border-[#d8bd79] bg-[#fffdf8] p-6 text-left shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="tool-detail-title"><div className="flex items-start gap-4"><div className="h-16 w-16 shrink-0 rounded-2xl bg-[#fff3cf] p-2"><LearningToolIcon kind={tool.kind}/></div><div><p className="text-xs font-black text-[#98762e]">第 {tool.week} 週探索工具</p><h2 id="tool-detail-title" className="mt-1 text-2xl font-black text-[#443A31]">{tool.name}</h2></div></div><p className="mt-5 text-sm font-semibold leading-7 text-[#66594d]">{tool.description}</p><button type="button" onClick={()=>setDetailWeek(null)} className="mt-6 w-full rounded-xl bg-[#6C9270] px-5 py-3 font-black text-white hover:bg-[#587c5c]">關閉完整介紹</button></section></div>})()}
     </div>
   );
 }
 
-export default function StudentMapDynamic({ profile, progress, onIdentitySaved, onRewardClaimed }: { profile: StudentProfileView; progress: StudentMapProgress; onIdentitySaved: (identity: { realName: string; studentNumber: string }) => void; onRewardClaimed: (week: WeekNumber) => Promise<void> }) {
-  const nodes = buildWeekMapNodes(progress.weeks);
+export default function StudentMapDynamic({ profile, progress, evaluatorMode = false, onIdentitySaved, onRewardClaimed }: { profile: StudentProfileView; progress: StudentMapProgress; evaluatorMode?: boolean; onIdentitySaved: (identity: { realName: string; studentNumber: string }) => void; onRewardClaimed: (week: WeekNumber) => Promise<void> }) {
+  const router = useRouter();
+  const [evaluatorOpen, setEvaluatorOpen] = useState(false);
+  const [evaluatorUnlocked, setEvaluatorUnlocked] = useState(false);
+  const [demoWeek, setDemoWeek] = useState<WeekNumber>(1);
+  const [previewRewardWeek, setPreviewRewardWeek] = useState<WeekNumber | null>(null);
+  const [demoStates, setDemoStates] = useState<Partial<Record<number, EvaluatorDemoState>>>({});
+  const displayWeeks = progress.weeks.map((item) => {
+    const demo = demoStates[item.week];
+    if (demo) return { ...item, status: demo.status, feedback: demo.feedback ?? item.feedback };
+    return evaluatorUnlocked && item.status === "locked" ? { ...item, status: "in_progress" as const } : item;
+  });
+  const nodes = buildWeekMapNodes(displayWeeks);
   const completed = getCompletedCount(progress.weeks);
   const pending = progress.weeks.filter((item) => item.status === "pending").length;
   const progressPercent = Math.round((completed / 6) * 100);
@@ -317,6 +340,35 @@ export default function StudentMapDynamic({ profile, progress, onIdentitySaved, 
   const [rewardBusy, setRewardBusy] = useState(false);
   const [rewardError, setRewardError] = useState("");
   const pendingReward = progress.pendingRewards?.[0];
+
+  useEffect(() => {
+    if (!evaluatorMode) return;
+    const refreshDemo = () => { setEvaluatorUnlocked(isEvaluatorPreviewUnlocked()); setDemoStates(evaluatorDemoStates()); setPreviewRewardWeek(evaluatorPreviewReward() as WeekNumber | null); };
+    refreshDemo();
+    window.addEventListener("shelterlab-evaluator-demo", refreshDemo);
+    return () => window.removeEventListener("shelterlab-evaluator-demo", refreshDemo);
+  }, [evaluatorMode]);
+
+  function unlockEvaluatorPreview() {
+    setEvaluatorPreviewUnlocked(true);
+    setEvaluatorUnlocked(true);
+  }
+
+  function teleportToWeek(week: WeekNumber) {
+    unlockEvaluatorPreview();
+    router.push(`/student/week/${week}?evaluator=1`);
+  }
+
+  function simulateRejection() {
+    unlockEvaluatorPreview();
+    clearEvaluatorDemoStates();
+    const comment = demoWeek === 6
+      ? "請更具體補充你的行前預期成果與時間規劃，並請再次確認所選的參與方式是否符合該動保單位的安全與年齡資格條件。"
+      : "審查不通過，請依評語修正：請補充你判斷時採用的資料依據，並說明目前資料仍有哪些限制。";
+    const feedback = JSON.stringify({ version: 2, decision: "reject", questionComments: { "evaluator-demo-answer": comment }, items: [{ entryId: "evaluator-demo-answer", section: "本週最後填答區", prompt: "請修正並補充說明", comment }] });
+    setEvaluatorDemoState(demoWeek, { status: "returned", feedback, updatedAt: new Date().toISOString() });
+    router.push(`/student/week/${demoWeek}?evaluator=1&auditDemo=1#revision-answer`);
+  }
 
   useEffect(() => {
     if (profile.requiresIdentity) setProfileOpen(true);
@@ -398,13 +450,40 @@ export default function StudentMapDynamic({ profile, progress, onIdentitySaved, 
         <ToolInventory progress={progress} />
 
         <button type="button" onClick={() => setProfileOpen(true)} className="rounded-full border border-white/75 bg-[#FFFDF8]/94 px-4 py-2 text-xs font-bold text-[#51483F] shadow-sm backdrop-blur-sm transition hover:bg-white sm:text-sm">個人中心</button>
+        <Link href="/student/opportunities" className="rounded-full border border-white/75 bg-[#FFFDF8]/94 px-4 py-2 text-xs font-bold text-[#51483F] shadow-sm backdrop-blur-sm transition hover:bg-white sm:text-sm">行動機會</Link>
       </div>
+
+      {evaluatorMode && <aside className="fixed right-4 top-4 z-[70] max-h-[calc(100dvh-2rem)] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border-2 border-[#d8bd79] bg-[#fffdf8]/95 p-3 text-[#4d3d25] shadow-[0_18px_50px_rgba(61,45,20,0.28)] backdrop-blur-md sm:right-6 sm:top-6">
+        <button type="button" onClick={() => setEvaluatorOpen((open) => !open)} className="flex w-full items-center justify-between gap-3 rounded-xl bg-[#fff3c9] px-4 py-3 text-left font-black" aria-expanded={evaluatorOpen}>
+          <span><span aria-hidden="true">⚡</span> 評審快速導航</span><span className="text-xs">{evaluatorOpen ? "收合" : "展開"}</span>
+        </button>
+        {evaluatorOpen && <div className="mt-3 space-y-3">
+          <div><p className="mb-2 text-xs font-black">快速傳送至指定週次（同步開啟寶物預覽權限）</p><div className="grid grid-cols-3 gap-2">{([1, 2, 3, 4, 5, 6] as WeekNumber[]).map((week) => <button key={week} type="button" onClick={() => teleportToWeek(week)} className="rounded-xl border border-[#d8bd79] bg-white px-2 py-2 text-sm font-bold transition hover:bg-[#fff3c9]">第 {week} 週</button>)}</div></div>
+          <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+            <p className="text-sm font-black text-red-950">稽核閉環演示專區</p>
+            <p className="mt-1 text-[11px] leading-4 text-red-900">專門模擬學生作業被教師退件後，學生修正重送、教師再次稽核並通過的完整閉環。</p>
+            <label className="mt-2 block text-xs font-bold text-red-900">演示週次<select value={demoWeek} onChange={(event) => setDemoWeek(Number(event.target.value) as WeekNumber)} className="mt-1 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-stone-900">{([1, 2, 3, 4, 5, 6] as WeekNumber[]).map((week) => <option key={week} value={week}>第 {week} 週</option>)}</select></label>
+            <button type="button" onClick={simulateRejection} className="mt-2 w-full rounded-xl bg-[#a94d45] px-3 py-2.5 text-sm font-black text-white hover:bg-[#913e38]">演示第 {demoWeek} 週：模擬教師退件</button>
+            <p className="mt-2 text-[11px] leading-4 text-red-800">將直接前往該週填答題，依序展示退件評語、學生修正重送與教師審查通過；所有狀態只保留於目前分頁。</p>
+          </div>
+        </div>}
+      </aside>}
+
+      <RewardUnlockModal
+        week={previewRewardWeek ?? 1}
+        open={Boolean(previewRewardWeek)}
+        eyebrow={previewRewardWeek ? `評審快速體驗 · 第 ${previewRewardWeek} 週已完成` : undefined}
+        primaryLabel="完成寶物體驗"
+        onClose={() => { setEvaluatorPreviewReward(null); setPreviewRewardWeek(null); }}
+      />
 
       <StudentProfileModal
         open={profileOpen}
         profile={profile}
         weeks={progress.weeks}
         reviewHistory={progress.reviewHistory ?? []}
+        isCourseCompleted={progress.isCourseCompleted}
+        courseCompletedAt={progress.courseCompletedAt}
         onClose={() => { if (!profile.requiresIdentity) setProfileOpen(false); }}
         onSaved={(identity) => { onIdentitySaved(identity); setProfileOpen(false); }}
       />

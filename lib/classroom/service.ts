@@ -3,11 +3,16 @@ import { getSchoolDirectorySnapshot } from "@/lib/government-open-data";
 import { FALLBACK_ACTION_ORGANIZATIONS } from "@/data/action-organizations";
 import { RequestError } from "./http";
 import { buildQuestionSet, countyData } from "./coa";
-import type { QuestionSet, SubmittedAnswer, WeekGameAudit } from "./data-types";
+import type { QuestionSet, ReviewHistoryEntry, SubmittedAnswer, WeekGameAudit } from "./data-types";
+import { parseWeekSixDraft, validateWeekSixDraftQuality, WEEK_SIX_DRAFT_KEY } from "@/lib/week-six-action";
 
 export const settingsSchema = z.object({ classId: z.string().uuid().optional(), teacherName: z.string().trim().min(1, "請填寫教師姓名或稱謂。").max(100), classCode: z.string().trim().min(8).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()), schoolId: z.string().min(1).max(40), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.literal(6) }).strict();
 export const studentIdentitySchema = z.object({
   realName: z.string().trim().min(2, "請填寫真實姓名。").max(100),
+  studentNumber: z.string().trim().min(1, "請填寫學號。").max(40).regex(/^[A-Za-z0-9_-]+$/, "學號只能包含英文字母、數字、底線或連字號。")
+}).strict();
+export const teacherStudentIdentitySchema = z.object({
+  realName: z.string().trim().min(2, "請填寫至少 2 個字的學生姓名。").max(100),
   studentNumber: z.string().trim().min(1, "請填寫學號。").max(40).regex(/^[A-Za-z0-9_-]+$/, "學號只能包含英文字母、數字、底線或連字號。")
 }).strict();
 export const submissionSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), answers: z.array(z.object({ questionId: z.string().max(40), text: z.string().trim().min(10).max(3000), selectedAnimalIds: z.array(z.string().max(60)).min(1).max(4) }).strict()).length(3) }).strict();
@@ -33,12 +38,16 @@ export const gameAuditSubmissionSchema = z.object({
   }).strict().refine((audit) => audit.entries.some((entry) => entry.kind === "text" && entry.answered && entry.answers.length > 0), { message: "至少需要一題已完成的填答題。", path: ["entries"] })
 }).strict();
 export const reviewSchema = z.object({ version: z.number().int().nonnegative(), generation: z.number().int().nonnegative(), decision: z.enum(["approve", "reject"]), feedback: z.string().trim().max(12000) }).strict();
-export const resetSchema = z.object({ classId: z.string().uuid(), confirmation: z.literal("RESET"), targets: z.array(z.object({ studentId: z.string().uuid(), generation: z.number().int().nonnegative() }).strict()).min(1).max(200) }).strict();
+export const resetSchema = z.object({
+  classId: z.string().uuid(),
+  confirmationName: z.string().trim().min(1).max(100),
+  targets: z.array(z.object({ studentId: z.string().uuid(), generation: z.number().int().nonnegative(), startWeek: z.number().int().min(1).max(6) }).strict()).length(1)
+}).strict();
 const statuses = { Locked: "locked", "In Progress": "in_progress", Pending: "pending", Completed: "completed" } as const;
 type DbStatus = keyof typeof statuses;
 type Profile = { id: string; display_name: string; real_name: string; student_number: string; class_id: string | null; progress_generation: number; is_course_completed: boolean; course_completed_at: string | null };
 type ClassRow = { id: string; name: string; teacher_id: string; class_code: string; school_id: string | null; school_name: string | null; county: string | null; grade: string | null; student_count: number };
-type ProgressRow = { student_id: string; week_number: number; status: DbStatus; version: number; submitted_at: string | null; reviewed_at: string | null; feedback: string; question_set: QuestionSet | null; answers: SubmittedAnswer[] | null; game_audit: WeekGameAudit | null };
+type ProgressRow = { student_id: string; week_number: number; status: DbStatus; version: number; submitted_at: string | null; reviewed_at: string | null; feedback: string; rejection_count: number; feedback_history: ReviewHistoryEntry[]; question_set: QuestionSet | null; answers: SubmittedAnswer[] | null; game_audit: WeekGameAudit | null };
 type ReviewHistoryRow = { id: string; week_number: number; generation: number; feedback: string; reviewed_at: string };
 type RewardClaimRow = { week_number: number; earned_at: string; claimed_at: string | null };
 async function client() {
@@ -59,7 +68,8 @@ function checked<T>({ data, error }: { data: T; error: { code?: string; message?
   return data;
 }
 function mapWeek(row: ProgressRow) {
-  return { id: `${row.student_id}_${row.week_number}`, week: row.week_number, status: statuses[row.status], version: row.version, submittedAt: row.submitted_at, reviewedAt: row.reviewed_at, feedback: row.feedback, questionSet: row.question_set, answers: row.answers, gameAudit: row.game_audit };
+  const status = row.status === "In Progress" && row.rejection_count > 0 && Boolean(row.feedback) ? "returned" as const : statuses[row.status];
+  return { id: `${row.student_id}_${row.week_number}`, week: row.week_number, status, version: row.version, submittedAt: row.submitted_at, reviewedAt: row.reviewed_at, feedback: row.feedback, rejectionCount: row.rejection_count, feedbackHistory: row.feedback_history ?? [], questionSet: row.question_set, answers: row.answers, gameAudit: row.game_audit };
 }
 async function profile(studentId: string) {
   const db = await client();
@@ -67,12 +77,16 @@ async function profile(studentId: string) {
   if (!data) throw new RequestError(404, "找不到您可存取的學生。");
   return data;
 }
-export async function schoolChoices() {
-  const snapshot = await getSchoolDirectorySnapshot();
-  return { source: snapshot.source, schools: snapshot.schools.map(({ id, name, county }) => ({ id, name, county })) };
+export async function schoolChoices(county?: string) {
+  let snapshot;
+  try { snapshot = await getSchoolDirectorySnapshot(true); }
+  catch { throw new RequestError(503, "教育部高中名錄同步逾時，請重新選擇縣市再試一次。"); }
+  const normalizedCounty = county?.trim();
+  const selected = normalizedCounty ? snapshot.schools.filter((school) => school.county === normalizedCounty) : [];
+  return { source: snapshot.source, county: normalizedCounty || "", schools: selected.map(({ id, name, county }) => ({ id, name, county })) };
 }
 export async function saveSettings(teacherId: string, input: z.infer<typeof settingsSchema>) {
-  const { schools } = await schoolChoices();
+  const { schools } = await schoolChoices(input.county);
   const school = schools.find(s => s.id === input.schoolId);
   if (!school || school.county !== input.county) throw new RequestError(400, "學校與縣市不符，請重新選擇學校。");
   const db = await client();
@@ -87,6 +101,7 @@ export async function studentProgress(studentId: string) {
   const weeks = checked(await db.from("student_progress").select("*").eq("student_id", studentId).order("week_number")) as ProgressRow[];
   const reviewHistory = checked(await db.from("student_review_history").select("id,week_number,generation,feedback,reviewed_at").eq("student_id", studentId).order("reviewed_at", { ascending: false })) as ReviewHistoryRow[];
   const rewardClaims = checked(await db.from("student_reward_claims").select("week_number,earned_at,claimed_at").eq("student_id", studentId).eq("generation", student.progress_generation).order("earned_at")) as RewardClaimRow[];
+  const latestReset = checked(await db.from("progress_audit").select("week_number,details").eq("student_id", studentId).eq("generation", student.progress_generation).eq("action", "reset").order("created_at", { ascending: false }).limit(1).maybeSingle()) as { week_number: number | null; details: { reset_from_week?: number } | null } | null;
   return {
     enrolled: true as const,
     generation: student.progress_generation,
@@ -100,6 +115,7 @@ export async function studentProgress(studentId: string) {
     county: classroom.county,
     grade: classroom.grade || "",
     plannedWeeks: 6,
+    resetFromWeek: latestReset?.details?.reset_from_week ?? latestReset?.week_number ?? 1,
     weeks: weeks.map(mapWeek),
     reviewHistory: reviewHistory.map((item) => ({ id: item.id, week: item.week_number, generation: item.generation, feedback: item.feedback, reviewedAt: item.reviewed_at })),
     pendingRewards: rewardClaims.filter((item) => !item.claimed_at).map((item) => ({ week: item.week_number, earnedAt: item.earned_at }))
@@ -113,14 +129,12 @@ export async function updateStudentIdentity(studentId: string, input: z.infer<ty
   if (!data) throw new RequestError(404, "找不到可更新的學生資料。");
   return { realName: data.real_name, studentNumber: data.student_number, requiresIdentity: false as const };
 }
-export async function studentWeek(studentId: string, week: number) {
+export async function studentWeek(studentId: string, week: number, evaluatorPreview = false) {
   if (!Number.isInteger(week) || week < 1 || week > 6) throw new RequestError(404, "找不到週次。");
   const progress = await studentProgress(studentId);
   const record = progress.weeks.find(w => w.week === week);
-  if (!record || record.status === "locked" || progress.weeks.filter(w => w.week < week && w.status === "completed").length !== week - 1) throw new RequestError(403, "前一週尚未經教師核准，此關卡未解鎖。");
-  if (!record.questionSet && !progress.county) throw new RequestError(409, "請教師先至設定面板完成班級學校與縣市設定。");
-  const questionSet = record.questionSet ?? buildQuestionSet(await countyData(progress.county!), week, progress.county!);
-  return { ...record, generation: progress.generation, questionSet };
+  if (!record || (!evaluatorPreview && (record.status === "locked" || progress.weeks.filter(w => w.week < week && w.status === "completed").length !== week - 1))) throw new RequestError(403, "前一週尚未經教師核准，此關卡未解鎖。");
+  return { ...record, generation: progress.generation, county: progress.county };
 }
 export function validateAnswers(set: QuestionSet, answers: SubmittedAnswer[]) {
   const ids = new Set(set.cases.map(a => a.id));
@@ -133,31 +147,70 @@ export function validateAnswers(set: QuestionSet, answers: SubmittedAnswer[]) {
 }
 export async function submitWeek(studentId: string, week: number, input: z.infer<typeof submissionSchema>) {
   const record = await studentWeek(studentId, week);
-  if (record.status !== "in_progress" || record.version !== input.version || record.generation !== input.generation) throw new RequestError(409, "進度已變更或已送審，請重新載入。");
-  validateAnswers(record.questionSet, input.answers);
+  if (!["in_progress", "returned"].includes(record.status) || record.version !== input.version || record.generation !== input.generation) throw new RequestError(409, "進度已變更或已送審，請重新載入。");
+  if (!record.questionSet && !record.county) throw new RequestError(409, "請教師先至設定面板完成班級學校與縣市設定。");
+  const questionSet = record.questionSet ?? buildQuestionSet(await countyData(record.county!), week, record.county!);
+  validateAnswers(questionSet, input.answers);
   const db = await client();
-  checked(await db.rpc("shelterlab_progress_action", { p_student_id: studentId, p_week: week, p_action: "submit", p_generation: input.generation, p_version: input.version, p_answers: input.answers, p_question_set: record.questionSet }));
+  checked(await db.rpc("shelterlab_progress_action", { p_student_id: studentId, p_week: week, p_action: "submit", p_generation: input.generation, p_version: input.version, p_answers: input.answers, p_question_set: questionSet }));
   return { status: "pending" };
 }
 export async function submitGameAudit(studentId: string, week: number, input: z.infer<typeof gameAuditSubmissionSchema>) {
   const record = await studentWeek(studentId, week);
-  if (record.status !== "in_progress" || record.version !== input.version || record.generation !== input.generation) throw new RequestError(409, "進度已變更或已送審，請重新載入。");
+  if (!["in_progress", "returned"].includes(record.status) || record.version !== input.version || record.generation !== input.generation) throw new RequestError(409, "進度已變更或已送審，請重新載入。");
   if (input.audit.week !== week) throw new RequestError(400, "關卡審查資料與週次不符。");
   const audit = input.audit as WeekGameAudit;
+  if (week === 6) {
+    const rawDraft = audit.gameState[WEEK_SIX_DRAFT_KEY];
+    const draft = parseWeekSixDraft(typeof rawDraft === "string" ? rawDraft : JSON.stringify(rawDraft ?? null));
+    const qualityError = draft ? validateWeekSixDraftQuality(draft) : "找不到完整的第六週行動承諾，請返回頁面補齊後再送出。";
+    if (qualityError) throw new RequestError(400, qualityError);
+  }
   const db = await client();
   checked(await db.rpc("shelterlab_submit_game_audit", { p_student_id: studentId, p_week: week, p_generation: input.generation, p_version: input.version, p_game_audit: audit }));
-  return { status: "pending" };
+  if (week !== 6) return { status: "pending" };
+  const { createAdminSupabaseClient } = await import("@/lib/supabase/admin");
+  const admin = createAdminSupabaseClient();
+  const reviewedAt = new Date().toISOString();
+  checked(await admin.from("student_progress").update({ status: "Completed", reviewed_at: reviewedAt, reviewed_by: studentId, feedback: "", version: input.version + 2 }).eq("student_id", studentId).eq("week_number", 6).eq("status", "Pending").eq("version", input.version + 1));
+  checked(await admin.from("profiles").update({ is_course_completed: true, course_completed_at: reviewedAt }).eq("id", studentId).eq("role", "student"));
+  checked(await admin.from("student_reward_claims").upsert({ student_id: studentId, week_number: 6, generation: input.generation, earned_at: reviewedAt }, { onConflict: "student_id,week_number,generation", ignoreDuplicates: true }));
+  checked(await admin.from("progress_audit").insert({ student_id: studentId, actor_id: studentId, week_number: 6, action: "approve", generation: input.generation, details: { source: "week_six_auto_completion", previous_version: input.version + 1 } }));
+  return { status: "completed" };
 }
 export async function teacherDashboard(teacherId: string) {
   const db = await client();
   const teacher = checked(await db.from("profiles").select("display_name").eq("id", teacherId).eq("role", "teacher").maybeSingle()) as { display_name: string } | null;
   const classes = checked(await db.from("classes").select("*").eq("teacher_id", teacherId).order("created_at")) as ClassRow[];
   const students = classes.length ? checked(await db.from("profiles").select("id,display_name,real_name,student_number,class_id,progress_generation,is_course_completed,course_completed_at").eq("role", "student").in("class_id", classes.map(c => c.id)).order("created_at")) as Profile[] : [];
-  const records = students.length ? checked(await db.from("student_progress").select("student_id,week_number,status,version,submitted_at,reviewed_at,feedback").in("student_id", students.map(s => s.id))) as ProgressRow[] : [];
+  const records = students.length ? checked(await db.from("student_progress").select("student_id,week_number,status,version,submitted_at,reviewed_at,feedback,rejection_count,feedback_history").in("student_id", students.map(s => s.id))) as ProgressRow[] : [];
+  const accountNames = new Map<string,string>();
+  if (students.length) {
+    try {
+      const { createAdminSupabaseClient } = await import("@/lib/supabase/admin");
+      const admin = createAdminSupabaseClient();
+      const { data } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const studentIds = new Set(students.map((student) => student.id));
+      for (const user of data.users) if (studentIds.has(user.id) && user.email) accountNames.set(user.id, user.email);
+    } catch { /* 帳號載入失敗時仍顯示進度，但不再以 UUID 冒充帳號。 */ }
+  }
   const classrooms = classes.map(c => ({ id: c.id, name: c.name, schoolId: c.school_id || "", schoolName: c.school_name || c.name, county: c.county || "", grade: c.grade || "", studentCount: c.student_count, plannedWeeks: 6, joinCode: c.class_code,
-    enrollments: students.filter(s => s.class_id === c.id).map(s => ({ student: { id: s.id, displayName: s.real_name || s.display_name || "未填姓名", realName: s.real_name || "", studentNumber: s.student_number || "" }, generation: s.progress_generation, isCourseCompleted: s.is_course_completed, weeks: records.filter(w => w.student_id === s.id).map(mapWeek) })) }));
+    enrollments: students.filter(s => s.class_id === c.id).map(s => ({ student: { id: s.id, displayName: s.real_name || s.display_name || "未填姓名", realName: s.real_name || "", studentNumber: s.student_number || "", accountName: accountNames.get(s.id) || "帳號資料暫時無法載入" }, generation: s.progress_generation, isCourseCompleted: s.is_course_completed, weeks: records.filter(w => w.student_id === s.id).map(mapWeek) })) }));
   const pending = classrooms.flatMap(c => c.enrollments.flatMap(e => e.weeks.filter(w => w.status === "pending").map(w => ({ ...w, student: e.student, generation: e.generation, classId: c.id, className: c.name })))).sort((a, b) => (a.submittedAt || "").localeCompare(b.submittedAt || ""));
   return { teacherName: teacher?.display_name?.trim() || "授課教師", classroom: classrooms[0] ?? null, classrooms, pending };
+}
+export async function updateStudentIdentityByTeacher(teacherId:string,studentId:string,input:z.infer<typeof teacherStudentIdentitySchema>){
+  const db=await client();
+  const student=checked(await db.from("profiles").select("id,class_id").eq("id",studentId).eq("role","student").maybeSingle()) as {id:string;class_id:string|null}|null;
+  if(!student)throw new RequestError(404,"找不到這位學生。");
+  const classroom=checked(await db.from("classes").select("id").eq("id",student.class_id).eq("teacher_id",teacherId).maybeSingle());
+  if(!classroom)throw new RequestError(403,"您沒有編輯這位學生的權限。");
+  const {createAdminSupabaseClient}=await import("@/lib/supabase/admin");
+  const admin=createAdminSupabaseClient();
+  const result=await admin.from("profiles").update({real_name:input.realName,student_number:input.studentNumber,display_name:input.realName}).eq("id",studentId).eq("role","student").select("real_name,student_number").single();
+  if(result.error?.code==="23505")throw new RequestError(409,"此學號已由同班其他學生使用，請確認後再試。");
+  const updated=checked(result) as {real_name:string;student_number:string};
+  return{studentId,realName:updated.real_name,studentNumber:updated.student_number,displayName:updated.real_name};
 }
 export async function teacherSubmission(teacherId: string, id: string) {
   const match = /^([0-9a-f-]{36})_([1-6])$/i.exec(id);
@@ -170,6 +223,20 @@ export async function teacherSubmission(teacherId: string, id: string) {
 }
 export async function reviewWeek(teacherId: string, id: string, input: z.infer<typeof reviewSchema>) {
   const record = await teacherSubmission(teacherId, id), db = await client();
+  if (record.week === 6 && record.status === "completed" && input.decision === "reject") {
+    if (!input.feedback.trim()) throw new RequestError(400, "要求重新填寫時，請至少填寫一則教師評語。");
+    if (record.version !== input.version || record.generation !== input.generation) throw new RequestError(409, "進度已變更，請重新整理後再操作。");
+    const reviewedAt = new Date().toISOString();
+    const nextRejectionCount = record.rejectionCount + 1;
+    const history: ReviewHistoryEntry[] = [...(record.feedbackHistory ?? []), { decision: "reject", feedback: input.feedback, reviewedAt, reviewedBy: teacherId, generation: input.generation, submittedVersion: input.version, rejectionNumber: nextRejectionCount, rejectionCount: nextRejectionCount, submittedAt: record.submittedAt, questionSet: record.questionSet, answers: record.answers, gameAudit: record.gameAudit }];
+    const { createAdminSupabaseClient } = await import("@/lib/supabase/admin");
+    const admin = createAdminSupabaseClient();
+    checked(await admin.from("student_progress").update({ status: "In Progress", submitted_at: null, reviewed_at: reviewedAt, reviewed_by: teacherId, feedback: input.feedback, rejection_count: nextRejectionCount, feedback_history: history, version: input.version + 1 }).eq("student_id", record.studentId).eq("week_number", 6).eq("status", "Completed").eq("version", input.version));
+    checked(await admin.from("profiles").update({ is_course_completed: false, course_completed_at: null }).eq("id", record.studentId).eq("role", "student"));
+    checked(await admin.from("student_reward_claims").delete().eq("student_id", record.studentId).eq("week_number", 6).eq("generation", input.generation));
+    checked(await admin.from("progress_audit").insert({ student_id: record.studentId, actor_id: teacherId, week_number: 6, action: "return", generation: input.generation, details: { source: "week_six_exception_review", feedback: input.feedback, previous_version: input.version } }));
+    return { ok: true, decision: input.decision };
+  }
   checked(await db.rpc("shelterlab_review_progress", { p_student_id: record.studentId, p_week: record.week, p_decision: input.decision, p_generation: input.generation, p_version: input.version, p_feedback: input.feedback }));
   return { ok: true, decision: input.decision };
 }
@@ -179,10 +246,17 @@ export async function claimReward(studentId: string, week: number) {
   checked(await db.rpc("shelterlab_claim_reward", { p_week: week }));
   return { ok: true, week, studentId };
 }
-export async function resetProgress(_teacherId: string, input: z.infer<typeof resetSchema>) {
+export async function resetProgress(teacherId: string, input: z.infer<typeof resetSchema>) {
+  const dashboard = await teacherDashboard(teacherId);
+  const target = input.targets[0];
+  const enrollment = dashboard.classroom?.id === input.classId
+    ? dashboard.classroom.enrollments.find((item) => item.student.id === target.studentId)
+    : undefined;
+  if (!enrollment) throw new RequestError(404, "找不到您可重置的學生。");
+  if (enrollment.student.displayName !== input.confirmationName) throw new RequestError(400, "輸入的學生姓名不相符，未執行重置。");
   const db = await client();
   const resetCount = checked(await db.rpc("shelterlab_reset_class_progress", { p_class_id: input.classId, p_targets: input.targets })) as number;
-  return { resetCount };
+  return { resetCount, startWeek: target.startWeek, studentName: enrollment.student.displayName };
 }
 export async function localWorkbench(county: string) {
   const data = await countyData(county);

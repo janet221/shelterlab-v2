@@ -6,6 +6,7 @@ const workflow = readFileSync("supabase/migrations/202609230002_progress_workflo
 const annotations = readFileSync("supabase/migrations/202609230003_step5_local_lesson_annotations.sql", "utf8");
 const reviewCycle = readFileSync("supabase/migrations/202609240005_review_revision_cycle.sql", "utf8");
 const completionLoop = readFileSync("supabase/migrations/202609260001_review_completion_loop.sql", "utf8");
+const feedbackHistory = readFileSync("supabase/migrations/202609260001_review_feedback_history.sql", "utf8");
 
 describe("six-week Supabase progress workflow", () => {
   it("creates exactly six rows with only week one unlocked", () => {
@@ -59,8 +60,29 @@ describe("six-week Supabase progress workflow", () => {
     expect(completionLoop).toContain("return new;");
     expect(completionLoop).toContain("week_number = p_week + 1");
     expect(completionLoop).toContain("and status = 'Locked'");
-    expect(completionLoop).toContain("jsonb_array_elements(p_audit->'entries')");
-    expect(completionLoop).toContain("coalesce(entry->>'kind', '') = 'text'");
+    expect(completionLoop).toContain("jsonb_array_elements(p_game_audit -> 'entries')");
+    expect(completionLoop).toContain("entry ->> 'kind' = 'text'");
+  });
+
+  it("counts rejections and preserves every rejected submission snapshot", () => {
+    expect(feedbackHistory).toContain("add column if not exists rejection_count integer not null default 0");
+    expect(feedbackHistory).toContain("rejection_count = rejection_count + 1");
+    expect(feedbackHistory).toContain("'rejectionNumber', w.rejection_count + 1");
+    expect(feedbackHistory).toContain("'questionSet', w.question_set");
+    expect(feedbackHistory).toContain("'answers', w.answers");
+    expect(feedbackHistory).toContain("'gameAudit', w.game_audit");
+    expect(feedbackHistory).toContain("'submittedAt', w.submitted_at");
+  });
+
+  it("resets from a selected week while preserving completed predecessors", () => {
+    expect(feedbackHistory).toContain("'reset_from_week', v_start");
+    expect(feedbackHistory).toContain("week_number < v_start and status = 'Completed'");
+    expect(feedbackHistory).toContain("when week_number = v_start then 'In Progress'");
+    expect(feedbackHistory).toContain("where student_id = s.id and week_number >= v_start");
+    expect(feedbackHistory).toContain("answers = null");
+    expect(feedbackHistory).toContain("game_audit = null");
+    expect(feedbackHistory).toContain("week_number >= v_start");
+    expect(feedbackHistory).toContain("week_number < v_start");
   });
 });
 

@@ -6,8 +6,8 @@ import { api, buttonClass, fieldClass } from "@/app/_components/classroom-ui";
 import CaseComparison from "@/app/_components/case-comparison";
 import DataLens from "@/app/_components/data-lens";
 import { courseWeekLabel } from "@/lib/classroom/course";
-import { gradingGuidelines, isGradableAuditEntry, parseQuestionReviewComments, serializeQuestionReviewComments, type QuestionReviewComments, type ReviewDecision } from "@/lib/classroom/review-guidelines";
-import type { QuestionSet, SubmittedAnswer, WeekAuditEntry, WeekGameAudit } from "@/lib/classroom/data-types";
+import { gradingGuidelines, isGradableAuditEntry, parseQuestionReviewComments, parseStudentReviewFeedback, serializeQuestionReviewComments, type QuestionReviewComments, type ReviewDecision } from "@/lib/classroom/review-guidelines";
+import type { QuestionSet, ReviewHistoryEntry, SubmittedAnswer, WeekAuditEntry, WeekGameAudit } from "@/lib/classroom/data-types";
 import type { teacherSubmission } from "@/lib/classroom/service";
 
 type SubmissionRecord = Awaited<ReturnType<typeof teacherSubmission>>;
@@ -19,6 +19,15 @@ const kindLabel: Record<WeekAuditEntry["kind"], string> = {
   select: "下拉選擇",
   action: "互動操作"
 };
+const CANONICAL_FINAL_PROMPTS:Record<number,string>={
+  1:"如果有人只看見灰黑色犬隻的留所天數中位數較高，就說深色犬一定比較不受歡迎，這個結論漏看了哪些資料？你會再查證什麼？",
+  2:"綜合本週資料與照護責任，你會如何評估自己目前是否適合承擔長期飼養責任？",
+  3:"面對品種與性格標籤時，你會如何使用資料並保留個體差異與資料限制？",
+  4:"你如何追查遊蕩犬問題的來源，並區分資料支持的現象、推論與仍待查證之處？",
+  5:"面對零撲殺、動物福利、居民安全與生態衝突，你會如何提出有證據且可行的公共選擇？",
+  6:"請說明你的行前預期成果、時間規劃，以及所選參與方式如何符合安全與年齡資格條件。"
+};
+function displayPrompt(week:number,entry:WeekAuditEntry){return /統計截止日|資料只能描述|樣本數差距/.test(entry.prompt)?CANONICAL_FINAL_PROMPTS[week]??entry.prompt:entry.prompt}
 
 function GameAuditReview({ audit, week, comments, editable, onCommentChange }: { audit: WeekGameAudit; week: number; comments: QuestionReviewComments; editable: boolean; onCommentChange: (entryId: string, comment: string) => void }) {
   const groups = useMemo(() => {
@@ -33,7 +42,7 @@ function GameAuditReview({ audit, week, comments, editable, onCommentChange }: {
       <h2 className="text-xl font-bold">{section}</h2>
       {entries.map((entry, index) => <article key={entry.id} className="rounded-xl border border-stone-200 bg-white p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <h3 className="font-bold">{index + 1}. {entry.prompt}</h3>
+          <h3 className="font-bold">{index + 1}. {displayPrompt(week,entry)}</h3>
           <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
             {kindLabel[entry.kind]}
           </span>
@@ -81,6 +90,26 @@ function LegacyReview({ questionSet, answers }: { questionSet: QuestionSet; answ
   </>;
 }
 
+function RejectionHistory({ entries, week }: { entries: ReviewHistoryEntry[]; week: number }) {
+  const rejected = entries.filter((entry) => entry.decision === "reject");
+  if (rejected.length === 0) return null;
+  return <section className="rounded-2xl border border-red-200 bg-red-50/60 p-5" aria-label="歷次退件紀錄">
+    <h2 className="text-xl font-bold text-red-950">歷次退件紀錄 · {rejected.length} 次</h2>
+    <div className="mt-4 space-y-3">
+      {rejected.map((entry, index) => {
+        const parsed = parseStudentReviewFeedback(entry.feedback);
+        return <details className="rounded-xl border border-red-200 bg-white p-4" key={`${entry.reviewedAt}-${entry.submittedVersion}`}>
+          <summary className="cursor-pointer font-bold text-red-900">第 {entry.rejectionNumber ?? index + 1} 次退件 · {new Date(entry.reviewedAt).toLocaleString("zh-TW")}</summary>
+          <div className="mt-4 space-y-4">
+            <div className="rounded-lg bg-red-50 p-4 text-sm"><strong>當時教師評語</strong>{parsed?.items.length ? <ul className="mt-2 list-disc space-y-1 pl-5">{parsed.items.map((item) => <li key={item.entryId}>{item.comment}</li>)}</ul> : <p className="mt-2 whitespace-pre-wrap">{entry.feedback}</p>}</div>
+            {entry.gameAudit ? <GameAuditReview audit={entry.gameAudit} week={week} comments={parseQuestionReviewComments(entry.feedback)} editable={false} onCommentChange={() => undefined} /> : entry.questionSet ? <LegacyReview questionSet={entry.questionSet} answers={entry.answers ?? null} /> : <p className="text-sm text-stone-600">此舊紀錄沒有可顯示的提交快照。</p>}
+          </div>
+        </details>;
+      })}
+    </div>
+  </section>;
+}
+
 export default function Review({ id }: { id: string }) {
   const [record, setRecord] = useState<SubmissionRecord | null>(null);
   const [error, setError] = useState("");
@@ -122,12 +151,13 @@ export default function Review({ id }: { id: string }) {
     <h1 className="text-3xl font-bold">每周關卡填答題審查</h1>
     {error && <div role="alert" className="fixed right-5 top-20 z-[100] max-w-sm rounded-2xl border border-red-300 bg-red-50 px-5 py-4 text-red-900 shadow-xl">審查失敗：{error}</div>}
     {ready ? <>
-      <p>{record.enrollment.student.displayName} · 學號 {record.enrollment.student.studentNumber || "未填寫"} · {courseWeekLabel(record.week)} · {record.status === "pending" ? "等待審查中" : "目前不可批改"}</p>
-      {gameAudit ? <GameAuditReview audit={gameAudit} week={record.week} comments={questionComments} editable={record.status === "pending"} onCommentChange={(entryId, comment) => setQuestionComments((current) => ({ ...current, [entryId]: comment }))} /> : <LegacyReview questionSet={questionSet!} answers={answers} />}
+      <p>{record.enrollment.student.displayName} · 學號 {record.enrollment.student.studentNumber || "未填寫"} · {courseWeekLabel(record.week)} · {record.status === "pending" ? "等待審查中" : record.status === "returned" ? `已退件，等待學生修正（累計 ${record.rejectionCount} 次）` : record.status === "completed" ? "已完成" : "目前不可批改"}</p>
+      <RejectionHistory entries={record.feedbackHistory ?? []} week={record.week} />
+      {gameAudit ? <GameAuditReview audit={gameAudit} week={record.week} comments={questionComments} editable={record.status === "pending" || (record.week === 6 && record.status === "completed")} onCommentChange={(entryId, comment) => setQuestionComments((current) => ({ ...current, [entryId]: comment }))} /> : <LegacyReview questionSet={questionSet!} answers={answers} />}
       {!gameAudit && <label className="block font-bold">教師回饋<textarea value={feedback} onChange={(event) => setFeedback(event.target.value)} maxLength={3000} rows={4} className={fieldClass} /></label>}
       <div className="flex flex-wrap gap-4">
-        <button className="rounded-xl border border-red-300 bg-white px-5 py-3 font-bold text-red-800 disabled:opacity-50" disabled={busy || record.status !== "pending"} onClick={() => decide("reject")}>不通過，退回修正</button>
-        <button className={buttonClass} disabled={busy || record.status !== "pending"} onClick={() => decide("approve")}>{busy ? "審查中…" : record.week === 6 ? "通過並完成課程" : "通過並解鎖下一週"}</button>
+        <button className="rounded-xl border border-red-300 bg-white px-5 py-3 font-bold text-red-800 disabled:opacity-50" disabled={busy || (record.status !== "pending" && !(record.week === 6 && record.status === "completed"))} onClick={() => decide("reject")}>{record.week === 6 && record.status === "completed" ? "要求重新填寫 / 退件" : "不通過，退回修正"}</button>
+        {record.status === "pending" && <button className={buttonClass} disabled={busy} onClick={() => decide("approve")}>{busy ? "審查中…" : record.week === 6 ? "通過並完成課程" : "通過並解鎖下一週"}</button>}
       </div>
     </> : !error && <p>載入作業中…</p>}
   </main>;

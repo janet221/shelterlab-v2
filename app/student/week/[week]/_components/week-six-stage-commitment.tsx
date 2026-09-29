@@ -1,4 +1,4 @@
-import type { ActionRecord, ActionStatus, ActionOrganization } from "@/lib/week-six-action";
+import { WEEK_SIX_MIN_RESPONSE_LENGTH, type ActionRecord, type ActionStatus, type ActionOrganization } from "@/lib/week-six-action";
 import styles from "./week-six-experience.module.css";
 
 export default function Commitment({organization,record,completed,onChange,onComplete,onEdit,onRestart}:{organization:ActionOrganization;record:ActionRecord;completed:boolean;onChange:(record:ActionRecord)=>void;onComplete:()=>void;onEdit:()=>void;onRestart:()=>void}) {
@@ -9,10 +9,10 @@ export default function Commitment({organization,record,completed,onChange,onCom
     <label>預計日期<input aria-label="預計日期" type="date" value={record.plannedDate} onChange={event=>field("plannedDate",event.target.value)}/></label>
     <label>目前狀態<select value={record.status} onChange={event=>field("status",event.target.value as ActionStatus)}><option value="not_started">尚未開始</option><option value="prepared">已準備</option><option value="contacted">已聯絡</option><option value="waiting">等待回覆</option><option value="scheduled">已排定</option><option value="completed">已完成行動</option></select></label>
     <label>成人協助安排<input aria-label="成人協助安排" value={record.adultSupportNote} onChange={event=>field("adultSupportNote",event.target.value)} placeholder="例如：由導師協助聯絡與確認"/></label>
-    <label>需要確認的安全與資格條件<textarea rows={3} value={record.conditionsToConfirm} onChange={event=>field("conditionsToConfirm",event.target.value)}/></label>
-    <label>下一步<textarea rows={3} value={record.nextStep} onChange={event=>field("nextStep",event.target.value)}/></label>
-    <label>替代方案<textarea rows={3} value={record.alternativePlan} onChange={event=>field("alternativePlan",event.target.value)}/></label>
-    <label>行前預期成果（至少 20 字）<textarea aria-label="行前預期成果" rows={4} value={record.reflection} onChange={event=>field("reflection",event.target.value)} placeholder="寫下你希望這次行動能帶來的成果，以及你想觀察或學習的事情。"/></label>
+    <label>需要確認的安全與資格條件（至少 {WEEK_SIX_MIN_RESPONSE_LENGTH} 字）<textarea required minLength={WEEK_SIX_MIN_RESPONSE_LENGTH} rows={4} value={record.conditionsToConfirm} onChange={event=>field("conditionsToConfirm",event.target.value)}/><small>{record.conditionsToConfirm.trim().length}/{WEEK_SIX_MIN_RESPONSE_LENGTH} 字</small></label>
+    <label>下一步與時間規劃（至少 {WEEK_SIX_MIN_RESPONSE_LENGTH} 字）<textarea required minLength={WEEK_SIX_MIN_RESPONSE_LENGTH} rows={4} value={record.nextStep} onChange={event=>field("nextStep",event.target.value)}/><small>{record.nextStep.trim().length}/{WEEK_SIX_MIN_RESPONSE_LENGTH} 字</small></label>
+    <label>替代方案（至少 {WEEK_SIX_MIN_RESPONSE_LENGTH} 字）<textarea required minLength={WEEK_SIX_MIN_RESPONSE_LENGTH} rows={4} value={record.alternativePlan} onChange={event=>field("alternativePlan",event.target.value)}/><small>{record.alternativePlan.trim().length}/{WEEK_SIX_MIN_RESPONSE_LENGTH} 字</small></label>
+    <label>行前預期成果與反思（至少 {WEEK_SIX_MIN_RESPONSE_LENGTH} 字）<textarea required minLength={WEEK_SIX_MIN_RESPONSE_LENGTH} aria-label="行前預期成果" rows={5} value={record.reflection} onChange={event=>field("reflection",event.target.value)} placeholder="寫下你希望這次行動能帶來的成果，以及你想觀察或學習的事情。"/><small>{record.reflection.trim().length}/{WEEK_SIX_MIN_RESPONSE_LENGTH} 字</small></label>
     <button type="button" className={styles.primary} onClick={onComplete}>完成第六週行動承諾</button>
   </section>;
 }

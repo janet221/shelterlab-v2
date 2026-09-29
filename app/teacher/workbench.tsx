@@ -7,7 +7,8 @@ import type { teacherDashboard } from "@/lib/classroom/service";
 import { courseWeekLabel } from "@/lib/classroom/course";
 
 type Dashboard = Awaited<ReturnType<typeof teacherDashboard>>;
-const STATUS_LABEL = { locked: "未解鎖", in_progress: "進行中", pending: "審查中", completed: "已完成" } as const;
+const STATUS_LABEL = { locked: "未解鎖", in_progress: "進行中", returned: "已退件", pending: "審查中", completed: "已完成" } as const;
+function progressActionLabel(week:number,status:keyof typeof STATUS_LABEL){return week===6&&status==="completed"?"已完成 · 可抽查退件":STATUS_LABEL[status]}
 
 export default function TeacherDashboard() {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -34,13 +35,18 @@ export default function TeacherDashboard() {
     }
   }
 
-  return <main className="mx-auto max-w-7xl space-y-8 px-5 py-10">
+  return <main className="mx-auto max-w-6xl space-y-8 px-5 py-10 lg:px-8 lg:py-12">
+    <header className="border-l-4 border-[#6f8b7d] pl-5 sm:pl-6">
+      <p className="text-xs font-black uppercase tracking-[0.22em] text-[#7f7165]">教師工作區</p>
+      <h1 className="mt-3 text-3xl font-black tracking-tight text-[#302820] sm:text-4xl">學習進度追蹤</h1>
+      <p className="mt-3 max-w-3xl leading-7 text-stone-600">{dashboard?.classroom ? `${dashboard.classroom.schoolName} · ${dashboard.classroom.county} · ${dashboard.classroom.grade}` : "先完成班級設定，即可追蹤學生進度。"}</p>
+    </header>
     {dashboard?.classroom && <section className="relative overflow-hidden rounded-[2rem] border border-[#d8c7a7] bg-[linear-gradient(135deg,#fffaf0_0%,#f1eadf_58%,#dfe9e2_100%)] p-6 shadow-[0_24px_70px_-45px_rgba(70,57,44,0.65)] sm:p-8" aria-labelledby="teacher-zone-title">
       <div aria-hidden="true" className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/60 blur-2xl" />
       <div className="relative flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.24em] text-[#806e58]">Teacher Profile</p>
-          <h1 id="teacher-zone-title" className="mt-2 text-3xl font-bold text-[#382f28]">授課教師專區</h1>
+          <p className="text-xs font-black uppercase tracking-[0.24em] text-[#806e58]">授課資訊</p>
+          <h2 id="teacher-zone-title" className="mt-2 text-2xl font-black text-[#382f28]">授課教師專區</h2>
           <p className="mt-3 text-lg font-bold text-[#574b40]">{dashboard.teacherName}</p>
         </div>
         <dl className="grid flex-1 gap-3 sm:grid-cols-2 xl:max-w-4xl xl:grid-cols-4">
@@ -50,24 +56,19 @@ export default function TeacherDashboard() {
         </dl>
       </div>
     </section>}
-    <header>
-      <p className="font-bold text-[#7f7165]">教師工作區</p>
-      <h1 className="mt-2 text-3xl font-bold">學習進度追蹤</h1>
-      <p className="mt-3 text-stone-600">{dashboard?.classroom ? `${dashboard.classroom.schoolName} · ${dashboard.classroom.county} · ${dashboard.classroom.grade}` : "先完成班級設定，即可追蹤學生進度。"}</p>
-    </header>
     {error && <p role="alert" className="rounded-xl bg-red-50 p-4 text-red-800">{error}</p>}
     {!dashboard && !error && <p role="status">載入中…</p>}
     {dashboard && !dashboard.classroom && <Link className={buttonClass} href="/teacher/settings">設定我的班級</Link>}
 
     {dashboard?.classroom && <>
-      <section className="rounded-2xl border bg-white p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-xl font-bold">等待審查 · {dashboard.pending.length} 份</h2><p className="mt-2 text-sm text-stone-600">每十秒同步一次；通過後會自動解鎖下一週。</p></div><button className="underline" onClick={refresh}>立即更新</button></div>
+      <section className="rounded-[1.75rem] border border-[#e1d7ca] bg-white p-6 shadow-[0_18px_50px_-36px_rgba(66,51,36,0.55)] sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-amber-700">Review Queue</p><h2 className="mt-2 text-2xl font-black text-[#382f28]">等待審查 · {dashboard.pending.length} 份</h2><p className="mt-2 text-sm leading-6 text-stone-600">每十秒同步一次；通過後會自動解鎖下一週。</p></div><button className="rounded-xl border border-[#d7c8b5] bg-[#fffaf2] px-4 py-2 text-sm font-bold text-[#665644] transition hover:bg-[#f3eadc]" onClick={refresh}>↻ 立即更新</button></div>
         {dashboard.pending.length === 0 ? <p className="mt-5">目前沒有待審查關卡。</p> : <ul className="mt-4 divide-y">{dashboard.pending.map((work) => <li className="grid gap-3 py-4 md:grid-cols-[1fr_1fr_auto] md:items-center" key={work.id}><span><strong>{work.student.displayName}</strong><small className="mt-1 block text-stone-500">學號 {work.student.studentNumber || "未填寫"}</small></span><span><strong>{courseWeekLabel(work.week)}</strong><small className="mt-1 block text-stone-500">{work.submittedAt ? new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeStyle: "short" }).format(new Date(work.submittedAt)) : "尚無送出時間"}</small></span><Link className="font-bold text-[#7f7165] underline" href={`/teacher/reviews/${work.id}`}>檢視全部填答</Link></li>)}</ul>}
       </section>
 
-      <section className="rounded-2xl border bg-white p-6">
-        <div className="flex flex-wrap items-end justify-between gap-4"><div><h2 className="text-xl font-bold">全班學習進度</h2><p className="mt-2 text-sm text-stone-600">{dashboard.classroom.enrollments.length}／{dashboard.classroom.studentCount} 位學生已加入</p></div><code className="rounded-lg bg-stone-100 px-3 py-2 font-bold tracking-wider">{dashboard.classroom.joinCode}</code></div>
-        {dashboard.classroom.enrollments.length ? <div className="mt-5 overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead><tr><th className="p-3">學生</th>{[1, 2, 3, 4, 5, 6].map((week) => <th className="p-3" key={week}>第 {week} 週</th>)}</tr></thead><tbody>{dashboard.classroom.enrollments.map((enrollment) => <tr className="border-t" key={enrollment.student.id}><td className="p-3"><strong>{enrollment.student.displayName}</strong><small className="block text-stone-500">{enrollment.student.studentNumber || "未填學號"}</small></td>{[1, 2, 3, 4, 5, 6].map((week) => { const work = enrollment.weeks.find((item) => item.week === week); const status = work?.status || "locked"; return <td className="p-3" key={week}>{work?.status === "pending" ? <Link className="font-bold text-amber-700 underline" href={`/teacher/reviews/${work.id}`}>{STATUS_LABEL[status]}</Link> : STATUS_LABEL[status]}</td>; })}</tr>)}</tbody></table></div> : <p className="mt-5">目前尚無學生加入。</p>}
+      <section className="rounded-[1.75rem] border border-[#d9dfda] bg-white p-6 shadow-[0_18px_50px_-36px_rgba(55,80,68,0.5)] sm:p-8">
+        <div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-xs font-black uppercase tracking-[0.18em] text-[#608071]">Class Overview</p><h2 className="mt-2 text-2xl font-black text-[#382f28]">全班學習進度</h2><p className="mt-2 text-sm text-stone-600">{dashboard.classroom.enrollments.length}／{dashboard.classroom.studentCount} 位學生已加入</p></div><code className="rounded-xl border border-[#d8e2dc] bg-[#edf3ef] px-4 py-2.5 font-bold tracking-wider text-[#3f554d]">{dashboard.classroom.joinCode}</code></div>
+        {dashboard.classroom.enrollments.length ? <div className="mt-6 overflow-x-auto rounded-2xl border border-[#ece5dc]"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-[#faf7f2] text-[#65594d]"><tr><th className="p-4">學生</th>{[1, 2, 3, 4, 5, 6].map((week) => <th className="p-4" key={week}>第 {week} 週</th>)}</tr></thead><tbody>{dashboard.classroom.enrollments.map((enrollment) => <tr className="border-t border-[#eee7de] transition hover:bg-[#fffdf9]" key={enrollment.student.id}><td className="p-4"><strong>{enrollment.student.displayName}</strong><small className="mt-1 block text-stone-500">{enrollment.student.studentNumber || "未填學號"}</small></td>{[1, 2, 3, 4, 5, 6].map((week) => { const work = enrollment.weeks.find((item) => item.week === week); const status = work?.status || "locked"; const reviewable = work && ["pending", "returned", "completed"].includes(work.status); return <td className="p-4" key={week}>{reviewable ? <Link className={`font-bold underline underline-offset-4 ${status === "returned" ? "text-red-700" : status === "pending" ? "text-amber-700" : "text-emerald-700"}`} href={`/teacher/reviews/${work.id}`}>{progressActionLabel(week,status)}{work.rejectionCount ? `（退件 ${work.rejectionCount} 次）` : ""}</Link> : progressActionLabel(week,status)}</td>; })}</tr>)}</tbody></table></div> : <p className="mt-5">目前尚無學生加入。</p>}
       </section>
     </>}
   </main>;

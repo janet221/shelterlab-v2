@@ -171,11 +171,11 @@ export function normalizeSchoolDirectory(input: unknown): SchoolDirectoryEntry[]
   }).sort((a, b) => a.county === b.county ? a.name.localeCompare(b.name, "zh-Hant") : a.county.localeCompare(b.county, "zh-Hant"));
 }
 
-async function fetchOfficial(url: string) {
+async function fetchOfficial(url: string, timeoutMs = 12_000) {
   // The adoption feed can exceed Next's 2 MB fetch-cache item limit. Keep the
   // last successful normalized payload in this server module and cache the API
   // response at the route/CDN layer instead of attempting to persist the raw feed.
-  const response = await fetch(url, { signal: AbortSignal.timeout(12_000), cache: "no-store" });
+  const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs), cache: "no-store" });
   if (!response.ok) throw new Error(`政府 API 回應 ${response.status}`);
   return response.json() as Promise<unknown>;
 }
@@ -184,6 +184,8 @@ let cachedAdoptions: AdoptionSnapshot | null = null;
 let cachedStats: ShelterStatsSnapshot | null = null;
 let cachedNeeds: ShelterNeedsSnapshot | null = null;
 let cachedSchools: SchoolDirectorySnapshot | null = null;
+let cachedSchoolsAt = 0;
+const SCHOOL_DIRECTORY_CACHE_MS = 6 * 60 * 60 * 1000;
 
 export async function getAdoptionSnapshot(): Promise<AdoptionSnapshot> {
   try {
@@ -235,18 +237,22 @@ export async function getShelterNeedsSnapshot(): Promise<ShelterNeedsSnapshot> {
   }
 }
 
-export async function getSchoolDirectorySnapshot(): Promise<SchoolDirectorySnapshot> {
+export async function getSchoolDirectorySnapshot(requireComplete = false): Promise<SchoolDirectorySnapshot> {
+  if (cachedSchools && Date.now() - cachedSchoolsAt < SCHOOL_DIRECTORY_CACHE_MS) return cachedSchools;
   const registryDate = OPEN_DATASET_BY_ID.get("moe-senior-high-directory-6089")?.lastUpdated ?? WEEK_SIX_SCHOOL_SNAPSHOT_DATE;
   try {
-    const rows = await fetchOfficial(SCHOOL_DIRECTORY_API_URL);
+    const rows = await fetchOfficial(SCHOOL_DIRECTORY_API_URL, 30_000);
     const schools = normalizeSchoolDirectory(rows);
-    if (!schools.length) throw new Error("教育部學校名錄沒有可用列");
+    const coveredCounties = new Set(schools.map((school) => school.county));
+    if (schools.length < 400 || coveredCounties.size < 22) throw new Error("教育部學校名錄內容不完整");
     const schoolYear = schools[0]?.schoolYear || "115";
     const payload: SchoolDirectorySnapshot = { source:{ mode:"live", updatedAt:`${schoolYear} 學年度（資料集詮釋更新 ${registryDate}）`, datasetUrl:SCHOOL_DIRECTORY_DATASET_URL, apiUrl:SCHOOL_DIRECTORY_API_URL, message:"使用教育部一般高級中等學校名錄" }, schools };
     cachedSchools = payload;
+    cachedSchoolsAt = Date.now();
     return payload;
   } catch {
     if (cachedSchools) return { ...cachedSchools, source:{ ...cachedSchools.source, mode:"fallback", fallbackDate:cachedSchools.source.updatedAt, message:"教育部檔案暫時無法使用，目前使用最近一次成功快取" } };
+    if (requireComplete) throw new Error("教育部完整高中名錄暫時無法同步");
     return { source:{ mode:"fallback", updatedAt:`115 學年度（快照 ${WEEK_SIX_SCHOOL_SNAPSHOT_DATE}）`, fallbackDate:WEEK_SIX_SCHOOL_SNAPSHOT_DATE, datasetUrl:SCHOOL_DIRECTORY_DATASET_URL, apiUrl:SCHOOL_DIRECTORY_API_URL, message:"目前使用有日期的教育部名錄備援快照" }, schools:WEEK_SIX_SCHOOL_SNAPSHOT.map((school)=>({...school})) };
   }
 }

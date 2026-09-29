@@ -183,7 +183,7 @@ function QuizBlock({ items, answers = {}, order, onAnswer }: { items: readonly Q
   return <div className={styles.quizGrid}>{items.map((item, index) => <fieldset className={styles.quizCard} key={item.question}><legend><span>{index + 1}</span>{item.question}</legend><div className={styles.choiceGrid}>{order[index].map((optionIndex) => <button type="button" key={item.options[optionIndex]} aria-pressed={answers[index] === optionIndex} className={answers[index] === optionIndex ? styles.correctChoice : ""} onClick={() => onAnswer(index, optionIndex)}>{item.options[optionIndex]}</button>)}</div>{answers[index] === item.answer && <p className={styles.answerNote}><strong>判讀重點</strong>{item.note}</p>}</fieldset>)}</div>;
 }
 
-export default function WeekFiveExperience() {
+export default function WeekFiveExperience({ auditDemo = false }: { auditDemo?: boolean }) {
   const router = useRouter();
   const { completeWeek, progress } = useStudentLearningProgress();
   const [saved, setSaved] = useState<SavedWeekFive>(EMPTY);
@@ -193,6 +193,7 @@ export default function WeekFiveExperience() {
   const [fileOrders, setFileOrders] = useState<string[][]>(defaultFileOrders);
 
   useEffect(() => { try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { const parsed = JSON.parse(raw) as Partial<SavedWeekFive>; if (parsed.contentVersion === CONTENT_VERSION) setSaved({ ...EMPTY, ...parsed, hearts: { ...DEFAULT_HEARTS, ...(parsed.hearts ?? {}) }, answers: parsed.answers ?? {}, files: parsed.files ?? {}, treasureAnswers: parsed.treasureAnswers ?? {}, treasureCompleted: parsed.treasureCompleted ?? Boolean(parsed.completed) }); } } catch {} setReady(true); }, []);
+  useEffect(() => { if (auditDemo) setSaved((current) => ({ ...current, stage: 5, furthest: Math.max(current.furthest, 5), completed: false })); }, [auditDemo]);
   useEffect(() => { if (!ready) return; try { localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); } catch {} }, [ready, saved]);
   useEffect(() => { if (!ready) return; const stage = saved.stage; if (stage < 5) setQuizOrders((current) => current.map((orders, index) => index === stage ? QUIZZES[stage].map((item, question) => visitShuffle(item.options.map((_, option) => option), `week5-${stage}-${question}`)) : orders)); if (FILE_SETS[stage].length) setFileOrders((current) => current.map((orders, index) => index === stage ? visitShuffle(FILE_SETS[stage].map((item) => item.id), `week5-files-${stage}`) : orders)); }, [ready, saved.stage]);
 

@@ -32,9 +32,16 @@ export type WeekGameAudit = {
 };
 
 export type ReviewHistoryEntry = {
-  decision: "approve";
+  decision: "approve" | "reject";
   feedback: string;
   reviewedAt: string;
   reviewedBy: string;
+  generation: number;
   submittedVersion: number;
+  rejectionNumber?: number;
+  rejectionCount?: number;
+  submittedAt?: string | null;
+  questionSet?: QuestionSet | null;
+  answers?: SubmittedAnswer[] | null;
+  gameAudit?: WeekGameAudit | null;
 };

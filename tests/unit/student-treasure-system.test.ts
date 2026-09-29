@@ -84,7 +84,8 @@ describe("六週寶物與審核閉環", () => {
     const notebook = read("app/student/week/[week]/_components/realistic-notebook-intro.tsx");
     const game = read("app/student/week/[week]/_components/week-one-game.tsx");
 
-    expect(experience).toContain("useState(true)");
+    expect(experience).toContain("useState(!auditDemo && !skipIntro)");
+    expect(experience).toContain("skipIntro = false");
     expect(experience).not.toContain("localStorage");
     expect(experience).toContain("<RealisticNotebookIntro onComplete={() => setShowNotebook(false)} />");
     expect(notebook).toContain("第 1 週｜先入為主與證據");
@@ -100,17 +101,29 @@ describe("六週寶物與審核閉環", () => {
   it("六週完整互動內容直接記錄審查資料且不顯示底部送審區", () => {
     const weekPage = read("app/student/week/[week]/page.tsx");
     const tracker = read("app/student/week/[week]/_components/week-audit-tracker.tsx");
+    const service = read("lib/classroom/service.ts");
+    const studentWeek = service.slice(service.indexOf("export async function studentWeek"), service.indexOf("export function validateAnswers"));
+    const legacySubmission = service.slice(service.indexOf("export async function submitWeek"), service.indexOf("export async function submitGameAudit"));
 
     for (const component of ["WeekOneExperience", "WeekTwoExperience", "WeekThreeExperience", "WeekFourExperience", "WeekFiveExperience", "WeekSixExperience"]) {
       expect(weekPage).toContain(component);
     }
-    expect(weekPage).toContain("studentWeek(account.id, weekNumber)");
+    expect(weekPage).toContain("studentWeek(account.id, weekNumber, evaluatorPreview)");
     expect(weekPage).toContain("submittedAudit={work.gameAudit}");
     expect(weekPage).not.toContain("WeekSubmission");
     expect(tracker).toContain("shelterlab-week-complete");
     expect(tracker).toContain("game-audit");
     expect(tracker).toContain("detail.resolve?.(saved)");
     expect(tracker).toContain('work.status === "pending" || work.status === "completed"');
+    expect(tracker).toContain("教師即時評語：");
+    expect(tracker).not.toContain("已保留其他選擇題與互動結果");
+    expect(tracker).toContain("state.stage = 5");
+    expect(tracker).toContain("state.furthest = Math.max");
+    expect(tracker).toContain("state.furthestStage = Math.max");
+    expect(tracker).toContain('target.scrollIntoView({ behavior: "smooth", block: "center" })');
+    expect(studentWeek).not.toContain("countyData(");
+    expect(studentWeek).toContain("county: progress.county");
+    expect(legacySubmission).toContain("record.questionSet ?? buildQuestionSet(await countyData(record.county!)");
 
     const map = read("app/student/_components/student-map-dynamic.tsx");
     expect(map).toContain('item.status === "completed"');
@@ -120,6 +133,47 @@ describe("六週寶物與審核閉環", () => {
     const learningProgress = read("app/student/_components/student-learning-progress.tsx");
     expect(learningProgress).toContain('w.status==="completed"');
     expect(learningProgress).toContain("unlockedTools:completedWeeks");
+  });
+
+  it("評審模式以分頁暫存完成六週傳送與退件閉環，不寫入正式稽核", () => {
+    const map = read("app/student/_components/student-map-dynamic.tsx");
+    const tracker = read("app/student/week/[week]/_components/week-audit-tracker.tsx");
+    const storage = read("lib/classroom/browser-storage.ts");
+    const route = read("app/api/classroom/[...path]/route.ts");
+
+    expect(map).toContain("快速傳送至指定週次");
+    expect(map).not.toContain("一鍵解鎖全部六週關卡");
+    expect(map).not.toContain("六週預覽已全部解鎖");
+    expect(map).not.toContain("僅開放評審測試賬號");
+    expect(map).toContain("模擬學生作業被教師退件後");
+    expect(map).toContain("模擬教師退件");
+    expect(map).toContain("第 ${previewRewardWeek} 週已完成");
+    expect(map).toContain('router.push(`/student/week/${week}?evaluator=1`)');
+    expect(map).toContain("auditDemo=1#revision-answer");
+    expect(tracker).toContain("模擬學生修改後再次送出");
+    expect(tracker).toContain("模擬教師審查通過");
+    expect(tracker).toContain("展示狀態不寫入正式稽核與退件紀錄");
+    expect(tracker).toContain("setEvaluatorPreviewReward(week)");
+    expect(tracker).toContain('evaluatorPreview ? undefined : reviewFeedback');
+    expect(tracker).toContain("if (!auditDemo) clearEvaluatorLearningDrafts(accountId, week)");
+    expect(tracker).toContain("restoreEvaluatorLearningDrafts(accountId, week)");
+    expect(tracker).toContain("clearEvaluatorDemoStates()");
+    expect(tracker).not.toContain('setEvaluatorDemoState(week, { status: "completed"');
+    expect(storage).toContain("window.sessionStorage");
+    expect(storage).toContain("snapshotEvaluatorLearningDrafts");
+    expect(route).toContain("evaluatorMode: isEvaluatorAccount(student)");
+    expect(route).toContain('searchParams.get("evaluator") === "1" && isEvaluatorAccount(student)');
+
+    for (const component of ["week-two-experience.tsx", "week-three-experience.tsx", "week-four-experience.tsx", "week-five-experience.tsx"]) {
+      const source = read(`app/student/week/[week]/_components/${component}`);
+      expect(source).toContain("auditDemo = false");
+      expect(source).toContain("stage: 5");
+      expect(source).toContain("completed: false");
+    }
+    const weekSix = read("app/student/week/[week]/_components/week-six-experience.tsx");
+    expect(weekSix).toContain("auditDemo=false");
+    expect(weekSix).toContain('stage:5');
+    expect(weekSix).toContain('status:"draft"');
   });
 
   it("教師審查只呈現可批改的填答與完成時間", () => {
@@ -162,6 +216,22 @@ describe("六週寶物與審核閉環", () => {
     expect(settings).not.toContain("採固定六週闖關");
     expect(dashboard).toContain('redirect("/teacher/reviews")');
     expect(generator).toContain('redirect("/teacher/reviews")');
+  });
+
+  it("教師可選定學生與週次，且必須輸入姓名才可重置地圖", () => {
+    const settings = read("app/teacher/settings/settings-form.tsx");
+    const service = read("lib/classroom/service.ts");
+    const storage = read("lib/classroom/browser-storage.ts");
+
+    expect(settings).toContain("重置回指定週次");
+    expect(settings).toContain("confirmationName.trim() === selectedStudent.displayName");
+    expect(settings).toContain("disabled={busy || !confirmationMatches}");
+    expect(settings).toContain("此操作無法復原");
+    expect(service).toContain("confirmationName: z.string().trim()");
+    expect(service).toContain("startWeek: z.number().int().min(1).max(6)");
+    expect(service).toContain("輸入的學生姓名不相符");
+    expect(storage).toContain("clearLearningDraftsFromWeek");
+    expect(storage).toContain("shelterlab-week-game-audit-v1");
   });
 
   it("進度追蹤頁最上方提供動態授課教師專區與班級代碼複製", () => {

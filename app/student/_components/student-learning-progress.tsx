@@ -1,6 +1,7 @@
 "use client";
 import { api } from "@/app/_components/classroom-ui";
-import { learningStorage, setLearningStorageScope, clearLearningDrafts } from "@/lib/classroom/browser-storage";
+import { isEvaluatorPreviewUnlocked, learningStorage, restoreEvaluatorLearningDrafts, setEvaluatorPreviewUnlocked, setLearningStorageScope, clearLearningDraftsFromWeek } from "@/lib/classroom/browser-storage";
+import { usePathname } from "next/navigation";
 
 
 import {
@@ -9,9 +10,11 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from "react";
 import { getLearningTool, type LearningToolKind, type WeekNumber } from "@/lib/student-map";
+import StudentRouteLoading from "./student-route-loading";
 
 export type EvidenceBucket = "data" | "supported" | "inference" | "unknown";
 
@@ -179,27 +182,37 @@ function migrateLegacyWeekOne(): StudentLearningProgress | null {
   }
 }
 
-export function StudentLearningProgressProvider({ children, accountId }: { children: React.ReactNode; accountId: string }) {
+export function StudentLearningProgressProvider({ children, accountId, evaluatorMode = false }: { children: React.ReactNode; accountId: string; evaluatorMode?: boolean }) {
+ const pathname=usePathname();
  const [progress,setProgress]=useState<StudentLearningProgress>(INITIAL_STUDENT_LEARNING_PROGRESS);
  const [ready,setReady]=useState(false);
+ const [evaluatorPreview,setEvaluatorPreview]=useState(false);
+ const skipNextSaveRef=useRef(false);
  useEffect(()=>{
   setLearningStorageScope(accountId);
-  try { const raw=learningStorage.getItem(STUDENT_LEARNING_STORAGE_KEY); if(raw) setProgress(normalizeProgress(JSON.parse(raw))); } catch {}
+  const restored=evaluatorMode&&pathname==="/student"?restoreEvaluatorLearningDrafts(accountId):false;
+  if(restored)skipNextSaveRef.current=true;
+  if(evaluatorMode&&pathname==="/student"){setEvaluatorPreviewUnlocked(false);setEvaluatorPreview(false);}
+  else if(evaluatorMode)setEvaluatorPreview(isEvaluatorPreviewUnlocked());
+  try { const raw=learningStorage.getItem(STUDENT_LEARNING_STORAGE_KEY); if(raw) setProgress(normalizeProgress(JSON.parse(raw))); else if(restored)setProgress(INITIAL_STUDENT_LEARNING_PROGRESS); } catch {}
   setReady(true);
   let stopped=false;
   const refresh=async()=>{try{
-   const result=await api<{generation?:number;weeks:Array<{week:WeekNumber;status:string}>}>("/api/classroom/progress");
+   const result=await api<{generation?:number;resetFromWeek?:number;weeks:Array<{week:WeekNumber;status:string}>}>("/api/classroom/progress");
    if(stopped)return;
    const previous=learningStorage.getItem("generation"),generation=String(result.generation??0);
-   if(previous!==null&&previous!==generation){clearLearningDrafts();learningStorage.setItem("generation",generation);window.location.assign("/student");return;}
+   if(previous!==null&&previous!==generation){clearLearningDraftsFromWeek(result.resetFromWeek??1);learningStorage.setItem("generation",generation);window.location.assign("/student");return;}
    learningStorage.setItem("generation",generation);
    const completedWeeks=result.weeks.filter(w=>w.status==="completed").map(w=>w.week);
    setProgress(p=>({...p,completedWeeks,unlockedTools:completedWeeks.map(w=>getLearningTool(w).kind)}));
   }catch{/* No local fallback can approve a week; page/API gates remain authoritative. */}};
-  void refresh();const timer=setInterval(refresh,5000);window.addEventListener("classroom-progress",refresh);
-  return()=>{stopped=true;clearInterval(timer);window.removeEventListener("classroom-progress",refresh);};
- },[accountId]);
- useEffect(()=>{if(ready)try{learningStorage.setItem(STUDENT_LEARNING_STORAGE_KEY,JSON.stringify({...progress,completedWeeks:[],unlockedTools:[]}));}catch{}},[progress,ready]);
+  const preview=()=>setEvaluatorPreview(evaluatorMode&&isEvaluatorPreviewUnlocked());
+  window.addEventListener("shelterlab-evaluator-demo",preview);
+  const timer=pathname==="/student"?undefined:setInterval(refresh,5000);
+  if(pathname!=="/student"){void refresh();window.addEventListener("classroom-progress",refresh);}
+  return()=>{stopped=true;if(timer)clearInterval(timer);window.removeEventListener("classroom-progress",refresh);window.removeEventListener("shelterlab-evaluator-demo",preview);};
+ },[accountId,evaluatorMode,pathname]);
+ useEffect(()=>{if(skipNextSaveRef.current){skipNextSaveRef.current=false;return;}if(ready)try{learningStorage.setItem(STUDENT_LEARNING_STORAGE_KEY,JSON.stringify({...progress,completedWeeks:[],unlockedTools:[]}));}catch{}},[progress,ready]);
  const updateWeekOne=useCallback((patch:Partial<WeekOneProgress>)=>setProgress(p=>({...p,weekOne:normalizeWeekOne({...p.weekOne,...patch})})),[]);
  const replaceWeekOne=useCallback((recipe:(p:WeekOneProgress)=>WeekOneProgress)=>setProgress(p=>({...p,weekOne:normalizeWeekOne(recipe(p.weekOne))})),[]);
  const completeWeek=useCallback((week:WeekNumber)=>new Promise<boolean>((resolve)=>{
@@ -210,8 +223,9 @@ export function StudentLearningProgressProvider({ children, accountId }: { child
  }),[]);
  const completeWeekOne=useCallback(()=>completeWeek(1),[completeWeek]);
  const resetWeekOne=useCallback(()=>setProgress(p=>({...p,weekOne:{...INITIAL_WEEK_ONE_PROGRESS}})),[]);
- const value=useMemo(()=>({progress,ready,updateWeekOne,replaceWeekOne,completeWeek,completeWeekOne,resetWeekOne}),[progress,ready,updateWeekOne,replaceWeekOne,completeWeek,completeWeekOne,resetWeekOne]);
- return <LearningProgressContext.Provider value={value}>{ready?children:<p className="p-8">正在載入個人學習資料…</p>}</LearningProgressContext.Provider>;
+ const visibleProgress=useMemo(()=>evaluatorPreview?{...progress,completedWeeks:[1,2,3,4,5,6] as WeekNumber[],unlockedTools:([1,2,3,4,5,6] as WeekNumber[]).map(w=>getLearningTool(w).kind)}:progress,[evaluatorPreview,progress]);
+ const value=useMemo(()=>({progress:visibleProgress,ready,updateWeekOne,replaceWeekOne,completeWeek,completeWeekOne,resetWeekOne}),[visibleProgress,ready,updateWeekOne,replaceWeekOne,completeWeek,completeWeekOne,resetWeekOne]);
+ return <LearningProgressContext.Provider value={value}>{ready?children:<StudentRouteLoading title="正在載入學習進度" description="正在同步你的六週旅程、關卡狀態與探究工具…"/>}</LearningProgressContext.Provider>;
 }
 
 export function useStudentLearningProgress() {

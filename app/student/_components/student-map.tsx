@@ -14,6 +14,7 @@ import {
 const statusText: Record<WeekStatus, string> = {
   locked: "未解鎖",
   in_progress: "進行中",
+  returned: "已退件",
   pending: "等待審核",
   completed: "已完成"
 };
@@ -22,6 +23,8 @@ const statusClass: Record<WeekStatus, string> = {
   locked: "grayscale opacity-50 cursor-not-allowed",
   in_progress:
     "cursor-pointer hover:scale-[1.045] drop-shadow-[0_0_16px_rgba(224,177,76,0.72)]",
+  returned:
+    "cursor-pointer hover:scale-[1.045] drop-shadow-[0_0_16px_rgba(169,77,69,0.72)]",
   pending:
     "cursor-pointer hover:scale-[1.025] drop-shadow-[0_0_14px_rgba(194,147,73,0.52)]",
   completed:
@@ -262,6 +265,8 @@ function NodeVisual({ node }: { node: WeekMapNode }) {
 function StatusBadge({ status }: { status: WeekStatus }) {
   const config = status === "locked"
     ? { symbol: "🔒", cls: "bg-[#6F6C68]" }
+    : status === "returned"
+      ? { symbol: "✎", cls: "bg-[#A94D45]" }
     : status === "pending"
       ? { symbol: "⌛", cls: "bg-[#C58F3D]" }
       : status === "completed"
@@ -300,6 +305,9 @@ function WeekNodeButton({ node }: { node: WeekMapNode }) {
         )}
         {node.status === "pending" && (
           <div className="absolute bottom-[-4%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#D4B477] bg-[#FFF9EA]/95 px-3 py-1 text-[11px] font-bold text-[#755B2F] shadow-sm">等待審核</div>
+        )}
+        {node.status === "returned" && (
+          <div className="absolute bottom-[-4%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-red-300 bg-red-50/95 px-3 py-1 text-[11px] font-bold text-red-800 shadow-sm">已退件，請修正</div>
         )}
         {node.status === "in_progress" && (
           <div className="absolute bottom-[-4%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#E1C477] bg-[#FFF9E7]/95 px-3 py-1 text-[11px] font-bold text-[#6F592A] opacity-0 shadow-sm transition group-hover:opacity-100">點擊進入</div>

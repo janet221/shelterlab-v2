@@ -302,7 +302,7 @@ export const applicationRepository = {
     const application:OpportunityApplication={id:id("application"),kind:options?.kind??"direct_application",opportunityId:latest.id,organizationId:latest.organizationId,studentId:checkedProfile.studentId,studentLabel:checkedProfile.displayName,age,ageBand:ageBand(age),profileSnapshot:snapshot({...preferences,age},checkedProfile),teacherConfirmationStatus:teacherPending?"pending":"not_required",motivation:options?.motivation??"希望把課程學到的資料判讀轉成安全、可行的行動。",learningGoals:options?.learningGoals??latest.learningGoals,status:applicationStatus,statusHistory:[{status:applicationStatus,note:"學生送出申請；系統已依最新活動規則重新檢查資格。",changedAt:now,changedBy:"student"}],createdAt:now,updatedAt:now,availableTimes:options?.availableTimes??checkedProfile.availableTimes,guardianConsentConfirmed:options?.guardianConsentConfirmed??checkedProfile.guardianConsentAvailable??checkedProfile.guardianConsent,adultCompanionConfirmed:options?.adultCompanionConfirmed??checkedProfile.adultCompanionAvailable??checkedProfile.adultSupportAvailable};
     write(KEYS.applications,[application,...this.list()]);
     messageRepository.add({organizationId:latest.organizationId,applicationId:application.id,type:"status_update",recipient:"organization",content:`收到「${latest.title}」的新申請。`});
-    notificationRepository.add({category:"application",kind:application.status==="needs_teacher_confirmation"?"teacher_confirmation":"application_submitted",title:application.status==="needs_teacher_confirmation"?"此活動需要教師確認":"申請已送出",summary:`${latest.organizationName} 的「${latest.title}」已建立站內申請紀錄。`,source:"ShelterLab 行動申請",opportunityId:latest.id,applicationId:application.id,actionLabel:"查看申請進度",actionHref:`/student/action-inbox?application=${application.id}`});
+    notificationRepository.add({category:"application",kind:application.status==="needs_teacher_confirmation"?"teacher_confirmation":"application_submitted",title:application.status==="needs_teacher_confirmation"?"此活動需要教師確認":"申請已送出",summary:`${latest.organizationName} 的「${latest.title}」已建立站內申請紀錄。`,source:"ShelterLab 行動申請",opportunityId:latest.id,applicationId:application.id,actionLabel:"查看活動",actionHref:`/student/opportunities/${latest.id}`});
     if(teacherPending)messageRepository.add({organizationId:latest.organizationId,applicationId:application.id,type:"teacher_notice",recipient:"teacher",content:"未成年或團體參與需要教師／家長確認，請協助檢視資格與安全條件。"});
     return{ok:true as const,application};
   },
@@ -313,7 +313,7 @@ export const applicationRepository = {
     const opportunity=opportunityRepository.get(current.opportunityId),organization=organizationRepository.get(current.organizationId);
     const config:Partial<Record<ApplicationStatus,[ActionNotification["kind"],string,string]>>={viewed:["application_submitted","機構已查看申請","查看申請進度"],reviewing:["application_submitted","單位已開始審核","查看申請進度"],under_review:["application_submitted","單位已開始審核","查看申請進度"],accepted:["application_accepted","單位已錄取申請","查看集合資訊"],waitlisted:["waitlisted","申請進入候補","查看申請進度"],needs_information:["needs_information","單位要求補充資料","查看需要補充的內容"],needs_teacher_confirmation:["teacher_confirmation","此活動需要教師確認","查看確認事項"],rejected:["declined","單位未錄取申請","查看說明"],declined:["declined","單位未錄取申請","查看說明"],scheduled:["safety_reminder","行前安全提醒","查看集合資訊"],cancelled:["cancelled","活動已取消","查看通知"],completed:["reflection_reminder","活動完成，請留下反思","前往第六週反思"]};
     const selected=config[status];
-    if(selected)notificationRepository.add({category:status==="scheduled"?"reminder":"application",kind:selected[0],title:selected[1],summary:note||meetingInfo||`${opportunity?.title??"參與需求"}的狀態已更新。`,source:opportunity?.organizationName??organization?.name??"合作單位",opportunityId:opportunity?.id,applicationId:current.id,actionLabel:selected[2],actionHref:status==="completed"?"/student/week/6":"/student/action-inbox"});
+    if(selected)notificationRepository.add({category:status==="scheduled"?"reminder":"application",kind:selected[0],title:selected[1],summary:note||meetingInfo||`${opportunity?.title??"參與需求"}的狀態已更新。`,source:opportunity?.organizationName??organization?.name??"合作單位",opportunityId:opportunity?.id,applicationId:current.id,actionLabel:selected[2],actionHref:status==="completed"?"/student/week/6":opportunity?`/student/opportunities/${opportunity.id}`:"/student/opportunities"});
     messageRepository.add({organizationId:current.organizationId,applicationId:current.id,type:status==="needs_information"?"information_request":status==="scheduled"?"meeting":"status_update",recipient:"student",content:note||meetingInfo||`申請狀態更新為 ${status}。`});
     if(status==="needs_teacher_confirmation")messageRepository.add({organizationId:current.organizationId,applicationId:current.id,type:"teacher_notice",recipient:"teacher",content:note||"請教師確認學生的參與資格與安全安排。"});
     if(status==="completed"&&opportunity)syncWeekSixCompletion(opportunity);
@@ -323,7 +323,7 @@ export const applicationRepository = {
     const current=this.list().find(item=>item.id===applicationId); if(!current)return null;
     const result=activityResultRepository.add({organizationId:current.organizationId,opportunityId:current.opportunityId,applicationId:current.id,serviceHours:hours??0,tasksCompleted:["由合作單位確認完成"],partnerNote:note});
     const updated={...current,note,serviceHours:result.serviceHours,updatedAt:nowIso()}; write(KEYS.applications,this.list().map(item=>item.id===applicationId?updated:item));
-    notificationRepository.add({category:"application",kind:"service_record_updated",title:"服務成果已更新",summary:note,source:"合作單位",opportunityId:current.opportunityId,applicationId:current.id,actionLabel:"查看行動紀錄",actionHref:"/student/action-inbox"}); return updated;
+    notificationRepository.add({category:"application",kind:"service_record_updated",title:"服務成果已更新",summary:note,source:"合作單位",opportunityId:current.opportunityId,applicationId:current.id,actionLabel:"查看活動",actionHref:`/student/opportunities/${current.opportunityId}`}); return updated;
   },
   // Compatibility aliases for the existing student UI. New code uses the dedicated repositories below.
   createOpenMatching(preferences=preferenceRepository.get()){ return studentMatchProfileRepository.optIn(preferences); },
@@ -363,7 +363,7 @@ export const invitationRepository = {
     if(!opportunity||!profile||opportunity.organizationId!==organizationId||!profile.optedIn)return null;
     const now=nowIso(),item:MatchInvitation={id:id("invitation"),organizationId,studentMatchProfileId:profileId,opportunityId,status:"pending",message,createdAt:now,updatedAt:now};
     write(KEYS.invitations,[item,...this.list()]);
-    notificationRepository.add({category:"matching",kind:"matching_invitation",title:"收到匿名媒合邀請",summary:`${opportunity.organizationName} 邀請你查看「${opportunity.title}」。`,source:"ShelterLab 匿名媒合",opportunityId,invitationId:item.id,actionLabel:"回覆邀請",actionHref:"/student/action-inbox"});
+    notificationRepository.add({category:"matching",kind:"matching_invitation",title:"收到匿名媒合邀請",summary:`${opportunity.organizationName} 邀請你查看「${opportunity.title}」。`,source:"ShelterLab 匿名媒合",opportunityId,invitationId:item.id,actionLabel:"查看活動",actionHref:`/student/opportunities/${opportunityId}`});
     return item;
   },
   respond(invitationId:string,response:"accepted"|"declined"){
@@ -404,12 +404,12 @@ export const visitRequestRepository = {
     const program=visitProgramRepository.get(input.visitProgramId),organization=organizationRepository.get(input.organizationId);if(!program||!organization||program.organizationId!==input.organizationId||organization.managementMode!=="partner_managed")return null;
     const now=nowIso(),item:VisitRequest={...input,id:id("visit-request"),status:"submitted",statusHistory:[{status:"submitted",note:"參訪需求已送出",changedAt:now,changedBy:"student"}],createdAt:now,updatedAt:now};write(KEYS.visitRequests,[item,...this.list()]);
     messageRepository.add({organizationId:item.organizationId,visitRequestId:item.id,type:"status_update",recipient:"organization",content:`收到「${program.title}」的參訪需求。`});
-    notificationRepository.add({category:"visit",kind:"application_submitted",title:"參訪需求已送出",summary:`${organization.name} 已收到結構化參訪需求。`,source:"ShelterLab 參訪需求",visitRequestId:item.id,actionLabel:"查看需求進度",actionHref:"/student/action-inbox"});return item;
+    notificationRepository.add({category:"visit",kind:"application_submitted",title:"參訪需求已送出",summary:`${organization.name} 已收到結構化參訪需求。`,source:"ShelterLab 參訪需求",visitRequestId:item.id,actionLabel:"查看活動布告欄",actionHref:"/student/opportunities"});return item;
   },
   updateStatus(requestId:string,status:VisitRequestStatus,note="",proposedDate=""){
     const request=this.list().find(item=>item.id===requestId);if(!request)return null;const changedAt=nowIso(),updated={...request,status,note,proposedDate:proposedDate||request.proposedDate,statusHistory:[...request.statusHistory,{status,note,changedAt,changedBy:"organization" as const}],updatedAt:changedAt};write(KEYS.visitRequests,this.list().map(item=>item.id===requestId?updated:item));
     messageRepository.add({organizationId:request.organizationId,visitRequestId:request.id,type:status==="needs_information"?"information_request":status==="accepted"||status==="reschedule_proposed"?"meeting":"status_update",recipient:"student",content:note||`參訪需求狀態更新為 ${status}。`});
-    notificationRepository.add({category:"visit",kind:"visit_updated",title:"參訪需求有新進度",summary:note||`目前狀態：${status}`,source:organizationRepository.get(request.organizationId)?.name??"合作單位",visitRequestId:request.id,actionLabel:"查看參訪需求",actionHref:"/student/action-inbox"});return updated;
+    notificationRepository.add({category:"visit",kind:"visit_updated",title:"參訪需求有新進度",summary:note||`目前狀態：${status}`,source:organizationRepository.get(request.organizationId)?.name??"合作單位",visitRequestId:request.id,actionLabel:"查看活動布告欄",actionHref:"/student/opportunities"});return updated;
   },
 };
 
@@ -432,7 +432,7 @@ export const applicationNotificationService = {
   }
 };
 
-function notifyApplicants(opportunity:ActionOpportunity,kind:ActionNotification["kind"],title:string,summary:string){ for(const application of applicationRepository.list().filter(item=>item.opportunityId===opportunity.id))notificationRepository.add({category:"application",kind,title,summary,source:opportunity.organizationName,opportunityId:opportunity.id,applicationId:application.id,actionLabel:"查看申請進度",actionHref:"/student/action-inbox"}); }
+function notifyApplicants(opportunity:ActionOpportunity,kind:ActionNotification["kind"],title:string,summary:string){ for(const application of applicationRepository.list().filter(item=>item.opportunityId===opportunity.id))notificationRepository.add({category:"application",kind,title,summary,source:opportunity.organizationName,opportunityId:opportunity.id,applicationId:application.id,actionLabel:"查看活動",actionHref:`/student/opportunities/${opportunity.id}`}); }
 function notifyPreferenceMatches(opportunity:ActionOpportunity){ const preferences=preferenceRepository.get(); if(!matchesPreferences(opportunity,preferences))return; notificationRepository.add({category:"new_opportunity",kind:"preference_match",title:"符合你偏好的新機會上架",summary:`${opportunity.title} · ${opportunity.city}`,source:"動保行動機會雷達",opportunityId:opportunity.id,actionLabel:"查看活動",actionHref:`/student/opportunities?opportunity=${opportunity.id}`}); }
 function syncWeekSixCompletion(opportunity:ActionOpportunity){ try{ const key="shelterlab-week6-action-draft-v2",raw=localStorage.getItem(key); if(!raw)return; const draft=JSON.parse(raw); draft.stage=5;draft.furthestStage=5;draft.status="draft";draft.actionRecord={...draft.actionRecord,actionType:draft.actionRecord?.actionType||opportunity.title,status:"completed",nextStep:draft.actionRecord?.nextStep||"完成反思並整理參與證明"};localStorage.setItem(key,JSON.stringify(draft)); }catch{} }
 

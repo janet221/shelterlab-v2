@@ -228,7 +228,7 @@ function StagePaper({ children }: { children: React.ReactNode }) {
   return <article className={`${base.stagePaper} ${styles.weekThreePaper}`}>{children}</article>;
 }
 
-export default function WeekThreeExperience() {
+export default function WeekThreeExperience({ auditDemo = false }: { auditDemo?: boolean }) {
   const router = useRouter();
   const { completeWeek, progress } = useStudentLearningProgress();
   const [saved, setSaved] = useState<SavedWeekThree>(EMPTY);
@@ -265,6 +265,8 @@ export default function WeekThreeExperience() {
     } catch {}
     setReady(true);
   }, []);
+
+  useEffect(() => { if (auditDemo) setSaved((current) => ({ ...current, stage: 5, furthest: Math.max(current.furthest, 5), completed: false })); }, [auditDemo]);
 
   useEffect(() => {
     if (!ready) return;
