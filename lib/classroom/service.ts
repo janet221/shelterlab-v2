@@ -6,7 +6,7 @@ import { buildQuestionSet, countyData } from "./coa";
 import type { QuestionSet, ReviewHistoryEntry, SubmittedAnswer, WeekGameAudit } from "./data-types";
 import { parseWeekSixDraft, validateWeekSixDraftQuality, WEEK_SIX_DRAFT_KEY } from "@/lib/week-six-action";
 
-export const settingsSchema = z.object({ classId: z.string().uuid().optional(), teacherName: z.string().trim().min(1, "請填寫教師姓名或稱謂。").max(100), classCode: z.string().trim().min(8).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()), schoolId: z.string().min(1).max(40), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.literal(6) }).strict();
+export const settingsSchema = z.object({ classId: z.string().uuid().optional(), teacherName: z.string().trim().min(1, "請填寫教師姓名或稱謂。").max(100), classCode: z.string().trim().min(8).max(64).regex(/^[A-Za-z0-9][A-Za-z0-9-]*$/).transform(value => value.toUpperCase()), schoolId: z.string().min(1).max(40), manualSchoolName: z.string().trim().max(120).optional(), county: z.string().min(1).max(10), grade: z.enum(["高一", "高二", "高三"]), studentCount: z.number().int().min(1).max(200), plannedWeeks: z.literal(6) }).strict();
 export const studentIdentitySchema = z.object({
   realName: z.string().trim().min(2, "請填寫真實姓名。").max(100),
   studentNumber: z.string().trim().min(1, "請填寫學號。").max(40).regex(/^[A-Za-z0-9_-]+$/, "學號只能包含英文字母、數字、底線或連字號。")
@@ -77,18 +77,20 @@ async function profile(studentId: string) {
   if (!data) throw new RequestError(404, "找不到您可存取的學生。");
   return data;
 }
-export async function schoolChoices(county?: string) {
+export async function schoolChoices(county?: string, forceRefresh = false) {
   let snapshot;
-  try { snapshot = await getSchoolDirectorySnapshot(true); }
-  catch { throw new RequestError(503, "教育部高中名錄同步逾時，請重新選擇縣市再試一次。"); }
+  try { snapshot = await getSchoolDirectorySnapshot(false, forceRefresh); }
+  catch { throw new RequestError(503, "目前無法取得學校名錄，請稍後點擊重新同步；已儲存的班級設定不受影響。"); }
   const normalizedCounty = county?.trim();
   const selected = normalizedCounty ? snapshot.schools.filter((school) => school.county === normalizedCounty) : [];
   return { source: snapshot.source, county: normalizedCounty || "", schools: selected.map(({ id, name, county }) => ({ id, name, county })) };
 }
 export async function saveSettings(teacherId: string, input: z.infer<typeof settingsSchema>) {
   const { schools } = await schoolChoices(input.county);
-  const school = schools.find(s => s.id === input.schoolId);
-  if (!school || school.county !== input.county) throw new RequestError(400, "學校與縣市不符，請重新選擇學校。");
+  const school = input.schoolId === "manual" && input.manualSchoolName?.trim()
+    ? { id: "manual", name: input.manualSchoolName.trim(), county: input.county }
+    : schools.find(s => s.id === input.schoolId);
+  if (!school || school.county !== input.county) throw new RequestError(400, "請從名錄選擇學校，或輸入正式學校名稱。");
   const db = await client();
   checked(await db.from("profiles").update({ display_name: input.teacherName }).eq("id", teacherId).eq("role", "teacher"));
   const id = checked(await db.rpc("shelterlab_save_class", { p_class_id: input.classId ?? null, p_school_id: school.id, p_school_name: school.name, p_county: school.county, p_grade: input.grade, p_student_count: input.studentCount, p_class_code: input.classCode }));

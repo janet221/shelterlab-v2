@@ -52,7 +52,7 @@ describe("Release 1.0.2 role-based public experience", () => {
     expect(publicRoleProfiles).toHaveLength(3);
     expect(getPublicRoleProfile("student")).toMatchObject({ title: "我是學生", primaryHref: "/auth?role=student" });
     expect(getPublicRoleProfile("teacher")).toMatchObject({ title: "我是教師", primaryHref: "/auth?role=teacher" });
-    expect(getPublicRoleProfile("shelter")).toMatchObject({ title: "我是收容所人員", primaryHref: "/shelter" });
+    expect(getPublicRoleProfile("shelter")).toMatchObject({ title: "我是收容所人員", primaryHref: "/auth?role=shelter" });
   });
 
   it("omits dashboard previews from role navigation", () => {

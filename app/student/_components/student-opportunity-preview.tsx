@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { opportunityFitScore, opportunityRepository, preferenceRepository } from "@/lib/action-opportunities/browser-repository";
+import { opportunityFitScore, opportunityRepository, preferenceRepository, syncPublishedShelterActivities } from "@/lib/action-opportunities/browser-repository";
 import { OPPORTUNITY_CATEGORY_LABELS, type ActionOpportunity } from "@/lib/action-opportunities/types";
 
 export default function StudentOpportunityPreview() {
   const [open, setOpen] = useState(false);
   const [group, setGroup] = useState<"new"|"fit"|"deadline"|"nearby"|"hours"|"indirect">("fit");
   const [items, setItems] = useState<ActionOpportunity[]>([]);
-  useEffect(() => setItems(opportunityRepository.list()), []);
+  useEffect(() => {let active=true;setItems(opportunityRepository.list());syncPublishedShelterActivities().then(()=>{if(active)setItems(opportunityRepository.list())}).catch(()=>{/* 保留最近一次成功同步的公告。 */});return()=>{active=false}}, []);
   const featured = useMemo(() => {
     const preferences = preferenceRepository.get();
     const active=items.filter((item) => item.status === "published"&&!item.isDemo&&item.sourceLayer==="platform_partner"&&item.managementMode==="partner_managed"),days=(value?:string)=>value?Math.ceil((new Date(value).getTime()-Date.now())/86400000):9999;

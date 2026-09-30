@@ -1,27 +1,19 @@
 import type { MetadataRoute } from "next";
-import { publicDemoRoleIds, publicTourSteps } from "@/lib/public-demo/engine";
+import { publicTourSteps } from "@/lib/public-demo/engine";
 import { getPublicSiteUrl } from "@/lib/public-site/config";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = getPublicSiteUrl();
   const routes = [
     "/",
-    "/about",
     "/auth",
     "/start",
     "/contact",
-    "/demo",
-    "/watch-demo",
     "/privacy",
     "/research-notice",
-    "/competition/impact",
-    "/competition/evidence",
-    "/living-lab",
-    "/inquiries/demo",
-    "/adoption-profile/DOG-TPE-001"
+    "/government-data"
   ];
   routes.push(...publicTourSteps.map((step) => `/tour/${step.slug}`));
-  routes.push(...publicDemoRoleIds.map((role) => `/demo/${role}`));
 
   return Array.from(new Set(routes)).map((route) => ({
     url: new URL(route, base).toString(),

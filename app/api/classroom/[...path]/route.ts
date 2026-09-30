@@ -19,7 +19,10 @@ export async function GET(request: Request, context: Context) {
       return studentWeek(student.id, weekNumber(path[1]), evaluatorPreview);
     }
     const teacher = await requireAccount("teacher");
-    if (route === "schools") return schoolChoices(new URL(request.url).searchParams.get("county") ?? undefined);
+    if (route === "schools") {
+      const searchParams = new URL(request.url).searchParams;
+      return schoolChoices(searchParams.get("county") ?? undefined, searchParams.get("refresh") === "1");
+    }
     if (route === "dashboard") return teacherDashboard(teacher.id);
     if (route === "local") {
       const { classroom } = await teacherDashboard(teacher.id);

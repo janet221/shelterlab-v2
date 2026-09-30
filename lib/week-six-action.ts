@@ -37,9 +37,17 @@ export const ACTION_TAG_LABELS:Record<ActionTag,string> = { visit:"可參訪", v
 export const DATA_SOURCE_LAYER_LABELS:Record<DataSourceLayer,string> = { government_open_data:"政府開放資料", official_announcement:"官方公告", platform_partner:"平台合作", demo:"示範資料" };
 export const DEFAULT_ACTION_PROFILE:ActionProfile = { age:16, county:"", weeklyTime:"1_2", participationModes:["online"], travelAbility:"within_county", skills:["recommend"], commitment:"both", adultSupport:"need_to_ask", preferredRole:"not_sure" };
 export const DEFAULT_ACTION_RECORD:ActionRecord = { actionType:"", plannedDate:"", status:"not_started", adultSupportNote:"", conditionsToConfirm:"", nextStep:"", alternativePlan:"", reflection:"" };
+export function simulatedActionPlanForOrganization(organization:Pick<ActionOrganization,"actionTags"|"organizationType">){
+  if(organization.actionTags.includes("visit"))return"收容所參訪與行前提問練習";
+  if(organization.actionTags.includes("adoption_promotion"))return"認養動物故事整理與校園宣傳";
+  if(organization.actionTags.includes("material_donation"))return"校園物資募集與分類行動";
+  if(organization.actionTags.includes("school_outreach"))return"校園生命教育宣導協作";
+  if(organization.actionTags.includes("volunteer"))return"學生志工服務行前諮詢";
+  return organization.organizationType==="government_agency"||organization.organizationType==="animal_protection_office"?"動物保護通報流程學習":"動保單位需求訪談與行動提案";
+}
 export function createWeekSixDraft():WeekSixJourneyDraft { return { version:2, stage:0, furthestStage:0, profile:{...DEFAULT_ACTION_PROFILE}, selectedSchoolId:"", resourceCategoryFilter:"all", actionFilter:"all", selectedOrganizationId:"", comparisonOrganizationIds:[], safetyAnswers:{}, contactMethod:"phone", contactDrafts:{phone:"",email:"",visit_proposal:"",school_proposal:""}, actionRecord:{...DEFAULT_ACTION_RECORD}, updatedAt:new Date().toISOString(), status:"draft", openDataDate:"" }; }
 
-export const WEEK_SIX_MIN_RESPONSE_LENGTH = 30;
+export const WEEK_SIX_MIN_RESPONSE_LENGTH = 20;
 const LOW_QUALITY_RESPONSES = new Set(["略", "不知道", "不清楚", "沒有", "無", "隨便", "123", "不知道啦"]);
 function normalizedMeaningfulText(value:string){return value.normalize("NFKC").replace(/\s+/g,"").trim();}
 export function weekSixTextQualityError(value:string,label:string,minLength=WEEK_SIX_MIN_RESPONSE_LENGTH){
@@ -56,8 +64,8 @@ export function validateWeekSixDraftQuality(draft:Pick<WeekSixJourneyDraft,"prof
     if(suspicious.length>emails.length)return"Email 格式似乎不完整，請確認帳號、@ 與網域是否正確。";
   }
   const record=draft.actionRecord;
-  if(!record.actionType.trim()||!record.plannedDate||!record.adultSupportNote.trim())return"請先完成預計行動、日期與成人協助安排。";
-  for(const [key,label] of [["conditionsToConfirm","安全與資格條件"],["nextStep","下一步與時間規劃"],["alternativePlan","替代方案"],["reflection","行前預期成果與反思"]] as const){
+  if(!record.actionType.trim()||!record.plannedDate||!record.adultSupportNote.trim())return"請先完成參與方式、預計聯絡日期與成人協助安排。";
+  for(const [key,label] of [["conditionsToConfirm","參與前需要確認的事項"],["nextStep","下一步與時間規劃"]] as const){
     const error=weekSixTextQualityError(record[key],label);
     if(error)return error;
   }

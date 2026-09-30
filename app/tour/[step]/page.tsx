@@ -34,11 +34,11 @@ export default async function TourStepPage({ params }: { params: Promise<{ step:
             <aside className="space-y-6 self-start lg:sticky lg:top-24">
               <div className="rounded-2xl border border-[#e4c98f] bg-[#fffaf0] p-6 shadow-sm">
                 <h1 className="text-xl font-extrabold tracking-tight text-[#3d3023]">如何運作</h1>
-                <p className="mt-3 text-sm leading-7 text-[#6f604f]">ShelterLab 透過 6 週實證思辨課程與每週審核循環，將校園探究與平台數據串接。</p>
+                <p className="mt-3 text-sm leading-7 text-[#6f604f]">ShelterLab 將六週課程、行前準備與收容所活動公告串成一條清楚的學習路徑。</p>
               </div>
 
-              <nav aria-label="實作步驟清單" className="rounded-2xl border border-[#ead9b7] bg-white/95 p-4 shadow-sm">
-                <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#9a7639]">實作步驟清單</p>
+              <nav aria-label="使用流程" className="rounded-2xl border border-[#ead9b7] bg-white/95 p-4 shadow-sm">
+                <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#9a7639]">使用流程</p>
                 <ol className="space-y-1">
                   {publicTourSteps.map((item) => (
                     <li key={item.slug}>
@@ -69,8 +69,12 @@ export default async function TourStepPage({ params }: { params: Promise<{ step:
                 </div>
               )}
 
+              {current.sequence !== 1 && current.evidenceHref && current.evidenceLabel && (
+                <Link className="mt-8 inline-flex min-h-12 items-center rounded-full border border-[#dfbf78] bg-[#f2dba4] px-6 py-3 text-sm font-bold text-[#4e3b20] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#f8e8bf] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#bd9141]" href={current.evidenceHref}>{current.evidenceLabel} →</Link>
+              )}
+
               <section className="mb-8 mt-16" aria-label="導覽進度">
-                <div className="mb-3 flex items-center justify-between text-xs font-mono text-[#95784d]"><span>實作步驟</span><span>{current.sequence} / {publicTourSteps.length}</span></div>
+                <div className="mb-3 flex items-center justify-between text-xs font-mono text-[#95784d]"><span>使用流程</span><span>{current.sequence} / {publicTourSteps.length}</span></div>
                 <div className="flex gap-1.5">{publicTourSteps.map((item) => <span key={item.slug} className={`h-1.5 flex-1 rounded-full ${item.sequence <= current.sequence ? "bg-[#b49a68]" : "bg-[#eadfc9]"}`} />)}</div>
               </section>
 

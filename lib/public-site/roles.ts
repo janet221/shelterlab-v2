@@ -15,6 +15,7 @@ export type PublicRoleProfile = {
 };
 
 
+// 保留給仍存在的舊版公開示範頁使用；正式角色入口不再顯示此訊息。
 export const syntheticDemoNotice =
   "競賽原型｜合成示範資料｜尚未宣稱正式合作或實證認養成效";
 
@@ -23,33 +24,33 @@ export const publicRoleProfiles = [
     id: "student",
     demoRole: "student",
     title: "我是學生",
-    description: "從六週數位關卡閱讀政府開放資料、記錄自己的判斷與反思，完成後進入真實收容場域。",
+    description: "從六週數位關卡完成行前準備，閱讀收容所活動公告並規劃適合自己的參與方式。",
     primaryCta: "進入學生登入／註冊",
     primaryHref: "/auth?role=student",
-    capabilities: ["六週關卡逐步解鎖", "閱讀政府開放資料", "保存個人思考歷程", "完成後進入真實場域"],
-    journey: ["六週課程", "場域觀察", "回顧與反思"],
+    capabilities: ["六週關卡逐步解鎖", "完成行前訓練", "閱讀活動公告", "規劃參與方式"],
+    journey: ["六週課程", "行前準備", "公告探索"],
     accent: "teal"
   },
   {
     id: "teacher",
     demoRole: "teacher",
     title: "我是教師",
-    description: "建立課程與觀察任務，審核學生證據，掌握探究學習成果。",
+    description: "設定班級與學校資料，掌握學生的六週學習進度與課程完成情況。",
     primaryCta: "進入教師登入／註冊",
     primaryHref: "/auth?role=teacher",
-    capabilities: ["建立課程與任務", "審核學生觀察", "查看能力與學習證據", "審閱探究報告"],
-    journey: ["課程設計", "證據審核", "學習成果分析"],
+    capabilities: ["設定班級資料", "查看全班學習進度", "掌握關卡完成狀態", "提供課程引導"],
+    journey: ["班級設定", "學習進度", "課程引導"],
     accent: "amber"
   },
   {
     id: "shelter",
     demoRole: "shelter",
     title: "我是收容所人員",
-    description: "接收學生與教師提出的申請，刊登志工、參訪與教育活動，安排參與人員並回填行動成果。",
-    primaryCta: "進入動保夥伴工作台",
-    primaryHref: "/shelter",
-    capabilities: ["刊登志工與教育活動", "接收及審核學生申請", "安排參訪與服務任務", "傳送通知並回填成果"],
-    journey: ["發布機會", "審核與安排", "回覆與成果"],
+    description: "刊登與管理活動公告，讓學生與教師依公告中的官方聯絡方式直接洽詢主辦單位。",
+    primaryCta: "進入收容所登入／註冊",
+    primaryHref: "/auth?role=shelter",
+    capabilities: ["刊登活動公告", "管理刊登狀態", "更新活動內容", "提供官方聯絡資訊"],
+    journey: ["發布公告", "維護資訊", "直接聯繫"],
     accent: "rose"
   }
 ] as const satisfies readonly PublicRoleProfile[];

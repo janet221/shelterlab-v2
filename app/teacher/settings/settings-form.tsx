@@ -8,11 +8,13 @@ import { TAIWAN_COUNTIES } from "@/lib/week-six-action";
 type Schools = Awaited<ReturnType<typeof schoolChoices>>;
 type Dashboard = Awaited<ReturnType<typeof teacherDashboard>>;
 type Toast = { kind: "success" | "error"; message: string } | null;
+const SCHOOL_CACHE_PREFIX = "shelterlab-teacher-schools:";
 
 export default function SettingsForm() {
   const [schools, setSchools] = useState<Schools | null>(null);
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [schoolId, setSchoolId] = useState("");
+  const [manualSchoolName, setManualSchoolName] = useState("");
   const [county, setCounty] = useState("");
   const [studentId, setStudentId] = useState("");
   const [resetWeek, setResetWeek] = useState(1);
@@ -20,6 +22,8 @@ export default function SettingsForm() {
   const [toast, setToast] = useState<Toast>(null);
   const [busy, setBusy] = useState(false);
   const [schoolLoading, setSchoolLoading] = useState(false);
+  const [schoolRetryToken, setSchoolRetryToken] = useState(0);
+  const [schoolSyncError, setSchoolSyncError] = useState("");
   const [showResetModal, setShowResetModal] = useState(false);
   const [editingStudentId, setEditingStudentId] = useState("");
   const [editingName, setEditingName] = useState("");
@@ -29,6 +33,7 @@ export default function SettingsForm() {
     api<Dashboard>("/api/classroom/dashboard").then((dashboardResult) => {
       setDashboard(dashboardResult);
       setSchoolId(dashboardResult.classroom?.schoolId || "");
+      setManualSchoolName(dashboardResult.classroom?.schoolId === "manual" ? dashboardResult.classroom.schoolName : "");
       setCounty(dashboardResult.classroom?.county || "");
       setStudentId(dashboardResult.classroom?.enrollments[0]?.student.id || "");
     }).catch((error: Error) => setToast({ kind: "error", message: error.message }));
@@ -37,10 +42,17 @@ export default function SettingsForm() {
   useEffect(()=>{
     if(!county){setSchools(null);return}
     let active=true;
+    const cacheKey=`${SCHOOL_CACHE_PREFIX}${county}`;
+    let cached:Schools|null=null;
+    try{cached=JSON.parse(sessionStorage.getItem(cacheKey)||"null") as Schools|null}catch{/* 無效快取直接忽略。 */}
+    const completeCached=cached?.county===county&&cached.source.mode==="live"&&cached.schools.length?cached:null;
+    if(completeCached)setSchools(completeCached);
     setSchoolLoading(true);
-    api<Schools>(`/api/classroom/schools?county=${encodeURIComponent(county)}`).then((result)=>{if(active)setSchools(result)}).catch((error:Error)=>{if(active)setToast({kind:"error",message:error.message})}).finally(()=>{if(active)setSchoolLoading(false)});
+    setSchoolSyncError("");
+    const refresh=schoolRetryToken>0?"&refresh=1":"";
+    api<Schools>(`/api/classroom/schools?county=${encodeURIComponent(county)}${refresh}`).then((result)=>{if(!active)return;setSchools(result);if(result.source.mode==="live")sessionStorage.setItem(cacheKey,JSON.stringify(result));else sessionStorage.removeItem(cacheKey);if(schoolRetryToken>0)setToast({kind:"success",message:result.source.mode==="live"?`已載入${county}完整學校名錄，共 ${result.schools.length} 所。`:"官方來源仍較慢，已暫時載入備援名錄；系統會在下次選擇縣市時再次同步。"})}).catch((error:Error)=>{if(!active)return;const message=completeCached?.schools.length?"官方名錄目前無法重新同步，已保留這個瀏覽器最近一次完整的學校清單。":`${error.message} 你可以點擊重新同步，或稍後再試。`;setSchoolSyncError(message);setToast({kind:"error",message})}).finally(()=>{if(active)setSchoolLoading(false)});
     return()=>{active=false};
-  },[county]);
+  },[county,schoolRetryToken]);
 
   const school = schools?.schools.find((item) => item.id === schoolId);
   const countySchools = schools?.schools ?? [];
@@ -92,7 +104,7 @@ export default function SettingsForm() {
 
   return <>
     {toast && <div className={`fixed right-5 top-20 z-[100] max-w-sm rounded-2xl border px-5 py-4 shadow-xl ${toast.kind === "error" ? "border-red-300 bg-red-50 text-red-900" : "border-[#d8c8ab] bg-[#fff8ea] text-[#5d5145]"}`} role={toast.kind === "error" ? "alert" : "status"}>
-      <div className="flex items-start gap-4"><p>{toast.message}</p><button className="font-bold" aria-label="關閉通知" onClick={() => setToast(null)}>×</button></div>
+      <div className="flex items-start gap-4"><div><p>{toast.message}</p>{toast.kind==="error"&&schoolSyncError&&county&&<button type="button" className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-bold hover:bg-red-100" onClick={()=>setSchoolRetryToken(value=>value+1)} disabled={schoolLoading}>{schoolLoading?"重新同步中…":"點擊重新同步"}</button>}</div><button className="font-bold" aria-label="關閉通知" onClick={() => setToast(null)}>×</button></div>
     </div>}
 
     {!dashboard ? <p role="status">正在載入班級設定…</p> : <>
@@ -107,6 +119,7 @@ export default function SettingsForm() {
             teacherName: String(form.get("teacherName") || "").trim(),
             classCode: String(form.get("classCode") || "").trim().toUpperCase(),
             schoolId,
+            ...(schoolId === "manual" ? { manualSchoolName: manualSchoolName.trim() } : {}),
             county,
             grade: form.get("grade"),
             studentCount: Number(form.get("studentCount")),
@@ -121,13 +134,13 @@ export default function SettingsForm() {
         }
       }}>
         <label className="block">教師姓名 / 稱謂<input name="teacherName" minLength={1} maxLength={100} defaultValue={dashboard.teacherName} required className={fieldClass} placeholder="例如：王老師" autoComplete="name" /></label>
-        <label className="block">縣市<select value={county} onChange={(event)=>{setCounty(event.target.value);setSchoolId("");setSchools(null)}} required className={fieldClass}><option value="">請先選擇縣市</option>{TAIWAN_COUNTIES.map((item)=><option key={item} value={item}>{item}</option>)}</select></label>
-        <label className="block">學校<select value={schoolId} onChange={(event) => setSchoolId(event.target.value)} required disabled={!county||schoolLoading} className={fieldClass}><option value="">{!county?"請先選擇縣市":schoolLoading?`正在載入${county}學校…`:`請選擇${county}的高級中等學校`}</option>{countySchools.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><span className="mt-2 block text-xs text-stone-500">{schoolLoading?"正在從伺服器快取篩選學校…":`資料來源：教育部 115 學年度全國高級中等學校名錄；${county||"目前縣市"}共 ${countySchools.length} 所。`}</span></label>
+        <label className="block">縣市<select value={county} onChange={(event)=>{setCounty(event.target.value);setSchoolId("");setManualSchoolName("");setSchools(null);setSchoolSyncError("");setSchoolRetryToken(0)}} required className={fieldClass}><option value="">請先選擇縣市</option>{TAIWAN_COUNTIES.map((item)=><option key={item} value={item}>{item}</option>)}</select></label>
+        <label className="block">學校<select value={schoolId} onChange={(event) => {setSchoolId(event.target.value);if(event.target.value!=="manual")setManualSchoolName("")}} required disabled={!county||(!countySchools.length&&schoolLoading)} className={fieldClass}><option value="">{!county?"請先選擇縣市":schoolLoading&&!countySchools.length?`正在載入${county}學校…`:`請選擇${county}的高級中等學校`}</option>{countySchools.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}{county&&<option value="manual">找不到學校，輸入正式校名</option>}</select><span className="mt-2 flex flex-wrap items-center gap-2 text-xs text-stone-500"><span>{schoolLoading?countySchools.length?"正在背景更新名錄，仍可使用目前選項…":"正在取得學校名錄…":`資料來源：${schools?.source.mode==="fallback"?"教育部名錄備援快照":"教育部 115 學年度全國高級中等學校名錄"}；${county||"目前縣市"}共 ${countySchools.length} 所。`}</span>{county&&<button type="button" className="rounded-lg border border-stone-300 bg-white px-2.5 py-1 font-bold text-stone-700 hover:bg-stone-100 disabled:opacity-50" disabled={schoolLoading} onClick={()=>setSchoolRetryToken(value=>value+1)}>{schoolLoading?"同步中…":"重新同步"}</button>}</span>{schoolId==="manual"&&<input aria-label="正式學校名稱" value={manualSchoolName} onChange={event=>setManualSchoolName(event.target.value)} required minLength={2} maxLength={120} className={fieldClass} placeholder="請輸入學校正式全名"/>}{schools?.source.mode==="fallback"&&<span className="mt-2 block rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">官方來源目前回應較慢，已自動改用 {schools.source.updatedAt} 的備援名錄。若清單沒有你的學校，請選擇「找不到學校」並輸入正式校名。</span>}</label>
         <label className="block">年級<select name="grade" defaultValue={dashboard.classroom?.grade || "高一"} className={fieldClass}>{["高一", "高二", "高三"].map((grade) => <option key={grade}>{grade}</option>)}</select></label>
         <label className="block">班級人數<input type="number" name="studentCount" min={1} max={200} defaultValue={dashboard.classroom?.studentCount || 30} required className={fieldClass} /></label>
         <label className="block">班級代碼<input name="classCode" minLength={8} maxLength={64} pattern="[A-Za-z0-9][A-Za-z0-9-]{7,63}" defaultValue={dashboard.classroom?.joinCode || ""} required readOnly={classCodeLocked} aria-readonly={classCodeLocked} autoComplete="off" spellCheck={false} className={`${fieldClass} uppercase ${classCodeLocked ? "cursor-not-allowed bg-stone-100 text-stone-500" : ""}`} placeholder="例如 SHELTER-2026" />{classCodeLocked && <span className="mt-2 block text-xs font-bold text-amber-800">已有學生加入，班級代碼已鎖定。</span>}</label>
         <p className="text-xs text-stone-500">學生首次註冊時會使用此碼，且不可與其他班級重複。</p>
-        <button disabled={busy || !school} className={buttonClass}>{busy ? "儲存中…" : "儲存並載入在地設定"}</button>
+        <button disabled={busy || (schoolId==="manual"?!manualSchoolName.trim():!school)} className={buttonClass}>{busy ? "儲存中…" : "儲存並載入在地設定"}</button>
       </form>
 
       {dashboard.classroom && <section className="mt-8 rounded-3xl border border-[#d8cfc3] bg-[#fffdf8] p-6 shadow-sm" aria-labelledby="class-members-title">
@@ -141,9 +154,9 @@ export default function SettingsForm() {
         </ul> : <p className="mt-5 rounded-2xl border border-dashed border-[#d8cfc3] px-5 py-6 text-center text-sm text-[#776b61]">目前尚無學生加入。請將上方班級代碼提供給學生註冊。</p>}
       </section>}
 
-      {dashboard.classroom && <section className="mt-8 rounded-2xl border-2 border-red-300 bg-red-50 p-6" aria-labelledby="danger-zone-title">
-        <p className="text-sm font-bold uppercase tracking-widest text-red-700">Danger Zone</p>
-        <h2 id="danger-zone-title" className="mt-2 text-xl font-bold text-red-950">重置學生地圖進度</h2>
+      {dashboard.classroom && <details className="group mt-8 rounded-2xl border border-red-200 bg-red-50/60" aria-labelledby="danger-zone-title">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-bold text-red-900 marker:hidden"><span><span className="mr-2 text-xs uppercase tracking-widest text-red-700">Danger Zone</span>進度重置設定</span><span className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs group-open:hidden">展開</span><span className="hidden rounded-full border border-red-200 bg-white px-3 py-1 text-xs group-open:inline">收合</span></summary>
+        <section className="border-t border-red-200 p-6" aria-labelledby="danger-zone-title"><h2 id="danger-zone-title" className="text-xl font-bold text-red-950">重置學生地圖進度</h2>
         <p className="my-3 text-red-900">保留所選週次以前已完成的學習成果；所選週次會恢復為可挑戰，之後週次重新鎖定，並清除其作答、退件與審查狀態。</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block font-bold text-red-950">選擇學生<select value={studentId} onChange={(event) => { setStudentId(event.target.value); setResetWeek(1); setConfirmationName(""); }} className={fieldClass}><option value="" disabled>請選擇學生</option>{dashboard.classroom.enrollments.map((item) => <option key={item.student.id} value={item.student.id}>{item.student.displayName} · {item.student.accountName}</option>)}</select></label>
@@ -151,7 +164,8 @@ export default function SettingsForm() {
         </div>
         <p className="mt-3 text-sm font-bold text-red-800">目前設定：{preservedRange}，清除並重置第 {resetWeek}–6 週。</p>
         <button type="button" disabled={busy || !selectedStudent} className="mt-4 rounded-xl bg-red-700 px-5 py-3 font-bold text-white hover:bg-red-800 disabled:opacity-40" onClick={() => { setConfirmationName(""); setShowResetModal(true); }}>開啟重置確認</button>
-      </section>}
+        </section>
+      </details>}
     </>}
 
     {showResetModal && <div className="fixed inset-0 z-[110] grid place-items-center bg-stone-950/60 p-5" role="presentation" onMouseDown={(event) => { if (event.currentTarget === event.target && !busy) setShowResetModal(false); }}>

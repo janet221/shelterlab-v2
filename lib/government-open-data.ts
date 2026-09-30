@@ -5,7 +5,7 @@ import { WEEK_SIX_FALLBACK } from "@/data/week-six-open-data-fallback";
 import { WEEK_SIX_SCHOOL_SNAPSHOT, WEEK_SIX_SCHOOL_SNAPSHOT_DATE } from "@/data/week-six-school-snapshot";
 import { WEEK_SIX_SHELTER_NEEDS_SNAPSHOT, WEEK_SIX_SHELTER_NEEDS_SNAPSHOT_DATE } from "@/data/week-six-shelter-needs-snapshot";
 import { TAIWAN_COUNTIES, type ActionOrganization } from "@/lib/action-opportunities/types";
-import { dedupeActionOrganizations, normalizeCountyName } from "@/lib/action-opportunities/repository";
+import { dedupeActionOrganizations, normalizeCountyName } from "@/lib/week-six-action";
 import type { SchoolLevel } from "@/lib/action-opportunities/types";
 
 export const ADOPTION_DATASET_URL = "https://data.moa.gov.tw/open_detail.aspx?id=QcbUEzN6E6DL";
@@ -186,6 +186,7 @@ let cachedNeeds: ShelterNeedsSnapshot | null = null;
 let cachedSchools: SchoolDirectorySnapshot | null = null;
 let cachedSchoolsAt = 0;
 const SCHOOL_DIRECTORY_CACHE_MS = 6 * 60 * 60 * 1000;
+const SCHOOL_DIRECTORY_TIMEOUT_MS = 20_000;
 
 export async function getAdoptionSnapshot(): Promise<AdoptionSnapshot> {
   try {
@@ -237,11 +238,13 @@ export async function getShelterNeedsSnapshot(): Promise<ShelterNeedsSnapshot> {
   }
 }
 
-export async function getSchoolDirectorySnapshot(requireComplete = false): Promise<SchoolDirectorySnapshot> {
-  if (cachedSchools && Date.now() - cachedSchoolsAt < SCHOOL_DIRECTORY_CACHE_MS) return cachedSchools;
+export async function getSchoolDirectorySnapshot(requireComplete = false, forceRefresh = false): Promise<SchoolDirectorySnapshot> {
+  // Only a complete, successfully synchronized directory may satisfy the cache.
+  // The compact emergency snapshot must never suppress a later official retry.
+  if (!forceRefresh && cachedSchools?.source.mode === "live" && Date.now() - cachedSchoolsAt < SCHOOL_DIRECTORY_CACHE_MS) return cachedSchools;
   const registryDate = OPEN_DATASET_BY_ID.get("moe-senior-high-directory-6089")?.lastUpdated ?? WEEK_SIX_SCHOOL_SNAPSHOT_DATE;
   try {
-    const rows = await fetchOfficial(SCHOOL_DIRECTORY_API_URL, 30_000);
+    const rows = await fetchOfficial(SCHOOL_DIRECTORY_API_URL, SCHOOL_DIRECTORY_TIMEOUT_MS);
     const schools = normalizeSchoolDirectory(rows);
     const coveredCounties = new Set(schools.map((school) => school.county));
     if (schools.length < 400 || coveredCounties.size < 22) throw new Error("教育部學校名錄內容不完整");
@@ -250,9 +253,11 @@ export async function getSchoolDirectorySnapshot(requireComplete = false): Promi
     cachedSchools = payload;
     cachedSchoolsAt = Date.now();
     return payload;
-  } catch {
-    if (cachedSchools) return { ...cachedSchools, source:{ ...cachedSchools.source, mode:"fallback", fallbackDate:cachedSchools.source.updatedAt, message:"教育部檔案暫時無法使用，目前使用最近一次成功快取" } };
+  } catch (error) {
+    console.error("教育部高中名錄同步失敗", error);
+    if (cachedSchools?.source.mode === "live") return { ...cachedSchools, source:{ ...cachedSchools.source, mode:"fallback", fallbackDate:cachedSchools.source.updatedAt, message:"教育部檔案暫時無法使用，目前沿用最近一次完整名錄" } };
     if (requireComplete) throw new Error("教育部完整高中名錄暫時無法同步");
-    return { source:{ mode:"fallback", updatedAt:`115 學年度（快照 ${WEEK_SIX_SCHOOL_SNAPSHOT_DATE}）`, fallbackDate:WEEK_SIX_SCHOOL_SNAPSHOT_DATE, datasetUrl:SCHOOL_DIRECTORY_DATASET_URL, apiUrl:SCHOOL_DIRECTORY_API_URL, message:"目前使用有日期的教育部名錄備援快照" }, schools:WEEK_SIX_SCHOOL_SNAPSHOT.map((school)=>({...school})) };
+    const fallback:SchoolDirectorySnapshot = { source:{ mode:"fallback", updatedAt:`115 學年度（快照 ${WEEK_SIX_SCHOOL_SNAPSHOT_DATE}）`, fallbackDate:WEEK_SIX_SCHOOL_SNAPSHOT_DATE, datasetUrl:SCHOOL_DIRECTORY_DATASET_URL, apiUrl:SCHOOL_DIRECTORY_API_URL, message:"官方同步暫時無法完成，目前使用有日期的教育部名錄備援快照" }, schools:WEEK_SIX_SCHOOL_SNAPSHOT.map((school)=>({...school})) };
+    return fallback;
   }
 }

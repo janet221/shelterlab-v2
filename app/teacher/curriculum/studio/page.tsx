@@ -1,11 +1,9 @@
 import Link from "next/link";
-import { buildCompetitionEvidenceChain } from "@/lib/competition/evidence";
 import { phase4QuestionDrafts } from "@/lib/curriculum-library/phase4-data";
 
 const workflow = ["AI_DRAFT", "PENDING_REVIEW", "APPROVED", "PUBLISHED"];
 
 export default function TeacherReviewStudioPage() {
-  const chain = buildCompetitionEvidenceChain();
   const published = phase4QuestionDrafts.find((draft) => draft.teacherReviewStatus === "published")!;
   return (
     <main className="mx-auto max-w-7xl p-6 lg:p-8">
@@ -34,10 +32,9 @@ export default function TeacherReviewStudioPage() {
           <div className="flex items-center justify-between gap-3"><h2 className="text-lg font-semibold">Published demo lineage</h2><span className="border border-blue-300 bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-800">SYNTHETIC_DEMO</span></div>
           <p className="mt-4 font-medium">{published.prompt}</p>
           <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2"><div><span className="text-slate-500">Resources</span><p className="mt-1 font-mono text-xs">{published.sourceResourceIds.join(", ")}</p></div><div><span className="text-slate-500">Standards</span><p className="mt-1 font-mono text-xs">{published.learningStandardIds.join(", ")}</p></div><div><span className="text-slate-500">Quality flags</span><p className="mt-1">{published.riskFlags.join(", ")}</p></div><div><span className="text-slate-500">Audit state</span><p className="mt-1">Approval and publication recorded separately</p></div></div>
-          <Link className="mt-5 inline-block border border-slate-300 px-3 py-2 text-sm font-medium" href="/competition/evidence#traceability">Open full traceability</Link>
         </div>
       </section>
-      <p className="mt-5 text-xs text-slate-500">Chain integrity: {chain.complete ? "complete" : "incomplete"}. This view uses synthetic competition fixtures, not real students or schools.</p>
+      <p className="mt-5 text-xs text-slate-500">此舊版工作室僅保留既有課程草稿，不連結任何競賽或研究資格流程。</p>
     </main>
   );
 }

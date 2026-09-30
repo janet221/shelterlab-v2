@@ -62,6 +62,20 @@ const write = <T,>(key:string,value:T) => { if(hasWindow()) localStorage.setItem
 const normalizedName = (value:string) => value.normalize("NFKC").toLowerCase().replace(/[\s　()（）·．。、-]/g,"");
 const ageBand = (age:number) => age < 15 ? "12–14 歲" : age < 18 ? "15–17 歲" : "18 歲以上";
 
+type PublishedShelterActivity={id:string;shelter_id:string;title:string;summary:string;description:string;activity_type:string;event_start_at?:string;event_end_at?:string;application_deadline?:string;capacity?:number;contact_email?:string;contact_phone?:string;created_at:string;updated_at:string;shelters:{name:string;address:string;contact_email:string}|null};
+const activityCategory=(value:string):ActionOpportunity["category"]=>/參訪/.test(value)?"visit":/教育|講座/.test(value)?"education":/認養/.test(value)?"adoption_event":/物資/.test(value)?"material_drive":/校園/.test(value)?"school_outreach":"volunteer";
+const countyFromAddress=(value:string)=>value.match(/^(基隆市|臺北市|台北市|新北市|桃園市|新竹市|新竹縣|苗栗縣|臺中市|台中市|彰化縣|南投縣|雲林縣|嘉義市|嘉義縣|臺南市|台南市|高雄市|屏東縣|宜蘭縣|花蓮縣|臺東縣|台東縣|澎湖縣|金門縣|連江縣)/)?.[1].replace(/^台/,"臺")||"全國";
+
+export async function syncPublishedShelterActivities(){
+  const response=await fetch("/api/shelter/activities?student=1",{cache:"no-store"});
+  if(!response.ok)throw new Error("目前無法同步收容所最新公告");
+  const payload=await response.json() as {activities:PublishedShelterActivity[]};
+  const activities=payload.activities.map((row):ActionOpportunity=>{const shelter=row.shelters??{name:"合作收容所",address:"",contact_email:""},category=activityCategory(row.activity_type),county=countyFromAddress(shelter.address),email=row.contact_email||shelter.contact_email||"";return{id:`shelter-${row.id}`,externalId:row.id,organizationId:`shelter-${row.shelter_id}`,managementMode:"partner_managed",applicationMode:email?"email_contact":"information_only",sourceId:row.id,sourceName:"ShelterLab 收容所公告",sourceUrl:`/student/opportunities?opportunity=shelter-${row.id}`,sourceType:"partner_submitted",sourceLayer:"platform_partner",organizationName:shelter.name,organizationUrl:"",title:row.title,summary:row.summary,category,opportunityTypes:[category],description:row.description,learningGoals:["理解收容所需求並完成行前準備"],workItems:[row.activity_type],city:county,address:shelter.address,applicationDeadline:row.application_deadline,eventStartAt:row.event_start_at,eventEndAt:row.event_end_at,capacity:row.capacity,remainingCapacity:row.capacity,minimumAge:15,acceptsMinors:true,guardianRequired:true,guardianConsentRequired:true,teacherRequired:false,groupApplication:false,skillsNeeded:["recommend"],skills:[],trainingRequired:true,safetyNotes:["行動前須向主辦單位確認未成年參與規定、集合方式與安全要求。"],serviceHoursProvided:false,contactMethod:email?"Email 洽詢":"依公告聯絡",contactEmail:email||undefined,contactPhone:row.contact_phone||undefined,participationFormat:"onsite",weekdays:[],timeSlots:[],status:"published",recruitmentPattern:row.event_start_at?"one_time":"contact_required",isRecurring:false,firstSeenAt:row.created_at,lastSeenAt:row.updated_at,lastVerifiedAt:row.updated_at,publishedAt:row.created_at,updatedAt:row.updated_at,verificationNote:"由 ShelterLab 收容所帳號直接刊登",isDemo:false,riskLevel:"medium",eligibilitySourceType:"organization_submission",eligibilityLastVerifiedAt:row.updated_at,alternativeActions:[]}});
+  const syncedIds=new Set(activities.map(item=>item.id)),preserved=ensureOpportunities().filter(item=>!item.id.startsWith("shelter-")||syncedIds.has(item.id));
+  write(KEYS.opportunities,dedupeOpportunities([...activities,...preserved]));
+  return activities;
+}
+
 const seedOrganizations = () => [...FALLBACK_ACTION_ORGANIZATIONS,...PROTOTYPE_PARTNER_ORGANIZATIONS];
 function ensureOrganizations(){
   const seeds=seedOrganizations();

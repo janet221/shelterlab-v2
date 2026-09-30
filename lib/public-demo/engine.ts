@@ -68,68 +68,32 @@ export const publicTourSteps: readonly PublicTourStep[] = [
   {
     "slug": "welcome",
     "sequence": 1,
-    "title": "第一步：課程與帳號啟動",
+    "title": "第一步：選定身分，開啟旅程",
     "eyebrow": "學期準備",
-    "summary": "完成師生帳號註冊與系統連線環境設定。",
-    "detail": "由教師建立課程專屬空間，學生完成註冊與系統介接，串接政府開放資料 (COA_OpenData)，正式開啟 6 週核心探究任務。",
+    "summary": "學生、教師與收容所夥伴可依身分登入，進入專屬的學習或管理空間。",
+    "detail": "教師能輕鬆掌握班級進度，學生從學習地圖出發，收容所夥伴則能維護與發布活動公告。",
     "evidenceLabel": "進入系統設置",
     "evidenceHref": "/auth"
   },
   {
-    "slug": "research-license",
+    "slug": "six-week-course",
     "sequence": 2,
-    "title": "第二步：第一週｜角色與處境",
-    "eyebrow": "第一週",
-    "summary": "探索家庭、工作、校犬與街頭犬的生活差異。",
-    "detail": "透過比較生活路徑風險，並以毛色資料練習區分觀察與解釋，拒絕不當腦補與編故事。"
-  },
-  {
-    "slug": "observation",
-    "sequence": 3,
-    "title": "第三步：第二週｜承諾與責任",
-    "eyebrow": "第二週",
-    "summary": "透過情境作答全面盤點長期飼養的時間、經濟、醫療與家庭備援。",
-    "detail": "利用體型數據思考個體實際需求，學習不把體型直接當成命運。"
-  },
-  {
-    "slug": "review-process",
-    "sequence": 4,
-    "title": "第四步：第三週｜品種與標籤",
-    "eyebrow": "第三週",
-    "summary": "閱讀品種形成時間線，拆解品種傾向與健康迷思。",
-    "detail": "針對混種犬等欄位進行追問，練習辨識資料支持什麼、不能支持什麼、還缺哪些證據。"
-  },
-  {
-    "slug": "dog-profile",
-    "sequence": 5,
-    "title": "第五步：第四週｜數量與源頭",
-    "eyebrow": "第四週",
-    "summary": "以系統觀點理解遊蕩犬的存量與流量，比較政策研究指標與責任照護。",
-    "detail": "學習嚴謹的資料邏輯，避免直接用「未絕育」推論懷孕。"
-  },
-  {
-    "slug": "one-health-inquiry",
-    "sequence": 6,
-    "title": "第六步：第五週｜政策與兩難",
-    "eyebrow": "第五週",
-    "summary": "面對動物福利、生態保育與公共安全衝突，在資源限制下權衡多方處境。",
-    "detail": "評估政策提案與個別處置，提出兼顧現實的理性方案。"
-  },
-  {
-    "slug": "impact-dashboard",
-    "sequence": 7,
-    "title": "第七步：第六週｜現場與行動",
-    "eyebrow": "第六週",
-    "summary": "使用動保資源地圖搜尋單位、盤點自身角色與安全情境。",
-    "detail": "產出包含執行日期、成人協助與替代方案的具體可行行動計畫。"
+    "title": "第二步：循序漸進，完成六週課程",
+    "eyebrow": "核心學習",
+    "summary": "從照護責任、資料判讀到公共議題，六週課程帶領你逐步建立動保意識。",
+    "detail": "系統採直覺的連續式地圖設計，讓你可以順暢地依序解鎖各週關卡。",
+    "evidenceLabel": "以學生身分登入",
+    "evidenceHref": "/auth?role=student"
   },
   {
     "slug": "final-vision",
-    "sequence": 8,
-    "title": "第八步：學期結案與證據總覽",
-    "eyebrow": "學期結案",
-    "summary": "整合前六週的每週作業與教師審核結果，繳交結構化的實證思辨報告。",
-    "detail": "系統同步彙整班級數據分析與盲點，完成學期實作循環與歸檔。"
+    "sequence": 3,
+    "title": "第三步：對接真實，規劃行動",
+    "eyebrow": "自主行動",
+    "summary": "完成學習後，即可探索收容所釋出的真實公告，尋找適合自己的參與機會。",
+    "detail": "本平台採純佈告欄模式，所有洽詢與報名請直接透過官方管道聯繫主辦單位，讓學習完美延伸至真實世界！",
+    "evidenceLabel": "以學生身分登入",
+    "evidenceHref": "/auth?role=student"
   }
 ];
 
