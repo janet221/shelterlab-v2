@@ -49,7 +49,7 @@ describe("teacher invitation verification", () => {
     expect(resetPassword).toContain("createBrowserSupabaseClient(role)");
   });
 
-  it("only exposes evaluator account shortcuts when the server-side demo switch is enabled", () => {
+  it("exposes evaluator shortcuts only with an explicit switch or complete evaluator configuration", () => {
     const authPage = read("app/auth/page.tsx");
     const authForm = read("app/auth/auth-form.tsx");
     const authRoute = read("app/api/auth/[action]/route.ts");
@@ -67,7 +67,9 @@ describe("teacher invitation verification", () => {
     expect(authForm).not.toContain("選擇後只會帶入欄位");
     expect(authForm).not.toContain("測試班級：");
     expect(authRoute).toContain('action === "evaluator-accounts"');
-    expect(auth).toContain('process.env.EVALUATOR_DEMO_ENABLED === "true"');
+    expect(auth).toContain('if (setting === "false") return false');
+    expect(auth).toContain('if (setting === "true") return true');
+    expect(auth).toContain("process.env.EVALUATOR_SHELTER_PASSWORD");
     expect(auth).toContain("EVALUATOR_STUDENT_EMAILS");
   });
 });

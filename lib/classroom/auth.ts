@@ -6,7 +6,22 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 type ClassroomAccount = { role: "student" | "teacher" | "shelter"; email: string };
 
 export function isEvaluatorDemoEnabled() {
-  return process.env.EVALUATOR_DEMO_ENABLED === "true";
+  const setting = process.env.EVALUATOR_DEMO_ENABLED?.trim().toLowerCase();
+  if (setting === "false") return false;
+  if (setting === "true") return true;
+
+  // A deployment with the complete evaluator account set is already
+  // intentionally configured for judging. This fallback keeps that experience
+  // visible if only the optional switch was omitted from Vercel.
+  return Boolean(
+    process.env.EVALUATOR_TEACHER_EMAIL
+    && process.env.EVALUATOR_TEACHER_PASSWORD
+    && process.env.EVALUATOR_STUDENT_EMAILS
+    && process.env.EVALUATOR_STUDENT_PASSWORD
+    && process.env.EVALUATOR_CLASS_CODE
+    && process.env.EVALUATOR_SHELTER_EMAIL
+    && process.env.EVALUATOR_SHELTER_PASSWORD
+  );
 }
 
 function evaluatorEmails(role: "student" | "teacher") {
