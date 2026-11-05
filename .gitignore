@@ -18,3 +18,6 @@ tsconfig.tsbuildinfo
 # Local Codex workspace folders
 work/
 outputs/
+
+# Local GitHub CLI credentials for this checkout
+.codex-gh-auth/
