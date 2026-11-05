@@ -23,13 +23,17 @@ export function missingEvaluatorSettings(role: EvaluatorRole) {
     shelter: [["EVALUATOR_SHELTER_EMAIL", process.env.EVALUATOR_SHELTER_EMAIL], ["EVALUATOR_SHELTER_PASSWORD", process.env.EVALUATOR_SHELTER_PASSWORD]],
   };
   const missing = required[role].filter(([, value]) => !value?.trim()).map(([name]) => name);
+  if (role === "student") {
+    const studentCount = (process.env.EVALUATOR_STUDENT_EMAILS ?? "").split(",").map((email) => email.trim()).filter(Boolean).length;
+    if (studentCount < 3 && !missing.includes("EVALUATOR_STUDENT_EMAILS")) missing.push("EVALUATOR_STUDENT_EMAILS（需填入 3 個逗號分隔帳號）");
+  }
   if (process.env.EVALUATOR_DEMO_ENABLED?.trim().toLowerCase() === "false") missing.unshift("EVALUATOR_DEMO_ENABLED（請設為 true，或移除 false）");
   return missing;
 }
 
 function hasEvaluatorAccounts(role?: EvaluatorRole): boolean {
   if (role === "teacher") return Boolean(process.env.EVALUATOR_TEACHER_EMAIL && process.env.EVALUATOR_TEACHER_PASSWORD);
-  if (role === "student") return Boolean(process.env.EVALUATOR_STUDENT_EMAILS && process.env.EVALUATOR_STUDENT_PASSWORD);
+  if (role === "student") return evaluatorEmails("student").length >= 3 && Boolean(process.env.EVALUATOR_STUDENT_PASSWORD);
   if (role === "shelter") return Boolean(process.env.EVALUATOR_SHELTER_EMAIL && process.env.EVALUATOR_SHELTER_PASSWORD);
   return hasEvaluatorAccounts("student") && hasEvaluatorAccounts("teacher") && hasEvaluatorAccounts("shelter");
 }
@@ -54,16 +58,27 @@ export function isEvaluatorAccount(account: ClassroomAccount) {
   return evaluatorEmails(account.role).includes(account.email.trim().toLowerCase());
 }
 
-export function evaluatorLoginAccounts(role: "student" | "teacher") {
-  if (!isEvaluatorDemoEnabled(role)) throw new RequestError(503, "此角色的評審快速登入帳號尚未完成設定。");
+export function evaluatorLoginCredentials(role: EvaluatorRole, accountIndex: number) {
+  if (!isEvaluatorDemoEnabled(role)) throw new RequestError(503, "此角色的評審快速登入尚未完成設定。");
+  if (!Number.isInteger(accountIndex) || accountIndex < 0 || (role !== "student" && accountIndex !== 0)) {
+    throw new RequestError(400, "找不到這個評審快速登入帳號。");
+  }
+  const email = role === "teacher"
+    ? process.env.EVALUATOR_TEACHER_EMAIL?.trim()
+    : role === "shelter"
+      ? process.env.EVALUATOR_SHELTER_EMAIL?.trim()
+      : evaluatorEmails("student")[accountIndex];
   const password = role === "teacher"
     ? process.env.EVALUATOR_TEACHER_PASSWORD
-    : process.env.EVALUATOR_STUDENT_PASSWORD;
-  if (!password) throw new RequestError(503, "評審體驗帳號尚未完成設定。");
-  const labels = role === "teacher" ? ["教師帳號"] : ["學生 A", "學生 B", "學生 C"];
-  const accounts = evaluatorEmails(role).map((email, index) => ({ label: labels[index] ?? `學生 ${index + 1}`, email, password }));
-  if (accounts.length === 0) throw new RequestError(503, "評審體驗帳號尚未完成設定。");
-  return { accounts, classCode: role === "student" ? (process.env.EVALUATOR_CLASS_CODE ?? "") : undefined };
+    : role === "shelter"
+      ? process.env.EVALUATOR_SHELTER_PASSWORD
+      : process.env.EVALUATOR_STUDENT_PASSWORD;
+  if (!email || !password) throw new RequestError(503, "此角色的評審快速登入尚未完成設定。");
+  const accountCount = role === "student" ? evaluatorEmails("student").length : 1;
+  if (role === "student" && (accountCount < 3 || accountIndex > 2)) {
+    throw new RequestError(503, "學生評審快速登入需要設定學生 A、學生 B、學生 C 三個帳號。");
+  }
+  return { email, password };
 }
 
 export async function currentAccount(expectedRole?: "student" | "teacher" | "shelter") {

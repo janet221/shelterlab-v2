@@ -1,14 +1,11 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import Link from "next/link";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 type Mode = "login" | "signup";
 type AccountRole = "student" | "teacher" | "shelter";
 type ClassCodeResult = { classId: string; classCode: string; error?: string };
-type EvaluatorAccount = { label: string; email: string; password: string };
-
 const fieldClass = "mt-2 w-full rounded-2xl border border-[#d8c8ab] bg-[#fffdf8] px-4 py-3.5 text-[#332a22] shadow-sm outline-none transition placeholder:text-[#a99b89] focus:border-[#a69170] focus:ring-4 focus:ring-[#ebd197]/35 disabled:bg-[#f3eee6]";
 const primaryButtonClass = "w-full rounded-2xl border border-[#dec692] bg-[#ebd197] px-5 py-3.5 font-bold text-[#30251b] transition hover:bg-[#f4e4bd] disabled:cursor-not-allowed disabled:opacity-60";
 
@@ -52,51 +49,51 @@ export default function AuthForm({ role, initialMode = "login", evaluatorEnabled
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [evaluatorError, setEvaluatorError] = useState("");
+  const [evaluatorNotice, setEvaluatorNotice] = useState("");
   const [successToast, setSuccessToast] = useState("");
   const [emailValue, setEmailValue] = useState("");
   const [passwordValue, setPasswordValue] = useState("");
   const [evaluatorOpen, setEvaluatorOpen] = useState(false);
-  const [evaluatorAccounts, setEvaluatorAccounts] = useState<EvaluatorAccount[]>([]);
   const roleLabel = role === "teacher" ? "教師" : role === "shelter" ? "收容所" : "學生";
+  const evaluatorOptions = role === "student"
+    ? ["學生 A", "學生 B", "學生 C"]
+    : role === "teacher" ? ["教師 A"] : ["收容所帳號"];
 
   function changeMode(nextMode: Mode) {
     setMode(nextMode); setRecovery(false); setError(""); setNotice("");
   }
 
-  async function toggleEvaluatorAccounts() {
-    if (evaluatorOpen) { setEvaluatorOpen(false); return; }
-    setMode("login"); setRecovery(false); setError("");
+  function toggleEvaluatorAccounts() {
+    setMode("login"); setRecovery(false); setError(""); setNotice("");
+    setEvaluatorError(""); setEvaluatorNotice("");
+    setEvaluatorOpen((open) => !open);
+  }
+
+  async function evaluatorQuickLogin(accountIndex: number, accountLabel: string) {
+    setMode("login"); setRecovery(false); setEvaluatorError(""); setEvaluatorNotice("");
     if (!evaluatorConfigured) {
-      setError(missingEvaluatorSettings.length
+      setEvaluatorError(missingEvaluatorSettings.length
         ? `這個身分的評審快速登入尚未設定。請在 Vercel 專案設定 → Environment Variables → Production 補齊：${missingEvaluatorSettings.join("、")}。儲存後請重新部署。`
         : "這個身分的評審體驗帳號尚未設定；補齊該角色的固定帳號設定後即可快速登入。");
       setEvaluatorOpen(true);
       return;
     }
-    if (evaluatorAccounts.length === 0) {
-      try {
-        const response = await fetch(`/api/auth/evaluator-accounts?role=${role}`, { credentials: "same-origin", cache: "no-store" });
-        const result = await response.json() as { accounts?: EvaluatorAccount[]; error?: string };
-        if (!response.ok || !result.accounts?.length) throw new Error(result.error || "評審體驗帳號暫時無法載入。");
-        setEvaluatorAccounts(result.accounts);
-      } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "評審體驗帳號暫時無法載入。");
-        return;
-      }
-    }
-    setEvaluatorOpen(true);
-  }
-
-  async function selectEvaluatorAccount(account: EvaluatorAccount) {
-    setMode("login"); setRecovery(false); setEmailValue(account.email); setPasswordValue(account.password);
-    setNotice(`正在登入${account.label}…`); setError(""); setEvaluatorOpen(false); setBusy(true);
+    setEvaluatorNotice(`正在安全登入${accountLabel}…`); setBusy(true);
     try {
-      await loginWithServer(role, account.email, account.password);
+      const response = await fetch(`/api/auth/evaluator-login?role=${role}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accountIndex }),
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      const result = await response.json() as { account?: { role: AccountRole }; error?: string };
+      if (!response.ok || result.account?.role !== role) throw new Error(result.error || "評審快速登入失敗，請稍後再試。");
       window.location.assign(role === "teacher" ? "/teacher/dashboard" : role === "shelter" ? "/shelter" : "/student");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "評審快速登入失敗，請稍後再試。");
-      setNotice("");
-      setEvaluatorOpen(true);
+      setEvaluatorError(caught instanceof Error ? caught.message : "評審快速登入失敗，請稍後再試。");
+      setEvaluatorNotice("");
     } finally { setBusy(false); }
   }
 
@@ -160,21 +157,11 @@ export default function AuthForm({ role, initialMode = "login", evaluatorEnabled
       <button type="button" onClick={toggleEvaluatorAccounts} className="flex w-full items-center justify-between gap-3 text-left font-bold text-[#5b4521]" aria-expanded={evaluatorOpen}>
         <span><span aria-hidden="true">⚡</span> 評審快速登入專區</span><span aria-hidden="true">{evaluatorOpen ? "收合" : "選擇帳號"}</span>
       </button>
-      {!evaluatorConfigured && <p className="mt-2 text-xs leading-5 text-[#806b49]">此角色的固定評審帳號尚未在目前環境設定。展開此區可查看需要補齊的變數名稱；實際密碼不會顯示在網站上。</p>}
       {evaluatorOpen && <div className="mt-3 space-y-2 border-t border-[#e4d19e] pt-3">
-        <div className="grid gap-2 sm:grid-cols-2">{evaluatorAccounts.map((account, index) => {
-          const buttonLabel = account.label === "教師帳號" ? "登入教師帳號" : `登入${account.label.replace(/\s+/g, "")}帳號`;
-          const tooltipId = `evaluator-account-${index}`;
-          return <div key={account.email} className="group relative">
-            <button disabled={busy} type="button" aria-describedby={tooltipId} onClick={() => void selectEvaluatorAccount(account)} className="w-full rounded-xl border border-[#d8bd79] bg-white px-3 py-2.5 text-sm font-bold text-[#5b4521] transition hover:bg-[#fff3c9] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#d8bd79]/40 disabled:opacity-60">{busy ? "登入中…" : buttonLabel}</button>
-            <div id={tooltipId} role="tooltip" className="pointer-events-none absolute bottom-[calc(100%+0.55rem)] left-1/2 z-30 hidden w-max max-w-[min(24rem,calc(100vw-4rem))] -translate-x-1/2 rounded-xl border border-[#d8bd79] bg-[#3f3428] px-4 py-3 text-left text-xs font-medium leading-5 text-white shadow-xl group-hover:block group-focus-within:block">
-              <strong className="block text-sm text-[#ffe7a8]">{buttonLabel}</strong>
-              <span className="mt-1 block break-all">Email：{account.email}</span>
-              <span className="block break-all">密碼：{account.password}</span>
-              <span aria-hidden="true" className="absolute left-1/2 top-full -translate-x-1/2 border-[7px] border-transparent border-t-[#3f3428]" />
-            </div>
-          </div>;
-        })}</div>
+        <div className={`grid gap-2 ${evaluatorOptions.length > 1 ? "sm:grid-cols-3" : "sm:grid-cols-1"}`}>
+          {evaluatorOptions.map((label, accountIndex) => <button key={label} disabled={busy} type="button" onClick={() => void evaluatorQuickLogin(accountIndex, label)} className="min-h-11 rounded-xl border border-[#d8bd79] bg-white px-3 py-2.5 text-sm font-bold text-[#5b4521] transition hover:-translate-y-0.5 hover:bg-[#fff3c9] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#d8bd79]/40 disabled:cursor-wait disabled:opacity-60">{busy ? "登入中…" : `登入${label}`}</button>)}
+        </div>
+        <Status error={evaluatorError} notice={evaluatorNotice} />
       </div>}
     </div>}
     {recovery ? <form className="mt-7 space-y-5" onSubmit={sendRecoveryEmail}>
@@ -190,10 +177,6 @@ export default function AuthForm({ role, initialMode = "login", evaluatorEnabled
       {role === "shelter" && mode === "signup" && <label className="block text-sm font-bold text-stone-700">收容所合作代碼<input className={fieldClass} name="partnershipCode" type="password" required maxLength={128} autoComplete="off" placeholder="請輸入管理單位提供的機構授權碼" /></label>}
       <Status error={error} notice={notice} /><button disabled={busy} className={primaryButtonClass}>{busy ? "處理中…" : mode === "signup" ? `建立${roleLabel}帳號` : `${roleLabel}登入`}</button>
     </form>}
-    <div className="mt-5 border-t border-[#eadcc5] pt-4 text-center">
-      <p className="text-xs leading-5 text-[#81725f]">競賽備援｜免登入公開觀摩，不建立角色身分、不開放工作台操作</p>
-      <Link href={`/evaluator-preview?role=${role}`} className="mt-1 inline-flex min-h-10 items-center justify-center rounded-full px-4 text-sm font-bold text-[#746043] underline decoration-[#c9ad78] underline-offset-4 transition hover:bg-[#fbf4e8] hover:text-[#483820]">開啟 {roleLabel} 公開展示導覽</Link>
-    </div>
   </section>;
 }
 

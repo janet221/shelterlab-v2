@@ -1,16 +1,16 @@
 import { z } from "zod";
 import { body, endpoint, RequestError, assertSameOrigin } from "@/lib/classroom/http";
-import { currentAccount, endSession, evaluatorLoginAccounts } from "@/lib/classroom/auth";
+import { currentAccount, endSession, evaluatorLoginCredentials } from "@/lib/classroom/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 const loginSchema = z.object({ email: z.string().trim().email().max(254), password: z.string().min(1).max(128) }).strict();
+const evaluatorLoginSchema = z.object({ accountIndex: z.number().int().min(0).max(2) }).strict();
 const requestRole = (request: Request) => { const role=new URL(request.url).searchParams.get("role"); return role === "teacher" ? "teacher" as const : role === "shelter" ? "shelter" as const : "student" as const };
 
 export async function GET(request: Request, context: { params: Promise<{ action: string }> }) {
   return endpoint(async () => {
     const { action } = await context.params;
-    if (action === "evaluator-accounts") { const role=requestRole(request); if(role==="shelter"){const email=process.env.EVALUATOR_SHELTER_EMAIL,password=process.env.EVALUATOR_SHELTER_PASSWORD;if(!email||!password)throw new RequestError(503,"收容所評審體驗帳號尚未完成設定。");return{accounts:[{label:"臺中市動物之家",email,password}]}} return evaluatorLoginAccounts(role); }
     if (!["me", "session"].includes(action)) throw new RequestError(404, "找不到功能。");
     const role = requestRole(request);
     const account = await currentAccount(role);
@@ -24,8 +24,11 @@ export async function POST(request: Request, context: { params: Promise<{ action
   return endpoint(async () => {
     const { action } = await context.params;
     const role = requestRole(request);
-    if (action === "login") {
-      const credentials = await body(request, loginSchema);
+    if (action === "login" || action === "evaluator-login") {
+      assertSameOrigin(request);
+      const credentials = action === "evaluator-login"
+        ? evaluatorLoginCredentials(role, (await body(request, evaluatorLoginSchema)).accountIndex)
+        : await body(request, loginSchema);
       const supabase = await createServerSupabaseClient(role);
       const { data, error } = await supabase.auth.signInWithPassword(credentials);
       if (error || !data.user) throw new RequestError(401, "電子郵件或密碼不正確。");
