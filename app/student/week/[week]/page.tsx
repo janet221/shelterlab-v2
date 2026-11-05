@@ -40,9 +40,9 @@ export default async function WeekPage({ params, searchParams }: WeekPageProps) 
     if (error instanceof RequestError) {
       return (
         <main className="mx-auto max-w-xl p-10">
-          <h1 className="text-2xl font-bold">此關卡尚未開放</h1>
+          <h1 className="text-2xl font-bold">本單元探究關卡尚未開放</h1>
           <p className="my-5">{error.message}</p>
-          <Link href="/student" className="underline">返回六週地圖</Link>
+          <Link href="/student" className="underline">返回六週學習地圖</Link>
         </main>
       );
     }
@@ -51,11 +51,11 @@ export default async function WeekPage({ params, searchParams }: WeekPageProps) 
 
   const formallyReturned = !evaluatorPreview && (work.status === "returned" || parseStudentReviewFeedback(work.feedback)?.decision === "reject" || (work.status === "in_progress" && Boolean(work.feedback?.trim())));
   const experience = weekNumber === 1 ? <WeekOneExperience auditDemo={auditDemo} evaluatorPreview={evaluatorPreview} skipIntro={formallyReturned} completedReview={!evaluatorPreview && work.status === "completed"} />
-    : weekNumber === 2 ? <WeekTwoExperience auditDemo={auditDemo} />
-      : weekNumber === 3 ? <WeekThreeExperience auditDemo={auditDemo} />
-        : weekNumber === 4 ? <WeekFourExperience auditDemo={auditDemo} />
-          : weekNumber === 5 ? <WeekFiveExperience auditDemo={auditDemo} />
-            : weekNumber === 6 ? <WeekSixExperience auditDemo={auditDemo} />
+    : weekNumber === 2 ? <WeekTwoExperience auditDemo={auditDemo} evaluatorPreview={evaluatorPreview} />
+      : weekNumber === 3 ? <WeekThreeExperience auditDemo={auditDemo} evaluatorPreview={evaluatorPreview} />
+        : weekNumber === 4 ? <WeekFourExperience auditDemo={auditDemo} evaluatorPreview={evaluatorPreview} />
+          : weekNumber === 5 ? <WeekFiveExperience auditDemo={auditDemo} evaluatorPreview={evaluatorPreview} />
+            : weekNumber === 6 ? <WeekSixExperience auditDemo={auditDemo} evaluatorPreview={evaluatorPreview} />
               : <GuidedWeekCourse week={weekNumber} />;
 
   return <WeekAuditTracker accountId={account.id} week={weekNumber} status={work.status} reviewFeedback={work.feedback} submittedAudit={work.gameAudit} evaluatorMode={evaluatorMode} evaluatorPreview={evaluatorPreview} auditDemo={auditDemo}>{experience}</WeekAuditTracker>;

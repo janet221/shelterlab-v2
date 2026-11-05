@@ -90,8 +90,8 @@ export function buildQuestionSet(data: ReturnType<typeof analyzeCoa>, week: numb
   return { version: 1, week, county, cases, count: data.count, validDays: data.validDays, medianDays: data.medianDays, metadata: data.metadata, wordingSource: "template",
     comparisonNote: cases.length < 2 ? "本縣市不足兩筆有效個案，暫不生成比較題；請檢查來源資料。" : "系統刻意挑選差異個案，並非隨機抽樣，也不是已證實的因果對照實驗。",
     questions: [
-      { id: "compare", focus, fact, prompt: `比較至少兩個個案。${focus}與紀錄天數有什麼不同？請指出你引用的個案和資料。` },
-      { id: "limits", focus, fact: "目前以資料建立日期作為入所日期代理值。", prompt: "這個日期能代表真正入所日嗎？若紀錄延遲或缺漏，會如何影響你的比較？" },
+      { id: "compare", focus, fact, prompt: `比較至少兩個個案。${focus}與紀錄天數有何差異？請指出所引用的個案與資料。` },
+      { id: "limits", focus, fact: "目前以資料建立日期作為入所日期代理值。", prompt: "此日期能否代表實際入所日？若紀錄延遲或缺漏，將如何影響比較結果？" },
       { id: "causality", focus, fact: "對照案例不是隨機抽樣；資料沒有完整記錄所有影響認養的條件。", prompt: `僅憑${focus}是否足以解釋天數差異？提出其他可能未記錄的變項，以及可以如何查證。` }
     ] };
 }

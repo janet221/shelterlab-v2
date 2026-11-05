@@ -6,6 +6,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useStudentLearningProgress } from "@/app/student/_components/student-learning-progress";
 import { getOpenDataCourseCase } from "@/lib/student-open-data-cases";
 import { getStudentCourseTitles } from "@/lib/student-course-titles";
+import { EVALUATOR_ROLE_PATH_NAVIGATION_EVENT, useEvaluatorStageNavigation } from "./evaluator-stage-navigator";
+import LearningVideoCard from "./learning-video-card";
 import styles from "./week-one-game.module.css";
 
 const COPY = getStudentCourseTitles(1);
@@ -16,7 +18,7 @@ const isPathId = (value: string): value is PathId => ["home", "work", "school", 
 const SCENES = [
   { id: "home", icon: "🏠", name: "家庭犬", front: "牠如何成為家庭的一員？", origin: "犬隻可能經由認養、購買、救援或原飼主轉讓進入家庭。", need: "家庭犬提供陪伴，也讓人學習長期照護與尊重生命。", duty: "牠不負責完成任務；家庭須負責飲食、活動、醫療、安全與終身安置。" },
   { id: "work", icon: "🦺", name: "工作犬", front: "牠為什麼穿上工作背心？", origin: "犬隻經過健康、性格與能力評估，再接受符合任務需求的專業訓練。", need: "人類運用犬隻的嗅覺、警覺與合作能力，協助搜救、偵測或服務工作。", duty: "牠在受訓範圍內執行任務；機構須保障工時、休息、醫療、防護與退役生活。" },
-  { id: "school", icon: "🏫", name: "校犬", front: "牠如何進入校園生活？", origin: "校犬可能來自收容所、校園周邊或認養計畫，經評估後由學校安置。", need: "穩定且合宜的校犬計畫可連結生命教育，讓學生練習安全互動與照護責任。", duty: "牠可以陪伴校園社群；學校仍須指定成人照護者、經費、休息區與假日安排。" },
+  { id: "school", icon: "🏫", name: "校犬", front: "牠如何進入校園生活？", origin: "校犬可能來自收容所、校園周邊或認養計畫，經評估後由學校安置。", need: "穩定且合宜的校犬計畫可連結生命教育，讓學生練習安全互動與照護責任。", duty: "牠可以陪伴校園社群；學校仍須指定成年人照護者、經費、休息區與假日安排。" },
   { id: "street", icon: "🌳", name: "街頭犬", front: "牠為什麼留在公共空間？", origin: "牠可能是走失、遭棄養、在外繁殖，或長期由社區居民餵養而形成遊蕩生活。", need: "社會需要處理動物福祉、公共安全與環境衛生，不能只靠零散餵食。", duty: "犬隻沒有公共工作職責；政府與社區須進行辨識、醫療、絕育、風險管理與適切安置。" }
 ] as const;
 
@@ -86,7 +88,7 @@ const CHALLENGES: Record<PathId, Challenge> = {
 };
 
 const QUIZ = [
-  { q: "校犬在週末與寒暑假仍需要照護，最完整的做法是？", options: ["放足一週飼料與飲水，等校園重新開放後再檢查狀況", "事先指定照護者、代理人與緊急聯絡方式", "由有空的學生輪流到校，不必安排固定成人負責"], answer: 1, note: "照護必須連續且責任明確，不能因校園放假而中斷。" },
+  { q: "校犬在週末與寒暑假仍需要照護，最完整的做法是？", options: ["放足一週飼料與飲水，等校園重新開放後再檢查狀況", "事先指定照護者、代理人與緊急聯絡方式", "由有空的學生輪流到校，不必安排固定成年人負責"], answer: 1, note: "照護必須連續且責任明確，不能因校園放假而中斷。" },
   { q: "犬隻走進休息區並避開人群時，學生應該怎麼做？", options: ["尊重牠退出互動，保持距離", "跟進休息區輕摸安撫，讓牠逐漸習慣學生靠近", "把牠帶回活動區，避免牠錯過團體互動與訓練"], answer: 0, note: "休息區提供犬隻自主退出互動的空間，可降低壓力與人犬衝突。" },
   { q: "影片呈現一個成功案例後，規劃校犬制度還要確認什麼？", options: ["確認多數學生喜歡犬隻，再由各班自行協調日常工作", "照護者、評估、經費、假日安排與互動規範", "先替犬隻命名並完成宣傳，其他細節等進校後再調整"], answer: 1, note: "個案故事能提供觀察線索，制度仍須逐項確認長期責任。" }
 ] as const;
@@ -127,7 +129,7 @@ function StagePaper({ children, onPrevious, blackboard = false }: { children: Re
   </section>;
 }
 
-export default function WeekOneGame({ auditDemo = false, evaluatorPreview = false, completedReview = false }: { auditDemo?: boolean; evaluatorPreview?: boolean; completedReview?: boolean }) {
+export default function WeekOneGame({ auditDemo = false, evaluatorPreview = false, completedReview = false, initialStage, initialRolePath }: { auditDemo?: boolean; evaluatorPreview?: boolean; completedReview?: boolean; initialStage?: number; initialRolePath?: string | null }) {
   const router = useRouter();
   const { progress, ready, updateWeekOne, completeWeekOne, resetWeekOne } = useStudentLearningProgress();
   const draft = progress.weekOne;
@@ -145,15 +147,65 @@ export default function WeekOneGame({ auditDemo = false, evaluatorPreview = fals
   const [challengeOrder, setChallengeOrder] = useState<string[]>([]);
   const [quizOptionOrders, setQuizOptionOrders] = useState<number[][]>(QUIZ.map((item) => item.options.map((_, index) => index)));
 
+  useEvaluatorStageNavigation(1, evaluatorPreview, (nextStage) => {
+    setFeedback(null);
+    setReminder("");
+    if (nextStage === 2) {
+      const path = roleChoice || (isPathId(draft.firstImpression) ? draft.firstImpression : ROLE_PATHS[0].id);
+      setRoleChoice(path);
+      setChallengeId(path);
+      setFiled(completedReview ? CHALLENGES[path].items.filter((item) => item.required).map((item) => item.id) : []);
+      setHearts(3);
+    }
+    updateWeekOne({ stage: nextStage });
+  });
+
   useEffect(() => {
-    if (!ready || !auditDemo || stage === 5) return;
+    if (!evaluatorPreview) return;
+    const navigateRolePath = (event: Event) => {
+      const detail = (event as CustomEvent<{ week: number; path: string | null }>).detail;
+      if (detail?.week !== 1) return;
+      setFeedback(null);
+      setReminder("");
+      setHearts(3);
+      if (detail.path === null) {
+        setRoleChoice("");
+        setChallengeId(null);
+        setFiled([]);
+        updateWeekOne({ stage: 1, firstImpression: "" });
+        return;
+      }
+      if (!isPathId(detail.path)) return;
+      setRoleChoice(detail.path);
+      setChallengeId(detail.path);
+      setFiled(completedReview ? CHALLENGES[detail.path].items.filter((item) => item.required).map((item) => item.id) : []);
+      updateWeekOne({ stage: 2, firstImpression: detail.path });
+    };
+    window.addEventListener(EVALUATOR_ROLE_PATH_NAVIGATION_EVENT, navigateRolePath);
+    return () => window.removeEventListener(EVALUATOR_ROLE_PATH_NAVIGATION_EVENT, navigateRolePath);
+  }, [completedReview, evaluatorPreview, updateWeekOne]);
+
+  useEffect(() => {
+    if (!ready || !auditDemo) return;
     updateWeekOne({ stage: 5, completed: false, completedAt: null });
-  }, [auditDemo, ready, stage, updateWeekOne]);
+  }, [auditDemo, ready, updateWeekOne]);
 
   useEffect(() => {
     if (!ready || !evaluatorPreview || auditDemo) return;
     resetWeekOne();
-  }, [auditDemo, evaluatorPreview, ready, resetWeekOne]);
+    if (initialRolePath && isPathId(initialRolePath)) updateWeekOne({ stage: 2, firstImpression: initialRolePath });
+    else if (initialRolePath === null) updateWeekOne({ stage: 1, firstImpression: "" });
+    else if (initialStage !== undefined) updateWeekOne({ stage: initialStage });
+  }, [auditDemo, evaluatorPreview, initialRolePath, initialStage, ready, resetWeekOne, updateWeekOne]);
+
+  useEffect(() => {
+    if (!ready || initialStage !== 2) return;
+    const path = isPathId(draft.firstImpression) ? draft.firstImpression : ROLE_PATHS[0].id;
+    setRoleChoice(path);
+    setChallengeId(path);
+    setFiled(completedReview ? CHALLENGES[path].items.filter((item) => item.required).map((item) => item.id) : []);
+    setHearts(3);
+  }, [completedReview, draft.firstImpression, initialStage, ready]);
 
   useEffect(() => {
     if (!ready) return;
@@ -349,21 +401,7 @@ export default function WeekOneGame({ auditDemo = false, evaluatorPreview = fals
           <h2 className={styles.stageTitle}>校犬進入校園後，還需要看見哪些責任？</h2>
           <p className={styles.stageLead}>觀看愛學網《校犬豆豆1》，再完成三題責任檢核。若官方網站限制內嵌播放，可使用播放器下方的官方連結。</p>
         </div>
-        <div className={styles.embeddedVideo}>
-          <a className={styles.videoLaunch} href="https://stv.naer.edu.tw/watch/344572" target="_blank" rel="noreferrer">
-            <span className={styles.videoPoster}>
-              <span className={styles.videoPosterMark} aria-hidden="true">校犬</span>
-              <span className={styles.videoPlay} aria-hidden="true">▶</span>
-              <span className={styles.videoPosterCaption}>校犬豆豆1</span>
-            </span>
-            <span className={styles.videoMeta}>
-              <small>愛學網官方影片 · 04:27</small>
-              <strong>校犬豆豆1</strong>
-              <span>點擊後直接前往官方播放器，不再顯示被拒絕存取的內嵌頁面。</span>
-            </span>
-          </a>
-          <a className={styles.videoTextLink} href="https://stv.naer.edu.tw/watch/344572" target="_blank" rel="noreferrer">在愛學網直接播放 ↗</a>
-        </div>
+        <LearningVideoCard video={{ title: "校犬豆豆1", description: "先觀察校犬如何融入校園，再回來檢查照護者、假日安排與安全規範。", provider: "愛學網｜國家教育研究院", href: "https://stv.naer.edu.tw/watch/344572", thumbnail: "https://stvstreaming.naer.edu.tw/medialib/00/05/41/FC/thumbnails/poster.png", duration: "04:27" }} />
         <div className={styles.quizPanel}>
           <div className={styles.repairHeading}><span>豆豆的校園責任小測驗</span><small>答對三題即可過關</small></div>
           {QUIZ.map((item, index) => <fieldset key={item.q} className={styles.quizQuestion}>

@@ -7,6 +7,8 @@ import { useStudentLearningProgress } from "@/app/student/_components/student-le
 import { getOpenDataCourseCase } from "@/lib/student-open-data-cases";
 import { getStudentCourseTitles } from "@/lib/student-course-titles";
 import { getLearningTool, isTreasureUnlockedForWeek } from "@/lib/student-map";
+import { useEvaluatorStageNavigation } from "./evaluator-stage-navigator";
+import LearningVideoCard from "./learning-video-card";
 import TreasureWorkspace, { type TreasureItem } from "./treasure-workspace";
 import base from "./week-one-game.module.css";
 import styles from "./week-two-experience.module.css";
@@ -362,13 +364,18 @@ function QuizBlock({ items, answers, order, onAnswer }: {
   );
 }
 
-export default function WeekFourExperience({ auditDemo = false }: { auditDemo?: boolean }) {
+export default function WeekFourExperience({ auditDemo = false, evaluatorPreview = false }: { auditDemo?: boolean; evaluatorPreview?: boolean }) {
   const router = useRouter();
   const { completeWeek, progress } = useStudentLearningProgress();
   const [saved, setSaved] = useState<SavedWeekFour>(EMPTY);
   const [ready, setReady] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [orders, setOrders] = useState<Orders>(INITIAL_ORDERS);
+
+  useEvaluatorStageNavigation(4, evaluatorPreview, (stage) => {
+    setFeedback(null);
+    setSaved((current) => ({ ...current, stage, furthest: Math.max(current.furthest, stage), completed: false }));
+  });
 
   useEffect(() => {
     try {
@@ -570,7 +577,7 @@ export default function WeekFourExperience({ auditDemo = false }: { auditDemo?: 
           </div>
 
           {saved.stage === 0 && <section>
-            <div className={styles.storyBanner}><small>系統任務：收容所為什麼一直有新犬進來？</small><h3>要改善街頭流浪犬問題，不能只靠末端認養，還要從源頭減少新的流入</h3><p>收容與街頭的犬隻數量，同時受到家犬走失、放養、棄養、任意分送、未管理繁殖、捕捉、返還、認養與死亡影響。只盯著其中一條路徑，很容易把努力做在末端，卻沒看見新的犬仍持續進入。</p></div>
+            <div className={styles.storyBanner}><small>系統任務：收容所為什麼一直有新犬進來？</small><h3>要改善街頭流浪犬問題，不能只靠末端認養，還要從源頭減少新的流入</h3><p>收容與街頭的犬隻數量，同時受到家犬走失、放養、棄養、任意分送、未管理繁殖、捕捉、返還、認養與死亡影響。只盯著其中一條路徑，很容易把努力做在末端，卻沒看見新的犬隻仍持續進入。</p></div>
             <div className={styles.relationshipMap}><article><span>流入與新生</span><h3>數量增加</h3><p>走失、放養、棄養、捕捉，以及家犬或街頭犬未管理繁殖。</p></article><b>⇄</b><article><span>返還與安置</span><h3>數量減少</h3><p>尋回飼主、認養、合適轉置，以及源頭減少新的個體進入。</p></article></div>
             <div className={styles.challengeGrid}>
               <article><span>存量</span><h3>此刻有多少犬？</h3><p>街頭推估與收容所在所量，都是某個時間點的狀態。</p></article>
@@ -642,16 +649,16 @@ export default function WeekFourExperience({ auditDemo = false }: { auditDemo?: 
           </section>}
 
           {saved.stage === 4 && <section>
-            <div className={styles.videoLayout}>
-              <article><small>農業部動物保護宣導影片</small><h3>絕育：生不完，你好亂</h3><p>先到官方收錄的影片觀看，再回來檢查：影片說清楚了什麼？哪些執行條件仍需要前四關的系統資料補足？</p><a href="https://youtu.be/j9IH5ydH-fc?feature=shared" target="_blank" rel="noreferrer">前往官方影片觀看 ↗</a><small>使用外部連結開啟，避免影片來源拒絕嵌入。</small></article>
-              <div><h3>影片後判讀</h3><QuizBlock items={VIDEO_QUESTIONS} answers={saved.videoAnswers} order={orders.video} onAnswer={(index, option) => answerQuiz(4, VIDEO_QUESTIONS, "videoAnswers", index, option)} /></div>
+            <div className={styles.videoStage}>
+              <LearningVideoCard video={{ title: "絕育：生不完，你好亂", description: "觀看農業部動物保護宣導影片後，檢查它說明了什麼，以及哪些執行條件還需要前面學到的系統資料補足。", provider: "農業部動物保護宣導｜YouTube", href: "https://youtu.be/j9IH5ydH-fc?feature=shared", thumbnail: "https://img.youtube.com/vi/j9IH5ydH-fc/hqdefault.jpg", youtubeId: "j9IH5ydH-fc" }} />
+              <div className={styles.videoReview}><h3>影片後判讀</h3><QuizBlock items={VIDEO_QUESTIONS} answers={saved.videoAnswers} order={orders.video} onAnswer={(index, option) => answerQuiz(4, VIDEO_QUESTIONS, "videoAnswers", index, option)} /></div>
             </div>
             <label className={styles.reflection}><span>如果要把這支宣導片改成一個真正能評估的社區計畫，你會補上哪兩個執行條件與哪一個成效指標？</span><textarea value={saved.videoReflection} onChange={(event) => setSaved((current) => ({ ...current, videoReflection: event.target.value }))} placeholder="例如：補上熱區母犬絕育覆蓋率與家犬放養訪查；每半年用相同方法追蹤幼犬與新犬移入……" /><small>{saved.videoReflection.trim() ? "✓ 已記錄回答" : "不限字數；完成後即可繼續。"}</small></label>
             <div className={styles.sourceRow}><a href="https://animal.moa.gov.tw/Frontend/Know/PageTabList?TabID=31B05CB46007226417F0F5FB8A80096E" target="_blank" rel="noreferrer">農業部動物保護影音與教材專區 ↗</a></div>
           </section>}
 
           {saved.stage === 5 && <section>
-            <div className={styles.storyBanner}><small>農業部「動物認領養」開放資料 · 快照日 {RECORD.snapshotDate}</small><h3>「母、未絕育」是兩個欄位，不是「正在懷孕」的診斷</h3><p>資料可以確認這筆公開紀錄的性別與當時登載的絕育狀態；它沒有懷孕欄位，也沒有完整生殖史。好的源頭治理從查證開始，不把一隻犬變成問題的代罪羔羊。</p><a href="https://data.gov.tw/dataset/85903" target="_blank" rel="noreferrer">查看政府原始資料集 ↗</a></div>
+            <div className={styles.storyBanner}><small>農業部「動物認領養」開放資料 · 快照日 {RECORD.snapshotDate}</small><h3>「母、未絕育」是兩個欄位，不是「正在懷孕」的診斷</h3><p>資料能確認公開紀錄的性別與登載的絕育狀態，但無法直接支持其是否懷孕或曾繁殖。</p><a href="https://data.gov.tw/dataset/85903" target="_blank" rel="noreferrer">查看政府原始資料集 ↗</a></div>
             <div className={base.dataStatSummary}><article><small>公犬</small><strong>2,999 筆</strong><span>留所天數中位數 696 天</span></article><article><small>母犬</small><strong>2,689 筆</strong><span>留所天數中位數 603 天</span></article><article><small>性別未註明</small><strong>14 筆</strong><span>留所天數中位數 194 天</span></article></div>
             <p className={styles.dataScopeNote}>統計只描述同一份資料快照中的性別標示與留所天數；樣本數差異很大，也沒有繁殖史，不能解讀為性別或絕育狀態造成留所結果。</p>
             <div className={styles.caseFile}><div className={styles.casePhoto}><img src={RECORD.image} alt={`政府公開資料個案 ${RECORD.subId}`} loading="lazy" referrerPolicy="no-referrer" /></div><div><small>公開個案 · {RECORD.subId}</small><h3>先讀欄位，再提出問題</h3><div className={styles.caseFields}>{RECORD.displayFields.map(([label, value]) => <span key={label}><b>{label}</b>{value}</span>)}</div><p>{RECORD.evidenceBoundary}</p></div></div>

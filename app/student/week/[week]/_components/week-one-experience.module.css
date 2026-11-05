@@ -2,7 +2,7 @@
   min-height: 100dvh;
   background: #f1ece2;
   color: #f7f3e8;
-  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-family: "NotoSerifTC", "Microsoft JhengHei", serif;
 }
 
 .shell {
@@ -348,7 +348,7 @@
   place-items: center;
   background: #f1ece2;
   color: #4c4942;
-  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-family: "NotoSerifTC", "Microsoft JhengHei", serif;
   font-weight: 800;
 }
 
@@ -391,7 +391,7 @@
   min-height: 100dvh;
   background: #e8e1d4;
   color: #34332f;
-  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-family: "NotoSerifTC", "Microsoft JhengHei", serif;
   overflow-x: hidden;
 }
 

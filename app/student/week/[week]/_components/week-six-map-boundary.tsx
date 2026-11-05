@@ -15,7 +15,7 @@ export default class WeekSixMapBoundary extends Component<{ children: ReactNode 
 
   render() {
     if (this.state.failed) {
-      return <div role="status" className="week6-map-error"><strong>地圖暫時無法載入</strong><p>你仍可使用右側條件與下方單位卡片查找資源、電話及導航連結。</p></div>;
+      return <div role="status" className="week6-map-error"><strong>地圖模組暫無法載入</strong><p>仍可運用右側篩選條件與下方機構卡片查閱資源、聯絡電話及導航連結。</p></div>;
     }
     return this.props.children;
   }

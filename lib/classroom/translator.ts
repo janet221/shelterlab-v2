@@ -1,9 +1,9 @@
 import type { QuestionSet } from "./data-types";
 
 const wording = {
-  compare: ["請挑選至少兩個案例，說明你從表格看見的相同與不同，並指出使用了哪些紀錄。", "如果同學只看其中一個案例，他可能忽略什麼？請用至少兩筆紀錄來比較。"],
-  limits: ["這份資料沒有正式入所日。把資料建立日當成代理值，可能讓我們看漏什麼？", "如果某筆資料晚了才建立，天數比較會受到什麼影響？還需要查證什麼？"],
-  causality: ["這些差異就能證明因果關係嗎？試著提出其他可能影響結果、但表格沒有記錄的條件。", "若要驗證自己的解釋，你還需要哪些資料？如何避免把相關當成因果？"]
+  compare: ["請挑選至少兩個案例，說明表格中呈現的相同與差異，並指出使用的紀錄。", "若僅檢視其中一個案例，可能忽略哪些資訊？請至少使用兩筆紀錄進行比較。"],
+  limits: ["這份資料未提供正式入所日。將資料建立日作為代理值，可能遺漏哪些資訊？", "若部分紀錄延後建立，天數比較將受到何種影響？尚須查證哪些資料？"],
+  causality: ["這些差異是否足以證明因果關係？請提出其他可能影響結果、但表格未記錄的條件。", "若要驗證此項解釋，尚須取得哪些資料？應如何避免將相關性誤認為因果關係？"]
 } as const;
 export function applyTranslationChoices(set: QuestionSet, choices: unknown): QuestionSet {
   if (!choices || typeof choices !== "object" || Array.isArray(choices)) return set;

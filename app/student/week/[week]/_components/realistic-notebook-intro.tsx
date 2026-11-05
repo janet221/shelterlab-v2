@@ -6,11 +6,13 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./realistic-notebook-intro.module.css";
 import beige from "./realistic-notebook-beige.module.css";
 import goals from "./realistic-notebook-goals.module.css";
+import { EVALUATOR_INTRO_PAGE_NAVIGATION_EVENT } from "./evaluator-stage-navigator";
 
 type PageFlipEvent = { data: number | string };
 
 type PageFlipInstance = {
   loadFromHTML: (items: HTMLElement[]) => void;
+  turnToPage: (page: number) => void;
   flipNext: (corner?: "top" | "bottom") => void;
   flipPrev: (corner?: "top" | "bottom") => void;
   on: (event: "flip", callback: (event: PageFlipEvent) => void) => void;
@@ -333,6 +335,7 @@ export default function RealisticNotebookIntro({ onComplete }: { onComplete: () 
   const [scriptReady, setScriptReady] = useState(false);
   const [compact, setCompact] = useState(false);
   const [logicalPage, setLogicalPage] = useState(0);
+  const logicalPageRef = useRef(0);
   const [bookReady, setBookReady] = useState(false);
 
   useEffect(() => {
@@ -342,6 +345,19 @@ export default function RealisticNotebookIntro({ onComplete }: { onComplete: () 
     media.addEventListener("change", sync);
     return () => media.removeEventListener("change", sync);
   }, []);
+
+  useEffect(() => {
+    const navigateIntro = (event: Event) => {
+      const detail = (event as CustomEvent<{ week?: number; page?: number }>).detail;
+      if (detail?.week !== 1 || !Number.isInteger(detail.page)) return;
+      const page = Math.max(0, Math.min(3, Number(detail.page)));
+      logicalPageRef.current = page;
+      setLogicalPage(page);
+      window.requestAnimationFrame(() => flipRef.current?.turnToPage(compact ? page : page * 2));
+    };
+    window.addEventListener(EVALUATOR_INTRO_PAGE_NAVIGATION_EVENT, navigateIntro);
+    return () => window.removeEventListener(EVALUATOR_INTRO_PAGE_NAVIGATION_EVENT, navigateIntro);
+  }, [compact]);
 
   useEffect(() => {
     if (!scriptReady || !bookRef.current || !window.St?.PageFlip) return;
@@ -370,14 +386,16 @@ export default function RealisticNotebookIntro({ onComplete }: { onComplete: () 
       disableFlipByClick: true,
       useMouseEvents: true,
       showPageCorners: false,
-      startPage: compact ? logicalPage : logicalPage * 2
+      startPage: compact ? logicalPageRef.current : logicalPageRef.current * 2
     });
 
     instance.on("flip", (event) => {
       const index = Number(event.data);
       if (!Number.isFinite(index)) return;
       const page = compact ? index : Math.floor(index / 2);
-      setLogicalPage(Math.max(0, Math.min(3, page)));
+      const boundedPage = Math.max(0, Math.min(3, page));
+      logicalPageRef.current = boundedPage;
+      setLogicalPage(boundedPage);
     });
 
     instance.loadFromHTML(pages);
@@ -403,7 +421,9 @@ export default function RealisticNotebookIntro({ onComplete }: { onComplete: () 
     if (flipRef.current) {
       flipRef.current.flipNext("bottom");
     } else {
-      setLogicalPage((page) => Math.min(3, page + 1));
+      const page = Math.min(3, logicalPageRef.current + 1);
+      logicalPageRef.current = page;
+      setLogicalPage(page);
     }
   };
 
@@ -412,7 +432,9 @@ export default function RealisticNotebookIntro({ onComplete }: { onComplete: () 
     if (flipRef.current) {
       flipRef.current.flipPrev("bottom");
     } else {
-      setLogicalPage((page) => Math.max(0, page - 1));
+      const page = Math.max(0, logicalPageRef.current - 1);
+      logicalPageRef.current = page;
+      setLogicalPage(page);
     }
   };
 

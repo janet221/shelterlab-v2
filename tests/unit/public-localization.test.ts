@@ -64,8 +64,8 @@ describe("Release 1.0.2 role-based public experience", () => {
   });
 
   it("keeps the approved homepage and synthetic-demo notice copy", () => {
-    expect(read("app/page.tsx")).toContain("ShelterLab｜青少年動物科學探究實驗室");
-    expect(read("app/page.tsx")).toContain("讓關心有依據，讓行動有方向");
+    expect(read("app/page.tsx")).toContain("ShelterLab｜青少年公共議題探究實驗室");
+    expect(read("app/page.tsx")).toContain("奠基於客觀證據的公共關懷與社會行動");
     expect(syntheticDemoNotice).toBe("競賽原型｜合成示範資料｜尚未宣稱正式合作或實證認養成效");
   });
 

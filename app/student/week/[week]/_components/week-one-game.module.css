@@ -27,7 +27,7 @@
     radial-gradient(circle at 88% 16%, rgba(88, 170, 168, .13), transparent 300px),
     radial-gradient(circle at 80% 86%, rgba(239, 213, 130, .18), transparent 280px),
     linear-gradient(180deg, #fff8e8 0%, #fff2da 55%, #f9e8ca 100%);
-  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-family: "NotoSerifTC", "Microsoft JhengHei", serif;
   overflow-x: hidden;
 }
 
@@ -2241,8 +2241,8 @@
   background:#fff5f1;
 }
 
-.heartBar span { font-weight:900; }
-.heartBar strong { color:#d34a48; font-size:23px; letter-spacing:4px; }
+.heartBar span { flex-shrink:0; font-weight:900; white-space:nowrap; }
+.heartBar strong { flex-shrink:0; color:#d34a48; font-size:23px; letter-spacing:4px; white-space:nowrap; }
 .heartBar small { margin-left:auto; color:#765b55; }
 
 .learningFeedback {

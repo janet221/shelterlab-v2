@@ -45,7 +45,7 @@ async function loginWithServer(role: AccountRole, email: string, password: strin
   if (!response.ok || result.account?.role !== role) throw new Error(result.error || "登入憑證未能建立，請重試。");
 }
 
-export default function AuthForm({ role, initialMode = "login", evaluatorEnabled = false }: { role: AccountRole; initialMode?: Mode; evaluatorEnabled?: boolean }) {
+export default function AuthForm({ role, initialMode = "login", evaluatorEnabled = false, evaluatorConfigured = true }: { role: AccountRole; initialMode?: Mode; evaluatorEnabled?: boolean; evaluatorConfigured?: boolean }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [recovery, setRecovery] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -65,6 +65,11 @@ export default function AuthForm({ role, initialMode = "login", evaluatorEnabled
   async function toggleEvaluatorAccounts() {
     if (evaluatorOpen) { setEvaluatorOpen(false); return; }
     setMode("login"); setRecovery(false); setError("");
+    if (!evaluatorConfigured) {
+      setError("這個身分的評審體驗帳號尚未設定；補齊該角色的固定帳號設定後即可快速登入。");
+      setEvaluatorOpen(true);
+      return;
+    }
     if (evaluatorAccounts.length === 0) {
       try {
         const response = await fetch(`/api/auth/evaluator-accounts?role=${role}`, { credentials: "same-origin", cache: "no-store" });
@@ -151,6 +156,7 @@ export default function AuthForm({ role, initialMode = "login", evaluatorEnabled
       <button type="button" onClick={toggleEvaluatorAccounts} className="flex w-full items-center justify-between gap-3 text-left font-bold text-[#5b4521]" aria-expanded={evaluatorOpen}>
         <span><span aria-hidden="true">⚡</span> 評審快速登入專區</span><span aria-hidden="true">{evaluatorOpen ? "收合" : "選擇帳號"}</span>
       </button>
+      {!evaluatorConfigured && <p className="mt-2 text-xs leading-5 text-[#806b49]">此角色的固定評審帳號尚未在目前環境設定。</p>}
       {evaluatorOpen && <div className="mt-3 space-y-2 border-t border-[#e4d19e] pt-3">
         <div className="grid gap-2 sm:grid-cols-2">{evaluatorAccounts.map((account, index) => {
           const buttonLabel = account.label === "教師帳號" ? "登入教師帳號" : `登入${account.label.replace(/\s+/g, "")}帳號`;

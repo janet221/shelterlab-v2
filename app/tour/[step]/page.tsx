@@ -12,7 +12,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ step: string }> }): Promise<Metadata> {
   const { step } = await params;
   const current = getPublicTourStep(step);
-  return current ? { title: `${current.title}｜ShelterLab 如何運作` } : {};
+  return current ? { title: `${current.title}｜ShelterLab 系統運作說明` } : {};
 }
 
 export default async function TourStepPage({ params }: { params: Promise<{ step: string }> }) {
@@ -33,12 +33,12 @@ export default async function TourStepPage({ params }: { params: Promise<{ step:
           <div className="grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
             <aside className="space-y-6 self-start lg:sticky lg:top-24">
               <div className="rounded-2xl border border-[#e4c98f] bg-[#fffaf0] p-6 shadow-sm">
-                <h1 className="text-xl font-extrabold tracking-tight text-[#3d3023]">如何運作</h1>
-                <p className="mt-3 text-sm leading-7 text-[#6f604f]">ShelterLab 將六週課程、行前準備與收容所活動公告串成一條清楚的學習路徑。</p>
+                <h1 className="text-xl font-extrabold tracking-tight text-[#3d3023]">系統運作說明</h1>
+                <p className="mt-3 text-sm leading-7 text-[#6f604f]">ShelterLab 將線上探究歷程、行前籌備與公部門活動資訊，整合為一條結構化的學習路徑。</p>
               </div>
 
-              <nav aria-label="使用流程" className="rounded-2xl border border-[#ead9b7] bg-white/95 p-4 shadow-sm">
-                <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#9a7639]">使用流程</p>
+              <nav aria-label="學習流程" className="rounded-2xl border border-[#ead9b7] bg-white/95 p-4 shadow-sm">
+                <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#9a7639]">學習流程</p>
                 <ol className="space-y-1">
                   {publicTourSteps.map((item) => (
                     <li key={item.slug}>
@@ -63,9 +63,9 @@ export default async function TourStepPage({ params }: { params: Promise<{ step:
               <p className="mt-4 leading-8 text-[#6f604f]">{current.detail}</p>
 
               {current.sequence === 1 && (
-                <div className="mt-8 flex flex-wrap gap-3" aria-label="選擇登入身分">
-                  <Link className="inline-flex min-h-12 items-center rounded-full border border-[#dfbf78] bg-[#f2dba4] px-6 py-3 text-sm font-bold text-[#4e3b20] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#f8e8bf] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#bd9141]" href="/auth?role=student">我是學生 →</Link>
-                  <Link className="inline-flex min-h-12 items-center rounded-full border border-[#dbb69d] bg-[#f0d2bd] px-6 py-3 text-sm font-bold text-[#5d3e31] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#f7e0d0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b98568]" href="/auth?role=teacher&mode=signup">我是老師 →</Link>
+                <div className="mt-8 flex flex-wrap gap-3" aria-label="選擇登入身份">
+                  <Link className="inline-flex min-h-12 items-center rounded-full border border-[#dfbf78] bg-[#f2dba4] px-6 py-3 text-sm font-bold text-[#4e3b20] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#f8e8bf] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#bd9141]" href="/auth?role=student">學生登入 →</Link>
+                  <Link className="inline-flex min-h-12 items-center rounded-full border border-[#dbb69d] bg-[#f0d2bd] px-6 py-3 text-sm font-bold text-[#5d3e31] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#f7e0d0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#b98568]" href="/auth?role=teacher&mode=signup">教師登入 →</Link>
                 </div>
               )}
 
@@ -74,13 +74,13 @@ export default async function TourStepPage({ params }: { params: Promise<{ step:
               )}
 
               <section className="mb-8 mt-16" aria-label="導覽進度">
-                <div className="mb-3 flex items-center justify-between text-xs font-mono text-[#95784d]"><span>使用流程</span><span>{current.sequence} / {publicTourSteps.length}</span></div>
+                <div className="mb-3 flex items-center justify-between text-xs font-mono text-[#95784d]"><span>學習流程</span><span>{current.sequence} / {publicTourSteps.length}</span></div>
                 <div className="flex gap-1.5">{publicTourSteps.map((item) => <span key={item.slug} className={`h-1.5 flex-1 rounded-full ${item.sequence <= current.sequence ? "bg-[#b49a68]" : "bg-[#eadfc9]"}`} />)}</div>
               </section>
 
               <nav aria-label="步驟切換" className="flex items-center justify-between gap-4 border-t border-[#ead9b7] pt-8">
                 {previous ? <Link className="rounded-full border border-[#d8bd88] px-5 py-2.5 text-sm font-bold text-[#66503a] transition hover:bg-[#fbf1dd]" href={`/tour/${previous.slug}`}>← 上一步</Link> : <span />}
-                {next ? <Link className="rounded-full bg-[#6f6257] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#594e45]" href={`/tour/${next.slug}`}>下一步 →</Link> : <Link className="rounded-full border border-[#dec692] bg-[#ebd197] px-5 py-2.5 text-sm font-bold text-[#30251b] transition hover:bg-[#f4e4bd]" href="/start">開始體驗 →</Link>}
+                {next ? <Link className="rounded-full bg-[#6f6257] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#594e45]" href={`/tour/${next.slug}`}>下一步 →</Link> : <Link className="rounded-full border border-[#dec692] bg-[#ebd197] px-5 py-2.5 text-sm font-bold text-[#30251b] transition hover:bg-[#f4e4bd]" href="/start">開始探究 →</Link>}
               </nav>
             </article>
           </div>

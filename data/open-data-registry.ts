@@ -84,4 +84,3 @@ export const OPEN_DATA_REGISTRY: OpenDatasetRegistryEntry[] = [
 ];
 
 export const OPEN_DATASET_BY_ID = new Map(OPEN_DATA_REGISTRY.map((dataset) => [dataset.id, dataset]));
-

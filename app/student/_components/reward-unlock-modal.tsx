@@ -19,7 +19,7 @@ export default function RewardUnlockModal({
   week,
   open,
   onClose,
-  primaryLabel = "收下工具",
+  primaryLabel = "解鎖實作工具",
   busy = false,
   error = "",
   secondaryLabel,
@@ -58,9 +58,9 @@ export default function RewardUnlockModal({
         aria-describedby="reward-unlock-description"
         className="w-full max-w-[420px] rounded-[28px] border-[3px] border-[#67594b] bg-[#fffaf0] px-6 py-7 text-center shadow-[0_24px_70px_rgba(45,37,29,0.32)]"
       >
-        <p className="text-xs font-black tracking-[0.16em] text-[#8a745d]">{eyebrow ?? `教師審核通過 · 第 ${week} 週`}</p>
+        <p className="text-xs font-black tracking-[0.16em] text-[#8a745d]">{eyebrow ?? `探究審核通過 · 第 ${week} 週`}</p>
         <h2 id="reward-unlock-title" className="mt-2 font-serif text-3xl font-black text-[#39736a]">
-          得到寶物！
+          探究工具已解鎖
         </h2>
 
         <div className="mx-auto mt-5 flex h-[200px] w-[200px] items-center justify-center rounded-[34px] border-2 border-[#ddcca8] bg-[#fff5d9] p-3 shadow-inner">
@@ -86,7 +86,7 @@ export default function RewardUnlockModal({
             disabled={busy}
             className="min-h-11 rounded-full border-2 border-[#8c7442] bg-[#c9a85d] px-8 py-2 text-sm font-black text-white shadow-sm transition hover:bg-[#b8954d] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#ead8aa] disabled:cursor-wait disabled:opacity-65"
           >
-            {busy ? "正在儲存作答…" : primaryLabel}
+            {busy ? "正在儲存探究紀錄…" : primaryLabel}
           </button>
           {secondaryLabel && onSecondary && <button
             type="button"

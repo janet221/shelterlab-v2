@@ -1,5 +1,4 @@
 import { WEEK_SIX_FALLBACK } from "@/data/week-six-open-data-fallback";
-import { WEEK6_VERIFIED_ACTION_RESOURCES } from "@/data/week6ActionResources";
 import { dedupeActionOrganizations, type ActionOrganization } from "@/lib/week-six-action";
 
 export const PUBLIC_SHELTER_DATASET_URL = "https://data.gov.tw/dataset/134284";
@@ -9,12 +8,7 @@ const isEducationSite = (name: string) => /教育園區|教育中心|關愛園�
 const isAnimalHome = (name: string) => /動物之家/.test(name);
 
 export function mergeVerifiedActionResources(base: ActionOrganization[]) {
-  const byId = new Map(base.map((item) => [item.id, item]));
-  for (const verified of WEEK6_VERIFIED_ACTION_RESOURCES) {
-    const existing = byId.get(verified.id);
-    byId.set(verified.id, existing ? { ...existing, ...verified, openDogCount: existing.openDogCount ?? verified.openDogCount } : verified);
-  }
-  return dedupeActionOrganizations([...byId.values()]);
+  return dedupeActionOrganizations(base);
 }
 
 const fallbackShelters: ActionOrganization[] = WEEK_SIX_FALLBACK.publicShelters.map((shelter) => ({
@@ -51,4 +45,4 @@ const fallbackShelters: ActionOrganization[] = WEEK_SIX_FALLBACK.publicShelters.
   openDogCount: WEEK_SIX_FALLBACK.shelterCounts[shelter.name as keyof typeof WEEK_SIX_FALLBACK.shelterCounts] ?? 0
 }));
 
-export const FALLBACK_ACTION_ORGANIZATIONS: ActionOrganization[] = mergeVerifiedActionResources(fallbackShelters);
+export const FALLBACK_ACTION_ORGANIZATIONS = mergeVerifiedActionResources(fallbackShelters);

@@ -167,7 +167,7 @@ export const WEEK_MAP_CONFIG: WeekMapConfig[] = [
     title: "角色與處境",
     route: "/student/week/1",
     x: 21,
-    y: 77,
+    y: 74.5,
     visual: "shepherd",
     roof: "#C96F4E"
   },
@@ -177,7 +177,7 @@ export const WEEK_MAP_CONFIG: WeekMapConfig[] = [
     title: "承諾與責任",
     route: "/student/week/2",
     x: 30,
-    y: 57,
+    y: 54.5,
     visual: "poodle",
     roof: "#B98E67"
   },
@@ -187,7 +187,7 @@ export const WEEK_MAP_CONFIG: WeekMapConfig[] = [
     title: "品種與標籤",
     route: "/student/week/3",
     x: 38,
-    y: 41,
+    y: 38.5,
     visual: "corgi",
     roof: "#B8795C"
   },
@@ -197,7 +197,7 @@ export const WEEK_MAP_CONFIG: WeekMapConfig[] = [
     title: "數量與源頭",
     route: "/student/week/4",
     x: 67.5,
-    y: 39,
+    y: 36.5,
     visual: "retriever",
     roof: "#A98B70"
   },
@@ -207,7 +207,7 @@ export const WEEK_MAP_CONFIG: WeekMapConfig[] = [
     title: "政策與兩難",
     route: "/student/week/5",
     x: 73.2,
-    y: 60.7,
+    y: 58.2,
     visual: "bulldog",
     roof: "#9A7B68"
   },
@@ -217,7 +217,7 @@ export const WEEK_MAP_CONFIG: WeekMapConfig[] = [
     title: "現場與行動",
     route: "/student/week/6",
     x: 82.5,
-    y: 81.1,
+    y: 72.5,
     visual: "shelter",
     roof: "#7E8D91"
   }

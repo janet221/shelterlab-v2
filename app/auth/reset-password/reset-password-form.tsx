@@ -6,7 +6,7 @@ import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 const fieldClass = "mt-2 w-full rounded-2xl border border-[#d8c8ab] bg-[#fffdf8] px-4 py-3.5 text-[#332a22] shadow-sm outline-none transition focus:border-[#a69170] focus:ring-4 focus:ring-[#ebd197]/35 disabled:bg-[#f3eee6]";
 
-export default function ResetPasswordForm({ role }: { role: "student" | "teacher" }) {
+export default function ResetPasswordForm({ role }: { role: "student" | "teacher" | "shelter" }) {
   const [ready, setReady] = useState(false);
   const [checking, setChecking] = useState(true);
   const [busy, setBusy] = useState(false);

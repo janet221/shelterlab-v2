@@ -7,6 +7,8 @@ import { useStudentLearningProgress } from "@/app/student/_components/student-le
 import { getOpenDataCourseCase } from "@/lib/student-open-data-cases";
 import { getStudentCourseTitles } from "@/lib/student-course-titles";
 import { getLearningTool, isTreasureUnlockedForWeek } from "@/lib/student-map";
+import { useEvaluatorStageNavigation } from "./evaluator-stage-navigator";
+import LearningVideoCard from "./learning-video-card";
 import TreasureWorkspace, { type TreasureItem } from "./treasure-workspace";
 import base from "./week-one-game.module.css";
 import styles from "./week-two-experience.module.css";
@@ -132,7 +134,7 @@ const DATA_FILES: readonly EvidenceItem[] = [
 ];
 
 const LESSONS: readonly Lesson[] = [
-  { eyebrow: "先拆開最容易混淆的三個詞", heading: "零撲殺不等於零安樂死，附議成案也不等於法律已經改變", intro: "2017 年後取消的是只因公告期滿、無人認領養就例行撲殺的制度；現行法仍允許在法定狀況下進行個別人道處理。2026 年恢復限期收容的公共提案已成案，但仍在政府正式回應程序中。", facts: [
+  { eyebrow: "先拆開最容易混淆的三個詞", heading: "零撲殺不等於零安樂死，附議成案也不等於法律已經改變", intro: "2017 年後取消的是只因公告期滿、無人認領養就例行撲殺的制度；現行法仍允許在法定狀況下進行個別人道處理（安樂死需個別評估重病、痛苦、傳染病或公共安全）。2026 年恢復限期收容的公共提案已成案，但仍在政府正式回應程序中，附議人數是參與訊號，不是科學證據，也不會自動修改法律。", facts: [
     { tag: "舊制", title: "生命由收容天數倒數", body: "公告期滿、無人認領養或無適當處置，曾可成為例行撲殺理由。" },
     { tag: "現行", title: "不因天數例行死亡", body: "收容仍須照護；法定情況下保留個別人道處理。" },
     { tag: "專業", title: "安樂死要個別評估", body: "重病、痛苦、傳染病或公共安全需依法與由專業判斷。" },
@@ -141,7 +143,7 @@ const LESSONS: readonly Lesson[] = [
     { label: "全國法規資料庫：動物保護法", href: "https://law.moj.gov.tw/LawClass/LawAll.aspx?PCode=M0060027" },
     { label: "公共政策平台：恢復限期收容提案", href: "https://join.gov.tw/idea/detail/4690bfc9-7b75-4f50-9039-ab46ccf09e1e" }
   ] },
-  { eyebrow: "活著是一項基本條件，不是完整的福利結論", heading: "沒有被撲殺的生命，也可能正在承受疼痛、恐懼或剝奪", intro: "零撲殺把社會從『天數到了沒有』推向更困難的問題：動物每天過得如何？是否有治療與改善機會？福利惡化時誰記錄、誰決策、誰複核？", facts: [
+  { eyebrow: "活著是一項基本條件，不是完整的福利結論", heading: "沒有被撲殺的生命，也可能正在承受疼痛、恐懼或剝奪", intro: "零撲殺把社會從「天數到了沒有」推向更困難的問題：動物每天過得如何？是否有治療與改善機會？安樂死不是解決收容壓力的快速按鈕，空間、人力不足是制度問題，與法定的醫療痛苦評估不能互相取代。", facts: [
     { tag: "營養", title: "能好好吃喝嗎？", body: "飲水、食慾、體態與特殊飲食需求是否被滿足。" },
     { tag: "環境", title: "能休息與避開壓力嗎？", body: "空間、噪音、溫度、清潔、躲藏與安全感。" },
     { tag: "健康", title: "疼痛有被處理嗎？", body: "疾病、傷勢、治療反應、預後與安寧需求。" },
@@ -149,7 +151,7 @@ const LESSONS: readonly Lesson[] = [
   ], boundaryTitle: "安樂死不是收容壓力的快速按鈕", boundary: "空間、人力與經費不足是制度問題；個體是否需要安樂死，仍須回到法定事由、醫療與痛苦評估。兩者相關，卻不能互相取代。", taskOne: "從活著走向生活品質", taskTwo: "完成五面向福利檔案", sources: [
     { label: "遊蕩犬族群控制與收容管理", href: "https://animal.moa.gov.tw/Frontend/News/Detail/N0000000001995" }
   ] },
-  { eyebrow: "生命衝突：犬隻沒有惡意，野生動物的傷亡仍然真實", heading: "保護遊蕩犬時，不能讓穿山甲、石虎與山羌成為看不見的代價", intro: "遊蕩犬持續繁殖、進入淺山並與野生動物活動重疊時，穿山甲、石虎與山羌會面臨被追逐、咬傷甚至死亡的風險。犬隻沒有惡意；證據顯示的是需要處理的風險，而放養、棄養、餵養、回置與場域管理的責任仍在人與制度。", facts: [
+  { eyebrow: "生命衝突：犬隻沒有惡意，野生動物的傷亡仍然真實", heading: "保護遊蕩犬時，不能讓穿山甲、石虎與山羌成為看不見的代價", intro: "遊蕩犬與野生動物活動重疊時，野生動物面臨被追逐、咬傷甚至死亡的風險。犬隻依其行為與環境活動，沒有惡意；人類必須為帶入、繁殖與管理方式負責。移除不是把犬從視線中消失，生態敏感區優先移除若沒有檢疫、醫療、安置、收容量能與阻止新犬移入，只會把問題轉移。", facts: [
     { tag: "自動相機", title: "誰在何時出現？", body: "利用紅外線感應或動作偵測，在野外無人看守時自動拍攝；可比較出現的空間與時間，但共域不等於每次都有攻擊。" },
     { tag: "救傷紀錄", title: "傷勢留下什麼證據？", body: "犬咬傷型態、物種、位置與時間能顯示衝突規模。" },
     { tag: "族群趨勢", title: "數量如何一起變動？", body: "用一致方法長期調查，並檢查棲地與其他原因。" },
@@ -157,7 +159,7 @@ const LESSONS: readonly Lesson[] = [
   ], boundaryTitle: "移除不是丟到別處", boundary: "生態敏感區優先移除若沒有檢疫、醫療、安置、認養、收容量能與阻止新犬移入，只會把犬隻痛苦或問題轉移到下一個場域。", taskOne: "判讀生態證據", taskTwo: "組成生態風險證據鏈", sources: [
     { label: "《報導者》：遊蕩犬與野生動物衝突", href: "https://www.twreporter.org/a/6-years-after-no-kill-policy-adopted-conflict-with-wildlife" }
   ] },
-  { eyebrow: "公共決策不是找一個不會痛的答案", heading: "每個方案都可能保護一些生命，也把風險、成本或痛苦移到別處", intro: "支持零撲殺者擔心生命被期限淘汰；主張檢討者擔心長期收容、生態傷亡與第一線崩潰。成熟的政策討論要讓這些問題進入同一張決策表。", facts: [
+  { eyebrow: "公共決策不是找一個不會痛的答案", heading: "每個方案都可能保護一些生命，也把風險、成本或痛苦移到別處", intro: "決策不能只看單一漂亮數字（如收容死亡數最低），否則可能漏掉在所福利、生態傷亡與工作者負荷；只追求移除速度，也可能忽略程序公平與安置量能。成熟的討論要讓多元聲音進入同一張決策表，承擔各自的代價。", facts: [
     { tag: "收容犬", title: "生活品質與機會", body: "在所福利、醫療、媒合、安寧，以及不被天數淘汰。" },
     { tag: "野生動物", title: "沒有投票權的利害關係人", body: "承受追逐、攻擊、疾病與棲地資源競爭。" },
     { tag: "居民與飼主", title: "安全與責任", body: "生活安寧、人犬衝突、登記絕育與不棄養。" },
@@ -183,7 +185,7 @@ function QuizBlock({ items, answers = {}, order, onAnswer }: { items: readonly Q
   return <div className={styles.quizGrid}>{items.map((item, index) => <fieldset className={styles.quizCard} key={item.question}><legend><span>{index + 1}</span>{item.question}</legend><div className={styles.choiceGrid}>{order[index].map((optionIndex) => <button type="button" key={item.options[optionIndex]} aria-pressed={answers[index] === optionIndex} className={answers[index] === optionIndex ? styles.correctChoice : ""} onClick={() => onAnswer(index, optionIndex)}>{item.options[optionIndex]}</button>)}</div>{answers[index] === item.answer && <p className={styles.answerNote}><strong>判讀重點</strong>{item.note}</p>}</fieldset>)}</div>;
 }
 
-export default function WeekFiveExperience({ auditDemo = false }: { auditDemo?: boolean }) {
+export default function WeekFiveExperience({ auditDemo = false, evaluatorPreview = false }: { auditDemo?: boolean; evaluatorPreview?: boolean }) {
   const router = useRouter();
   const { completeWeek, progress } = useStudentLearningProgress();
   const [saved, setSaved] = useState<SavedWeekFive>(EMPTY);
@@ -191,6 +193,11 @@ export default function WeekFiveExperience({ auditDemo = false }: { auditDemo?: 
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [quizOrders, setQuizOrders] = useState<number[][][]>(defaultQuizOrders);
   const [fileOrders, setFileOrders] = useState<string[][]>(defaultFileOrders);
+
+  useEvaluatorStageNavigation(5, evaluatorPreview, (stage) => {
+    setFeedback(null);
+    setSaved((current) => ({ ...current, stage, furthest: Math.max(current.furthest, stage), completed: false }));
+  });
 
   useEffect(() => { try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { const parsed = JSON.parse(raw) as Partial<SavedWeekFive>; if (parsed.contentVersion === CONTENT_VERSION) setSaved({ ...EMPTY, ...parsed, hearts: { ...DEFAULT_HEARTS, ...(parsed.hearts ?? {}) }, answers: parsed.answers ?? {}, files: parsed.files ?? {}, treasureAnswers: parsed.treasureAnswers ?? {}, treasureCompleted: parsed.treasureCompleted ?? Boolean(parsed.completed) }); } } catch {} setReady(true); }, []);
   useEffect(() => { if (auditDemo) setSaved((current) => ({ ...current, stage: 5, furthest: Math.max(current.furthest, 5), completed: false })); }, [auditDemo]);
@@ -248,7 +255,7 @@ export default function WeekFiveExperience({ auditDemo = false }: { auditDemo?: 
 
       {lesson && <section><div className={styles.storyBanner}><small>{lesson.eyebrow}</small><h3>{lesson.heading}</h3><p>{lesson.intro}</p></div><div className={styles.challengeGrid}>{lesson.facts.map((fact) => <article key={fact.title}><span>{fact.tag}</span><h3>{fact.title}</h3><p>{fact.body}</p></article>)}</div><div className={styles.boundaryLesson}><strong>{lesson.boundaryTitle}</strong><p>{lesson.boundary}</p></div>{saved.stage === 3 && <TreasureWorkspace week={5} objective="辨認政策介入犬隻問題的哪一段路徑，避免只用末端容量遮住持續流入。" instruction="使用源頭追蹤卡，把每項政策或行動放到主要介入位置；再閱讀它能處理什麼，以及單獨使用時會漏掉什麼。" categories={SOURCE_TRACKER_CATEGORIES} items={SOURCE_TRACKER_ITEMS} assignments={saved.treasureAnswers} completed={saved.treasureCompleted} unlocked={treasureUnlocked} onAssign={assignTreasure} />}{taskHeading("任務一", lesson.taskOne, "四題都要依上方教學內容判斷；答案每次進入會重新排序。", `${Object.keys(saved.answers[saved.stage] ?? {}).length} / 4`)}<div className={styles.taskPanel}><QuizBlock items={QUIZZES[saved.stage]} answers={saved.answers[saved.stage]} order={quizOrders[saved.stage]} onAnswer={(index, option) => answerQuiz(saved.stage, index, option)} /></div>{taskHeading("任務二", lesson.taskTwo, "從八張卡找出五項能被查證、執行與複核的資料。", `${correctCount} / 5`)}<div className={styles.taskPanel}>{fileGrid(saved.stage)}</div><div className={styles.sourceRow}>{lesson.sources.map((source) => <a key={source.href} href={source.href} target="_blank" rel="noreferrer">{source.label} ↗</a>)}</div></section>}
 
-      {saved.stage === 4 && <section><div className={styles.videoLayout}><article><small>公視《我們的島》第 1207 集</small><h3>遊蕩犬貓怎麼管：對野生動物造成哪些衝擊？</h3><p>觀看影片時，請記下它用了哪些證據、呈現了哪些生命，又有哪些政策代價需要其他資料才能回答。</p><a href="https://www.youtube.com/watch?v=eHWNR-rstjc" target="_blank" rel="noreferrer">前往公視官方影片觀看 ↗</a><small>使用官方外部連結，避免影音來源拒絕嵌入。</small></article><div><h3>影片後判讀</h3><QuizBlock items={VIDEO_QUESTIONS} answers={saved.answers[4]} order={quizOrders[4]} onAnswer={(index, option) => answerQuiz(4, index, option)} /></div></div><label className={styles.reflection}><span>提出一項你認為必須優先採取的措施，並寫出它保護誰、可能傷害誰，以及至少一項降低傷害的配套。</span><textarea value={saved.videoReflection} onChange={(event) => setSaved((current) => ({ ...current, videoReflection: event.target.value }))} placeholder="例如：生態敏感區優先移除犬隻；保護野生動物，但需先準備檢疫、醫療、安置與阻止新犬移入……" /><small>{saved.videoReflection.trim() ? "✓ 已記錄回答" : "不限字數；完成後即可繼續。"}</small></label></section>}
+      {saved.stage === 4 && <section><div className={styles.videoStage}><LearningVideoCard video={{ title: "遊蕩犬貓怎麼管：對野生動物造成哪些衝擊？", description: "觀看公視《我們的島》第 1207 集時，記下它用了哪些證據、呈現了哪些生命，又有哪些政策代價需要其他資料才能回答。", provider: "公視《我們的島》｜YouTube", href: "https://www.youtube.com/watch?v=eHWNR-rstjc", thumbnail: "https://img.youtube.com/vi/eHWNR-rstjc/hqdefault.jpg", youtubeId: "eHWNR-rstjc" }} /><div className={styles.videoReview}><h3>影片後判讀</h3><QuizBlock items={VIDEO_QUESTIONS} answers={saved.answers[4]} order={quizOrders[4]} onAnswer={(index, option) => answerQuiz(4, index, option)} /></div></div><label className={styles.reflection}><span>提出一項你認為必須優先採取的措施，並寫出它保護誰、可能傷害誰，以及至少一項降低傷害的配套。</span><textarea value={saved.videoReflection} onChange={(event) => setSaved((current) => ({ ...current, videoReflection: event.target.value }))} placeholder="例如：生態敏感區優先移除犬隻；保護野生動物，但需先準備檢疫、醫療、安置與阻止新犬移入……" /><small>{saved.videoReflection.trim() ? "✓ 已記錄回答" : "不限字數；完成後即可繼續。"}</small></label></section>}
 
       {saved.stage === 5 && <section><div className={styles.storyBanner}><small>農業部「動物認領養」開放資料 · 快照日 {RECORD.snapshotDate}</small><h3>資料只寫「成年」，卻可能把漫長生命壓縮成一個分類</h3><p>「成年」涵蓋很大的生命階段。備註中的估齡也有紀錄日期，會隨時間改變。年齡能提示照護問題，不能單獨證明健康、痛苦、認養可能或是否需要安樂死。</p><a href="https://data.gov.tw/dataset/85903" target="_blank" rel="noreferrer">查看政府原始資料集 ↗</a></div><div className={base.dataStatSummary}><article><small>成年犬</small><strong>4,577 筆</strong><span>留所天數中位數 663 天</span></article><article><small>幼年犬</small><strong>885 筆</strong><span>留所天數中位數 276 天</span></article></div><p className={styles.dataScopeNote}>同一份資料快照的描述性整理；年齡未註明的 240 筆紀錄未放入比較。樣本數與資料品質不同，不能把年齡視為留所結果的單一原因。</p><div className={styles.caseFile}><div className={styles.casePhoto}><img src={RECORD.image} alt={`政府公開資料個案 ${RECORD.subId}`} loading="lazy" referrerPolicy="no-referrer" /></div><div><small>公開個案 · {RECORD.subId}</small><h3>「成年」沒有說完的生命</h3><div className={styles.caseFields}>{RECORD.displayFields.map(([label, value]) => <span key={label}><b>{label}</b>{value}</span>)}</div><p>{RECORD.evidenceBoundary}</p></div></div><div className={styles.dataBoundary}><section><small>資料可以直接支持</small><h3>年齡欄位分類為成年</h3><p>備註可補充有日期的估齡與部分行為描述，但使用時要保留時間與來源。</p></section><section><small>資料不能直接支持</small><h3>牠太老、痛苦或沒有認養價值</h3><p>目前健康、生活品質、治療反應與家庭適配，都需要更新的個體資料。</p></section></div>{taskHeading("任務一", "把年齡標籤還原成個體", "從八張卡找出至少四項做生命決策前必須補足的證據。", `${correctCount} / 至少 4`)}<div className={styles.taskPanel}>{fileGrid(5)}</div><label className={styles.reflection}><span>生命教育深思：當資源有限，有人說「老犬需要更多照護，所以應優先讓年輕犬得到機會」。這句話看見了什麼現實，又忽略哪些公平與生命價值？你會用什麼程序做決定？</span><textarea value={saved.dataReflection} onChange={(event) => setSaved((current) => ({ ...current, dataReflection: event.target.value }))} placeholder="請用個體福利、資料界線、資源公平與透明程序回答……" /><small>{saved.dataReflection.trim() ? "✓ 已記錄回答" : "不限字數；完成後即可繼續。"}</small></label><label className={styles.boundaryCheck}><input type="checkbox" checked={saved.boundaryConfirmed} onChange={(event) => setSaved((current) => ({ ...current, boundaryConfirmed: event.target.checked }))} /><span>我知道「成年」是寬泛分類，不能單靠年齡、在所時間或一筆公開資料決定生命品質、認養價值或安樂死。</span></label></section>}
 

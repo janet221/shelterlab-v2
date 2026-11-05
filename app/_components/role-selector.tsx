@@ -43,7 +43,7 @@ export function RoleSelector({ initialRole = null, source = "start" }: { initial
   }
 
   return (
-    <section className="w-full space-y-8" aria-label="角色選擇">
+    <section className="w-full space-y-8" aria-label="身份選擇">
       <div className="grid gap-5 md:grid-cols-3">
         {publicRoleProfiles.map((profile) => {
           const selected = selectedRole === profile.id;
@@ -81,7 +81,7 @@ export function RoleSelector({ initialRole = null, source = "start" }: { initial
 
       {source === "demo" && selectedProfile && (
         <div className="rounded-3xl border border-[#e3cfaa] bg-[#fffdf8] p-6 shadow-[0_24px_70px_-45px_rgba(111,78,34,0.5)] sm:p-8" aria-live="polite">
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8f7c5e]">{source === "demo" ? "示範視角" : "角色導覽"}</p>
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#8f7c5e]">{source === "demo" ? "情境演示視角" : "身份導覽"}</p>
           <h2 className="mt-3 text-3xl font-bold text-[#332a22]">{selectedProfile.title}</h2>
           <p className="mt-4 max-w-2xl text-base leading-7 text-[#665848]">{selectedProfile.description}</p>
           <ul className="mt-6 grid gap-3 sm:grid-cols-2">

@@ -87,7 +87,7 @@ export default function TreasureWorkspace({
             aria-expanded={open}
             aria-controls={`treasure-panel-${week}`}
           >
-            {!unlocked ? "尚未解鎖" : open ? "收起工作區" : `取出${tool.shortName}`}
+            {!unlocked ? "尚未解鎖" : open ? "收起工作區" : `拿出 ${tool.shortName}`}
           </button>
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function TreasureWorkspace({
       {open && unlocked && (
         <div className={styles.panel} id={`treasure-panel-${week}`}>
           <div className={styles.instructions}>
-            <strong>這次要用它完成什麼</strong>
+            <strong>這次要用它來做什麼？</strong>
             <p>{instruction}</p>
           </div>
 
@@ -137,7 +137,7 @@ export default function TreasureWorkspace({
                       className={assignedCategory ? styles.explanation : styles.correction}
                       role="status"
                     >
-                      <strong>{assignedCategory ? "整理完成" : "再檢查一次"}</strong>
+                      <strong>{assignedCategory ? "分類完成" : "請重新檢查"}</strong>
                       {assignedCategory ? item.explanation : attempt?.message}
                     </p>
                   )}
@@ -148,7 +148,7 @@ export default function TreasureWorkspace({
 
           {completed && (
             <p className={styles.completedNote} role="status">
-              ✓ 本週指定寶物任務已完成，結果已保存在這台裝置上。
+              ✓ 本週寶物任務已完成，紀錄已儲存於您的裝置。
             </p>
           )}
         </div>

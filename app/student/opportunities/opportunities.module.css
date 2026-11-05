@@ -66,3 +66,77 @@
 .simulationArea .resultsHeader h2::after{content:"練習判讀一則收容所公告";font-size:clamp(1.35rem,2.5vw,1.8rem)}
 .simulationArea .resultsHeader p{font-size:0;line-height:1.8}
 .simulationArea .resultsHeader p::after{content:"從卡片中練習三件事：看懂單位與地點、辨識可參與的方式、列出參與前要向主辦單位確認的問題。不用報名，也不會送出任何資料。";font-size:1rem}
+
+/* Align the opportunity board with the shared week 1–6 course theme. */
+.page{--forest:#397673;--forest-dark:#315f59;--sage:#d9e5c6;--paper:#fffaf0;--cream:#fff4d8;--ink:#4c443b;--line:#ded5c7;min-height:100dvh;color:#4c443b;background:radial-gradient(circle at 12% 9%,rgba(232,170,162,.14),transparent 260px),radial-gradient(circle at 88% 16%,rgba(88,170,168,.13),transparent 300px),radial-gradient(circle at 80% 86%,rgba(239,213,130,.18),transparent 280px),linear-gradient(180deg,#fff8e8 0%,#fff2da 55%,#f9e8ca 100%);font-family:"NotoSerifTC","Microsoft JhengHei",serif}
+.header{border-color:#ded5c7;background:linear-gradient(145deg,rgba(255,250,240,.94),rgba(255,244,216,.9));box-shadow:4px 5px 0 rgba(91,85,76,.12)}
+.header h1,.resultsHeader h2,.simulationArea h2,.card h2,.detailPanel h2{color:#397673;font-family:"NotoSerifTC","Microsoft JhengHei",serif}
+.sectionTabs,.toolbar,.preferences,.detailPanel,.planPanel{border-color:#ded5c7;background:rgba(255,250,240,.92);box-shadow:4px 5px 0 rgba(91,85,76,.12)}
+.sectionTabs button.primary{background:linear-gradient(155deg,#d8ece8,#fff4d8)!important;color:#315f59!important;box-shadow:3px 4px 0 rgba(91,85,76,.12)}
+.page input,.page select,.page textarea{border-color:#b6aa95;background:#fffdf8;color:#4c443b}
+.page button,.page a.button{border:2px solid #5b554c;border-radius:18px 22px 17px 20px;background:linear-gradient(155deg,#fff4d8,#f3dfad);color:#4c443b;box-shadow:3px 4px 0 rgba(91,85,76,.1);transition:transform .16s ease,box-shadow .16s ease}
+.page button:hover,.page a.button:hover{transform:translateY(-2px);box-shadow:6px 7px 0 rgba(91,85,76,.1)}
+.page button.primary,.page a.primary,.page button.simulationPrimary,.simulationPrimary{border-color:#5b554c;background:linear-gradient(155deg,#d8ece8,#b8d9d2);color:#315f59}
+.card,.simulationCard{border-color:#ded5c7;border-radius:22px;background:rgba(255,253,248,.96);box-shadow:4px 5px 0 rgba(91,85,76,.1);transition:transform .18s ease,box-shadow .18s ease}
+.card:hover{transform:translateY(-4px);box-shadow:8px 10px 0 rgba(91,85,76,.1)}
+.tag,.badge{color:#4c665f;background:#d8ece8}
+.simulationNotice{border-color:#dfb28e;border-left-color:#bd7b52;background:#f5e2d8;color:#714b39}
+@media(prefers-reduced-motion:reduce){.page button,.page a.button,.card{transition:none}.page button:hover,.page a.button:hover,.card:hover{transform:none}}
+
+/* Shared page rhythm with the course experience and shelter activity board. */
+.page{padding-top:28px}
+.header,.toolbar,.preferences,.results,.sectionTabs,.simulationArea,.detailGrid{width:min(1280px,100%)}
+.header{display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;gap:18px;margin:10px auto 26px;padding:22px 20px 18px;border:0;border-radius:0;background:transparent;box-shadow:none;text-align:center}
+.header>div{display:grid;justify-items:center;gap:10px;width:min(900px,100%)}
+.header h1{margin:0;color:#397673;font-size:clamp(2.1rem,5vw,3.5rem);line-height:1.25}
+.header p{margin:0;max-width:800px;color:#756d63;line-height:1.8}
+.header .actions{justify-content:center;margin-top:2px}
+.header .button{border-color:#5b554c!important;border-radius:18px 22px 17px 20px!important;background:linear-gradient(155deg,#fff4d8,#f3dfad)!important;color:#4c443b!important;box-shadow:3px 4px 0 rgba(91,85,76,.1)!important}
+.sectionTabs{display:flex;width:fit-content;max-width:100%;margin:0 auto 18px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.sectionTabs button{min-width:220px;border:2px solid #5b554c;border-radius:18px 22px 17px 20px;background:rgba(255,250,240,.92)}
+.toolbar{margin:0 auto 18px;padding:20px;border:2px solid #ded5c7;border-radius:22px;background:rgba(255,250,240,.94);box-shadow:4px 5px 0 rgba(91,85,76,.1)}
+.results,.simulationArea{margin:26px auto 0}
+.grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:18px}
+.grid:has(> .card:only-child){grid-template-columns:minmax(0,min(820px,100%));justify-content:center}
+.resultsHeader{align-items:center;padding-bottom:12px;border-bottom:1px solid rgba(166,139,94,.24)}
+.resultsHeader h2,.simulationArea h2{margin:.2rem 0;color:#397673}
+.resultsHeader p{margin:.3rem 0 0;color:#756d63;line-height:1.7}
+@media(max-width:700px){.page{padding-top:18px}.header{padding:18px 8px}.sectionTabs{width:100%}.sectionTabs button{width:100%}.toolbar{padding:15px}.resultsHeader{align-items:flex-start}}
+
+/* Reduce the stack of boxed controls immediately below the hero. */
+.header{gap:12px;margin-bottom:14px;padding-bottom:8px}
+.header .actions{margin-top:0}
+.header .button{min-height:0;padding:5px 4px!important;border:0!important;border-radius:0!important;background:transparent!important;color:#75634d!important;box-shadow:none!important;font-size:.9rem;font-weight:800;text-decoration:underline;text-decoration-color:rgba(117,99,77,.4);text-underline-offset:4px}
+.header .button:hover{transform:none!important;color:#397673!important;text-decoration-color:#397673}
+.sectionTabs{width:min(1280px,100%);justify-content:flex-start;margin:0 auto 8px;border-bottom:1px solid rgba(166,139,94,.28)}
+.sectionTabs button{min-width:0;padding:8px 14px;border:0;border-bottom:3px solid transparent;border-radius:0;background:transparent;color:#756d63;box-shadow:none;font-size:.94rem}
+.sectionTabs button.primary{border-bottom-color:#397673;background:transparent!important;color:#397673!important;box-shadow:none!important}
+.toolbar{margin-bottom:12px;padding:18px 20px;border:0;border-top:1px solid rgba(166,139,94,.22);border-bottom:1px solid rgba(166,139,94,.22);border-radius:0;background:rgba(255,250,240,.4);box-shadow:none}
+.status{margin:0 auto 16px;padding:8px 12px;border:0;border-left:3px solid #c99f6f;border-radius:0;background:rgba(255,250,240,.48);box-shadow:none;font-size:.9rem}
+.results,.simulationArea{margin-top:22px}
+@media(max-width:700px){.header{gap:10px;margin-bottom:10px}.sectionTabs{margin-bottom:4px}.toolbar{padding:14px 2px}.status{margin-bottom:12px}}
+
+/* Cohesive type and deliberate depth for the student action center. */
+.page,.page *{font-family:"NotoSerifTC","Microsoft JhengHei",serif!important}
+.page{color:#4c443b}
+.header .eyebrow{border-radius:999px;padding:6px 14px;background:rgba(121,183,159,.18);color:#58755f;font-size:.82rem;font-weight:900;letter-spacing:.1em}
+.header h1{color:#58755f;letter-spacing:.01em}
+.header p{color:#756d63;font-size:1.02rem}
+.header .button{color:#806747!important}
+.sectionTabs{margin-top:4px;margin-bottom:6px;border-bottom-color:rgba(166,139,94,.2)}
+.sectionTabs span{display:inline-flex;align-items:center;padding:5px 0;color:#806747;font-size:.82rem;font-weight:900;letter-spacing:.08em}
+.toolbar{border:1px solid #e5d8c2;border-radius:20px;background:rgba(255,250,240,.72);box-shadow:0 8px 24px rgba(91,85,76,.055)}
+.page input,.page select,.page textarea{border-color:#cdbb9d;border-radius:12px;background:#fffdf8;color:#4c443b}
+.page input:focus,.page select:focus,.page textarea:focus{border-color:#b99658;box-shadow:0 0 0 3px rgba(201,159,111,.16)}
+.page button,.page a.button{border:1px solid #d3b97f;border-radius:999px;background:linear-gradient(160deg,#fff8e8,#f3e2b9);color:#665238;box-shadow:0 3px 0 rgba(91,85,76,.07);font-weight:800}
+.page button:hover,.page a.button:hover{transform:translateY(-1px);box-shadow:0 6px 12px rgba(91,85,76,.09)}
+.page button.primary,.page a.primary{border-color:#b99658;background:linear-gradient(160deg,#f3dfad,#e8cb83);color:#5d4a2f}
+.page button.simulationPrimary,.simulationPrimary{border-color:#bb8160;background:#bb8160;color:#fffaf4}
+.card,.detailPanel,.contactModal{border-color:#e2d4bd;border-radius:22px;background:rgba(255,251,242,.97);box-shadow:0 9px 24px rgba(91,85,76,.065)}
+.card h2,.detailPanel h2,.resultsHeader h2,.simulationArea h2{color:#58755f}
+.badge{background:#eee5d1;color:#705b3e}
+.badge.eligibilityGood{background:#e3ecdd;color:#58755f}
+.badge.eligibilityPrepare{background:#f6e7c9;color:#795a34}
+.badge.eligibilityGroup{background:#ece6d9;color:#665c4d}
+.status{border-left-color:#c99f6f;background:rgba(255,250,240,.52);color:#765b43}
+@media(max-width:700px){.toolbar{padding:14px;border-radius:16px}}

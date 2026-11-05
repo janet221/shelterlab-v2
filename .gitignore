@@ -8,11 +8,10 @@ test-results
 *.log
 tsconfig.tsbuildinfo
 
-# Large datasets and local data files
+# Large downloaded data files
 *.xlsx
 *.csv
-data/
-**/data/
+# Source code under data/ contains required application modules and must be tracked.
 .vercel
 .env*
 

@@ -8,9 +8,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/",
     "/auth",
     "/start",
-    "/contact",
-    "/privacy",
-    "/research-notice",
     "/government-data"
   ];
   routes.push(...publicTourSteps.map((step) => `/tour/${step.slug}`));

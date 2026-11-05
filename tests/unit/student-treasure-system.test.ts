@@ -145,14 +145,14 @@ describe("六週寶物與審核閉環", () => {
     expect(map).not.toContain("一鍵解鎖全部六週關卡");
     expect(map).not.toContain("六週預覽已全部解鎖");
     expect(map).not.toContain("僅開放評審測試賬號");
-    expect(map).toContain("模擬學生作業被教師退件後");
+    expect(map).toContain("模擬學生論述未盡完整時");
     expect(map).toContain("模擬教師退件");
-    expect(map).toContain("第 ${previewRewardWeek} 週已完成");
+    expect(map).toContain("第 ${previewRewardWeek} 週單元已完成");
     expect(map).toContain('router.push(`/student/week/${week}?evaluator=1`)');
     expect(map).toContain("auditDemo=1#revision-answer");
     expect(tracker).toContain("模擬學生修改後再次送出");
     expect(tracker).toContain("模擬教師審查通過");
-    expect(tracker).toContain("展示狀態不寫入正式稽核與退件紀錄");
+    expect(tracker).toContain("展示狀態不會寫入正式紀錄");
     expect(tracker).toContain("setEvaluatorPreviewReward(week)");
     expect(tracker).toContain('evaluatorPreview ? undefined : reviewFeedback');
     expect(tracker).toContain("if (!auditDemo) clearEvaluatorLearningDrafts(accountId, week)");

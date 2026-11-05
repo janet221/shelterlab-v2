@@ -19,11 +19,11 @@ import {
 } from "@/lib/student-map";
 
 const STATUS_LABEL: Record<WeekStatus, string> = {
-  locked: "未解鎖",
-  in_progress: "進行中",
-  returned: "已退件",
-  pending: "等待審核",
-  completed: "已完成"
+  locked: "單元未解鎖",
+  in_progress: "探究進行中",
+  returned: "論述待釐清",
+  pending: "待教師核可",
+  completed: "單元已完成"
 };
 
 const IMAGE_STATE_CLASS: Record<WeekStatus, string> = {
@@ -118,14 +118,14 @@ function LearningToolIcon({ kind, muted = false }: { kind: LearningToolKind; mut
 
 function StatusBadge({ node }: { node: WeekMapNode }) {
   const config = node.needsRevision
-    ? { symbol: "✎", cls: "bg-[#A94D45]", text: "教師退回，待修正" }
+    ? { symbol: "✎", cls: "bg-[#A94D45]", text: "論述待釐清，請依回饋修正" }
     : node.status === "locked"
-    ? { symbol: "🔒", cls: "bg-[#77736D]", text: "未解鎖" }
+    ? { symbol: "🔒", cls: "bg-[#77736D]", text: "單元未解鎖" }
     : node.status === "pending"
-      ? { symbol: "⌛", cls: "bg-[#C58F3D]", text: "等待審核" }
+      ? { symbol: "⌛", cls: "bg-[#C58F3D]", text: "待教師核可" }
       : node.status === "completed"
-        ? { symbol: "✓", cls: "bg-[#5E9163]", text: "已完成" }
-        : { symbol: "▶", cls: "bg-[#E0AD43]", text: "進入關卡" };
+        ? { symbol: "✓", cls: "bg-[#5E9163]", text: "單元已完成" }
+        : { symbol: "▶", cls: "bg-[#E0AD43]", text: "進入探究單元" };
 
   const position = STATUS_BADGE_POSITION[node.week];
 
@@ -159,12 +159,18 @@ function WeekArtwork({ node }: { node: WeekMapNode }) {
       style={{ display: "flex", width: "100%", height: "100%", aspectRatio: "1 / 1" }}
     >
       <img
-        src={`/student-map/week-${node.week}.png?v=20260915-lock-overlay-only-v2`}
+        src={`/student-map/week-${node.week}-centered.png?v=20261103-circle-clean-v3`}
         alt={`${node.label} ${node.title}`}
         draggable={false}
         onError={() => setFailed(true)}
         className={`block h-full w-full select-none object-contain object-center transition-[filter,opacity] duration-300 ${IMAGE_STATE_CLASS[node.status]}`}
-        style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "contain",
+          objectPosition: "center",
+          clipPath: "circle(45.5% at 50% 50%)"
+        }}
       />
     </div>
   );
@@ -177,8 +183,8 @@ function EarnedToolBadge({ node }: { node: WeekMapNode }) {
   return (
     <div
       className="absolute right-[2%] top-[3%] z-20 flex h-9 w-9 items-center justify-center rounded-xl border-2 border-[#FFF8E7] bg-[#FFF4CF] p-1 shadow-[0_4px_10px_rgba(80,60,30,0.22)] sm:h-10 sm:w-10"
-      title={`已獲得：${tool.name}`}
-      aria-label={`已獲得 ${tool.name}`}
+      title={`已解鎖：${tool.name}`}
+      aria-label={`已解鎖 ${tool.name}`}
     >
       <LearningToolIcon kind={tool.kind} />
     </div>
@@ -188,7 +194,7 @@ function EarnedToolBadge({ node }: { node: WeekMapNode }) {
 function WeekNodeButton({ node }: { node: WeekMapNode }) {
   const router = useRouter();
   const locked = node.week !== 1 && node.status === "locked";
-  const statusLabel = node.needsRevision ? "教師退回，待修正" : STATUS_LABEL[node.status];
+  const statusLabel = node.needsRevision ? "論述待釐清，請依回饋修正" : STATUS_LABEL[node.status];
 
   return (
     <button
@@ -202,7 +208,7 @@ function WeekNodeButton({ node }: { node: WeekMapNode }) {
         position: "absolute",
         left: `${node.x}%`,
         top: `${node.y}%`,
-        width: "clamp(105px, 10.5vw, 170px)",
+        width: "clamp(125px, 13vw, 200px)",
         aspectRatio: "1 / 1",
         transform: "translate(-50%, -50%)",
         padding: 0,
@@ -226,19 +232,19 @@ function WeekNodeButton({ node }: { node: WeekMapNode }) {
 
         {node.status === "pending" && (
           <div className="absolute bottom-[2%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#D0AF72] bg-[#FFF8E8]/95 px-3 py-1 text-[11px] font-bold text-[#72582B] shadow-sm">
-            等待審核
+            待教師核可
           </div>
         )}
 
         {node.status === "returned" && (
           <div className="absolute bottom-[2%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-red-300 bg-red-50/95 px-3 py-1 text-[11px] font-bold text-red-800 shadow-sm">
-            已退件，請修正
+            論述待釐清，請修正
           </div>
         )}
 
         {node.status === "in_progress" && (
           <div className="absolute bottom-[2%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#DDBB6D] bg-[#FFF8E5]/95 px-3 py-1 text-[11px] font-bold text-[#6C5424] opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100">
-            點擊進入
+            進入探究單元
           </div>
         )}
       </div>
@@ -282,8 +288,8 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
       {open && (
         <div className="absolute left-0 top-[calc(100%+10px)] w-[330px] rounded-2xl border border-[#E0D5C6] bg-[#FFFDF8]/97 p-3 shadow-[0_14px_34px_rgba(68,55,40,0.18)] backdrop-blur-md sm:w-[390px]">
           <div className="px-2 pb-2">
-            <p className="text-sm font-black text-[#443A31]">探索工具包</p>
-            <p className="mt-1 text-xs leading-5 text-[#776B60]">每週經教師審核通過後取得一件工具；第六週寶物代表完成整段行動旅程。</p>
+            <p className="text-sm font-black text-[#443A31]">公民實作工具包</p>
+            <p className="mt-1 text-xs leading-5 text-[#776B60]">學生於每週完成階段性探究任務，經指導教師核可後，將解鎖一項公民實作工具。第六週的最終成果，象徵著完整參與了一場社會行動的準備歷程。</p>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {LEARNING_TOOLS.map((tool) => {
@@ -303,9 +309,9 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-black text-[#4A4037]">{earned ? tool.name : `第 ${tool.week} 週`}</p>
                     <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#776B60]">
-                      {earned ? tool.description : "完成關卡後取得"}
+                      {earned ? tool.description : "完成單元探究後解鎖"}
                     </p>
-                    {earned && <button type="button" onClick={()=>setDetailWeek(tool.week)} className="mt-1.5 rounded-lg border border-[#d7bd7a] bg-white px-2 py-1 text-[10px] font-black text-[#765b27] hover:bg-[#fff3cf]">查看完整介紹</button>}
+                    {earned && <button type="button" onClick={()=>setDetailWeek(tool.week)} className="mt-1.5 rounded-lg border border-[#d7bd7a] bg-white px-2 py-1 text-[10px] font-black text-[#765b27] hover:bg-[#fff3cf]">查看工具說明</button>}
                   </div>
                 </div>
               );
@@ -314,7 +320,7 @@ function ToolInventory({ progress }: { progress: StudentMapProgress }) {
 
         </div>
       )}
-      {detailWeek && (()=>{const tool=getLearningTool(detailWeek);return <div className="fixed inset-0 z-[160] grid place-items-center bg-stone-950/55 p-5" role="presentation" onMouseDown={(event)=>{if(event.currentTarget===event.target)setDetailWeek(null)}}><section className="w-full max-w-md rounded-3xl border-2 border-[#d8bd79] bg-[#fffdf8] p-6 text-left shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="tool-detail-title"><div className="flex items-start gap-4"><div className="h-16 w-16 shrink-0 rounded-2xl bg-[#fff3cf] p-2"><LearningToolIcon kind={tool.kind}/></div><div><p className="text-xs font-black text-[#98762e]">第 {tool.week} 週探索工具</p><h2 id="tool-detail-title" className="mt-1 text-2xl font-black text-[#443A31]">{tool.name}</h2></div></div><p className="mt-5 text-sm font-semibold leading-7 text-[#66594d]">{tool.description}</p><button type="button" onClick={()=>setDetailWeek(null)} className="mt-6 w-full rounded-xl bg-[#6C9270] px-5 py-3 font-black text-white hover:bg-[#587c5c]">關閉完整介紹</button></section></div>})()}
+      {detailWeek && (()=>{const tool=getLearningTool(detailWeek);return <div className="fixed inset-0 z-[160] grid place-items-center bg-stone-950/55 p-5" role="presentation" onMouseDown={(event)=>{if(event.currentTarget===event.target)setDetailWeek(null)}}><section className="w-full max-w-md rounded-3xl border-2 border-[#d8bd79] bg-[#fffdf8] p-6 text-left shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="tool-detail-title"><div className="flex items-start gap-4"><div className="h-16 w-16 shrink-0 rounded-2xl bg-[#fff3cf] p-2"><LearningToolIcon kind={tool.kind}/></div><div><p className="text-xs font-black text-[#98762e]">第 {tool.week} 週實作工具</p><h2 id="tool-detail-title" className="mt-1 text-2xl font-black text-[#443A31]">{tool.name}</h2></div></div><p className="mt-5 text-sm font-semibold leading-7 text-[#66594d]">{tool.description}</p><button type="button" onClick={()=>setDetailWeek(null)} className="mt-6 w-full rounded-xl bg-[#6C9270] px-5 py-3 font-black text-white hover:bg-[#587c5c]">關閉工具說明</button></section></div>})()}
     </div>
   );
 }
@@ -363,9 +369,9 @@ export default function StudentMapDynamic({ profile, progress, evaluatorMode = f
     unlockEvaluatorPreview();
     clearEvaluatorDemoStates();
     const comment = demoWeek === 6
-      ? "請更具體補充你的行前預期成果與時間規劃，並請再次確認所選的參與方式是否符合該動保單位的安全與年齡資格條件。"
-      : "審查不通過，請依評語修正：請補充你判斷時採用的資料依據，並說明目前資料仍有哪些限制。";
-    const feedback = JSON.stringify({ version: 2, decision: "reject", questionComments: { "evaluator-demo-answer": comment }, items: [{ entryId: "evaluator-demo-answer", section: "本週最後填答區", prompt: "請修正並補充說明", comment }] });
+      ? "請具體補充您的行前預期成果與時間規劃，並再次確認所選的參與方式是否符合該動保單位的安全與法規限制條件。"
+      : "論述證據尚欠充實，請參閱教師回饋進行修正：請具體列出您的判斷依據，並客觀說明該筆資料在推論上可能存在的侷限性。";
+    const feedback = JSON.stringify({ version: 2, decision: "reject", questionComments: { "evaluator-demo-answer": comment }, items: [{ entryId: "evaluator-demo-answer", section: "本週最後填答區", prompt: "論述待釐清，請修正並補充說明", comment }] });
     setEvaluatorDemoState(demoWeek, { status: "returned", feedback, updatedAt: new Date().toISOString() });
     router.push(`/student/week/${demoWeek}?evaluator=1&auditDemo=1#revision-answer`);
   }
@@ -437,7 +443,7 @@ export default function StudentMapDynamic({ profile, progress, evaluatorMode = f
         <div className="rounded-full border border-white/75 bg-[#FFFDF8]/94 px-4 py-2 shadow-sm backdrop-blur-sm">
           <div className="flex items-center gap-2 text-xs font-bold text-[#51483F] sm:text-sm">
             <span aria-hidden="true">◆</span>
-            <span>通關進度 {completed}/6{pending > 0 ? `・${pending} 關待審` : ""}</span>
+            <span>通關進度 {completed}/6{pending > 0 ? `・${pending} 單元待核可` : ""}</span>
           </div>
           <div className="mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-[#E7E0D7] sm:w-32">
             <div
@@ -458,13 +464,13 @@ export default function StudentMapDynamic({ profile, progress, evaluatorMode = f
           <span><span aria-hidden="true">⚡</span> 評審快速導航</span><span className="text-xs">{evaluatorOpen ? "收合" : "展開"}</span>
         </button>
         {evaluatorOpen && <div className="mt-3 space-y-3">
-          <div><p className="mb-2 text-xs font-black">快速傳送至指定週次（同步開啟寶物預覽權限）</p><div className="grid grid-cols-3 gap-2">{([1, 2, 3, 4, 5, 6] as WeekNumber[]).map((week) => <button key={week} type="button" onClick={() => teleportToWeek(week)} className="rounded-xl border border-[#d8bd79] bg-white px-2 py-2 text-sm font-bold transition hover:bg-[#fff3c9]">第 {week} 週</button>)}</div></div>
+          <div><p className="mb-2 text-xs font-black">快速傳送至指定週次（同步開啟工具預覽權限）</p><div className="grid grid-cols-3 gap-2">{([1, 2, 3, 4, 5, 6] as WeekNumber[]).map((week) => <button key={week} type="button" onClick={() => teleportToWeek(week)} className="rounded-xl border border-[#d8bd79] bg-white px-2 py-2 text-sm font-bold transition hover:bg-[#fff3c9]">第 {week} 週</button>)}</div></div>
           <div className="rounded-xl border border-red-200 bg-red-50 p-3">
-            <p className="text-sm font-black text-red-950">稽核閉環演示專區</p>
-            <p className="mt-1 text-[11px] leading-4 text-red-900">專門模擬學生作業被教師退件後，學生修正重送、教師再次稽核並通過的完整閉環。</p>
+            <p className="text-sm font-black text-red-950">教學評量與退件循環演示專區</p>
+            <p className="mt-1 text-[11px] leading-4 text-red-900">模擬學生論述未盡完整時，教師退件回饋、學生修正重送，直至再次審查通過的完整探究歷程。</p>
             <label className="mt-2 block text-xs font-bold text-red-900">演示週次<select value={demoWeek} onChange={(event) => setDemoWeek(Number(event.target.value) as WeekNumber)} className="mt-1 w-full rounded-lg border border-red-200 bg-white px-3 py-2 text-sm text-stone-900">{([1, 2, 3, 4, 5, 6] as WeekNumber[]).map((week) => <option key={week} value={week}>第 {week} 週</option>)}</select></label>
             <button type="button" onClick={simulateRejection} className="mt-2 w-full rounded-xl bg-[#a94d45] px-3 py-2.5 text-sm font-black text-white hover:bg-[#913e38]">演示第 {demoWeek} 週：模擬教師退件</button>
-            <p className="mt-2 text-[11px] leading-4 text-red-800">將直接前往該週填答題，依序展示退件評語、學生修正重送與教師審查通過；所有狀態只保留於目前分頁。</p>
+            <p className="mt-2 text-[11px] leading-4 text-red-800">將直接前往該週填答區，依序展示評語回饋、學生修正與審核通過；所有狀態僅保留於目前演示分頁。</p>
           </div>
         </div>}
       </aside>}
@@ -472,8 +478,8 @@ export default function StudentMapDynamic({ profile, progress, evaluatorMode = f
       <RewardUnlockModal
         week={previewRewardWeek ?? 1}
         open={Boolean(previewRewardWeek)}
-        eyebrow={previewRewardWeek ? `評審快速體驗 · 第 ${previewRewardWeek} 週已完成` : undefined}
-        primaryLabel="完成寶物體驗"
+        eyebrow={previewRewardWeek ? `評審快速體驗 · 第 ${previewRewardWeek} 週單元已完成` : undefined}
+        primaryLabel="完成工具體驗"
         onClose={() => { setEvaluatorPreviewReward(null); setPreviewRewardWeek(null); }}
       />
 
@@ -492,7 +498,7 @@ export default function StudentMapDynamic({ profile, progress, evaluatorMode = f
         open={Boolean(pendingReward)}
         busy={rewardBusy}
         error={rewardError}
-        primaryLabel="收下寶物"
+        primaryLabel="解鎖探究工具"
         onClose={async () => {
           if (!pendingReward) return;
           setRewardBusy(true);

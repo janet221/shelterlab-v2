@@ -7,6 +7,8 @@ import { useStudentLearningProgress } from "@/app/student/_components/student-le
 import { getOpenDataCourseCase } from "@/lib/student-open-data-cases";
 import { getStudentCourseTitles } from "@/lib/student-course-titles";
 import { getLearningTool, isTreasureUnlockedForWeek } from "@/lib/student-map";
+import { useEvaluatorStageNavigation } from "./evaluator-stage-navigator";
+import LearningVideoCard from "./learning-video-card";
 import TreasureWorkspace, { type TreasureItem } from "./treasure-workspace";
 import base from "./week-one-game.module.css";
 import styles from "./week-three-experience.module.css";
@@ -228,7 +230,7 @@ function StagePaper({ children }: { children: React.ReactNode }) {
   return <article className={`${base.stagePaper} ${styles.weekThreePaper}`}>{children}</article>;
 }
 
-export default function WeekThreeExperience({ auditDemo = false }: { auditDemo?: boolean }) {
+export default function WeekThreeExperience({ auditDemo = false, evaluatorPreview = false }: { auditDemo?: boolean; evaluatorPreview?: boolean }) {
   const router = useRouter();
   const { completeWeek, progress } = useStudentLearningProgress();
   const [saved, setSaved] = useState<SavedWeekThree>(EMPTY);
@@ -236,6 +238,11 @@ export default function WeekThreeExperience({ auditDemo = false }: { auditDemo?:
   const [historyDialog, setHistoryDialog] = useState<(typeof HISTORY)[number] | null>(null);
   const [feedback, setFeedback] = useState<{ kind: "correct" | "wrong"; title: string; body: string } | null>(null);
   const [orders, setOrders] = useState<ChoiceOrders>(INITIAL_ORDERS);
+
+  useEvaluatorStageNavigation(3, evaluatorPreview, (stage) => {
+    setFeedback(null);
+    setSaved((current) => ({ ...current, stage, furthest: Math.max(current.furthest, stage), completed: false }));
+  });
 
   useEffect(() => {
     try {
@@ -653,8 +660,8 @@ export default function WeekThreeExperience({ auditDemo = false }: { auditDemo?:
             </div>
           </section>}
 
-          {saved.stage === 4 && <section className={styles.videoLayout}>
-            <article className={styles.videoPanel}><small>愛學網影音任務</small><h3>牠想要一個家</h3><p>影片帶學生走進流浪動物之家，認識認養流程與條件。請先在官方頁面觀看，再回來完成判讀。</p><a href="https://stv.naer.edu.tw/watch/257495" target="_blank" rel="noreferrer">前往愛學網官方頁面觀看 ↗</a><p className={styles.videoNote}>採用官方外部連結，避免網站禁止 iframe 而出現「拒絕存取」。</p></article>
+          {saved.stage === 4 && <section className={styles.videoStage}>
+            <LearningVideoCard video={{ title: "歡迎一起來認養動物－走訪流浪動物之家", description: "透過官方影片認識收容所與認養流程，再回來思考哪些資料有助於判斷個體需求與家庭準備。", provider: "愛學網｜國家教育研究院", href: "https://stv.naer.edu.tw/watch/257495", thumbnail: "https://stvstreaming.naer.edu.tw/medialib/00/03/ED/D7/thumbnails/poster.png" }} />
             <div className={styles.quizStack}>{VIDEO_QUESTIONS.map((item, index) => <fieldset className={styles.quizCard} key={item.question}><legend>影片判讀 {index + 1}</legend><p>{item.question}</p><div className={styles.choiceGrid}>{orders.videos[index].map((optionIndex) => <button key={item.options[optionIndex]} type="button" className={saved.videoAnswers[index] === optionIndex ? styles.correctChoice : ""} onClick={() => answerVideo(index, optionIndex)}>{item.options[optionIndex]}</button>)}</div></fieldset>)}</div>
           </section>}
 

@@ -225,7 +225,7 @@ export function StudentLearningProgressProvider({ children, accountId, evaluator
  const resetWeekOne=useCallback(()=>setProgress(p=>({...p,weekOne:{...INITIAL_WEEK_ONE_PROGRESS}})),[]);
  const visibleProgress=useMemo(()=>evaluatorPreview?{...progress,completedWeeks:[1,2,3,4,5,6] as WeekNumber[],unlockedTools:([1,2,3,4,5,6] as WeekNumber[]).map(w=>getLearningTool(w).kind)}:progress,[evaluatorPreview,progress]);
  const value=useMemo(()=>({progress:visibleProgress,ready,updateWeekOne,replaceWeekOne,completeWeek,completeWeekOne,resetWeekOne}),[visibleProgress,ready,updateWeekOne,replaceWeekOne,completeWeek,completeWeekOne,resetWeekOne]);
- return <LearningProgressContext.Provider value={value}>{ready?children:<StudentRouteLoading title="正在載入學習進度" description="正在同步你的六週旅程、關卡狀態與探究工具…"/>}</LearningProgressContext.Provider>;
+ return <LearningProgressContext.Provider value={value}>{ready?children:<StudentRouteLoading title="正在載入學習進度" description="正在同步您的六週探究軌跡、單元狀態與實作工具…"/>}</LearningProgressContext.Provider>;
 }
 
 export function useStudentLearningProgress() {

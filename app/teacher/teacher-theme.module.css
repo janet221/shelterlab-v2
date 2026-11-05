@@ -1,0 +1,62 @@
+.teacherArea {
+  min-height: 100dvh;
+  color: #4c443b;
+  background:
+    radial-gradient(circle at 12% 9%, rgba(232, 170, 162, .14), transparent 260px),
+    radial-gradient(circle at 88% 16%, rgba(88, 170, 168, .13), transparent 300px),
+    radial-gradient(circle at 80% 86%, rgba(239, 213, 130, .18), transparent 280px),
+    linear-gradient(180deg, #fff8e8 0%, #fff2da 55%, #f9e8ca 100%);
+  font-family: "NotoSerifTC", "Microsoft JhengHei", serif;
+}
+
+.teacherArea main { color: #4c443b; }
+.teacherArea main > header { border-color: #c99f6f !important; }
+.teacherArea main h1,
+.teacherArea main h2,
+.teacherArea main h3 { font-family: "NotoSerifTC", "Microsoft JhengHei", serif; }
+.teacherArea main h1,
+.teacherArea main h2 { color: #397673; }
+.teacherArea main section,
+.teacherArea main article,
+.teacherArea main form,
+.teacherArea main table,
+.teacherArea main [role="region"] {
+  border-color: #ded5c7;
+}
+.teacherArea main section,
+.teacherArea main article { box-shadow: 4px 5px 0 rgba(91, 85, 76, .10); }
+.teacherArea main input,
+.teacherArea main select,
+.teacherArea main textarea {
+  border-color: #b6aa95;
+  border-radius: 12px;
+  background-color: #fffdf8;
+  color: #4c443b;
+  font-family: inherit;
+}
+.teacherArea main a,
+.teacherArea main button {
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+.teacherArea main button:hover:not(:disabled),
+.teacherArea main a:hover {
+  transform: translateY(-2px);
+}
+.teacherArea main table thead { background-color: #f3dfad; }
+.teacherArea main table tbody tr { border-color: #ded5c7; }
+.teacherArea nav[aria-label="班級導覽"] { border-color: #ded5c7; background: rgba(255, 250, 240, .94); box-shadow: 0 4px 0 rgba(91, 85, 76, .08); }
+.teacherArea nav[aria-label="班級導覽"] a { color: #5d5145; }
+.teacherArea nav[aria-label="班級導覽"] button { border: 2px solid #5b554c; border-radius: 18px 22px 17px 20px; background: linear-gradient(155deg,#fff4d8,#f3dfad); color: #4c443b; box-shadow: 3px 4px 0 rgba(91,85,76,.1); }
+.teacherArea main section[aria-labelledby="teacher-zone-title"] { border: 2px solid #5b554c !important; border-radius: 24px !important; background: linear-gradient(145deg,rgba(255,250,240,.97),rgba(255,244,216,.94)) !important; box-shadow: 5px 6px 0 rgba(91,85,76,.12) !important; }
+.teacherArea main section[aria-labelledby="teacher-zone-title"] > div > dl > div { border-color: #ded5c7; border-radius: 18px; background: rgba(255,253,248,.92); }
+.teacherArea main code { border: 2px solid #b7d7cf; border-radius: 14px; background: #d8ece8 !important; color: #315f59 !important; }
+.teacherArea main [aria-label="待審查狀態"] { border: 2px solid #5b554c !important; border-radius: 20px !important; background: rgba(255,250,240,.94) !important; }
+.teacherArea main table { overflow: hidden; border-radius: 16px; background: rgba(255,253,248,.94); }
+.teacherArea main table thead { background: #f3dfad !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .teacherArea main button,
+  .teacherArea main a { transition: none; }
+  .teacherArea main button:hover:not(:disabled),
+  .teacherArea main a:hover { transform: none; }
+}

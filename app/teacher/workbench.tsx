@@ -42,11 +42,10 @@ export default function TeacherDashboard() {
     }
   }
 
-  return <main className="mx-auto max-w-6xl space-y-8 px-5 py-10 lg:px-8 lg:py-12">
-    <header className="border-l-4 border-[#6f8b7d] pl-5 sm:pl-6">
-      <p className="text-xs font-black uppercase tracking-[0.22em] text-[#7f7165]">教師工作區</p>
-      <h1 className="mt-3 text-3xl font-black tracking-tight text-[#302820] sm:text-4xl">學習進度追蹤</h1>
-      <p className="mt-3 max-w-3xl leading-7 text-stone-600">{dashboard?.classroom ? `${dashboard.classroom.schoolName} · ${dashboard.classroom.county} · ${dashboard.classroom.grade}` : "先完成班級設定，即可追蹤學生進度。"}</p>
+  return <main className="mx-auto max-w-6xl space-y-8 px-5 py-10 lg:px-8 lg:py-12 [&_section]:border-[#ded5c7] [&_section]:bg-[#fffaf0] [&_section]:shadow-[4px_5px_0_rgba(91,85,76,0.12)] [&_h1]:font-serif [&_h1]:text-[#397673] [&_h2]:font-serif [&_h2]:text-[#397673] [&_button]:transition [&_button:hover]:-translate-y-0.5">
+    <header className="mx-auto grid w-full max-w-4xl justify-items-center gap-3 border-0 px-3 pb-1 text-center">
+      <p className="w-fit rounded-full bg-[#d9e5c6]/75 px-4 py-1.5 text-sm font-black tracking-[0.12em] text-[#58755f]">教師工作區</p>
+      <h1 className="m-0 text-[clamp(2.1rem,5vw,3.4rem)] font-black leading-[1.28] tracking-[0.02em] text-[#397673]">學習進度追蹤</h1>
     </header>
     {dashboard?.classroom && <section className="relative overflow-hidden rounded-[2rem] border border-[#d8c7a7] bg-[linear-gradient(135deg,#fffaf0_0%,#f1eadf_58%,#dfe9e2_100%)] p-6 shadow-[0_24px_70px_-45px_rgba(70,57,44,0.65)] sm:p-8" aria-labelledby="teacher-zone-title">
       <div aria-hidden="true" className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/60 blur-2xl" />

@@ -174,6 +174,6 @@ describe("action opportunity radar prototype scenarios",()=>{
     const draft=applicationNotificationService.createDecisionEmail({applicationId:applied.application.id,recipientEmail:"student@gmail.com",decision:"accepted"});
     expect(draft.mailtoUrl).toMatch(/^mailto:/);
     expect(draft.sentByPlatform).toBe(false);
-    expect(draft.body).toContain("ShelterLab 尚未自動寄信");
+    expect(draft.body).toContain("ShelterLab 不會自動寄送信件");
   });
 });

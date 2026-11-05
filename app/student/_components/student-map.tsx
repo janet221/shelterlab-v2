@@ -12,11 +12,11 @@ import {
 } from "@/lib/student-map";
 
 const statusText: Record<WeekStatus, string> = {
-  locked: "未解鎖",
-  in_progress: "進行中",
-  returned: "已退件",
-  pending: "等待審核",
-  completed: "已完成"
+  locked: "單元未解鎖",
+  in_progress: "探究進行中",
+  returned: "論述待釐清",
+  pending: "待教師核可",
+  completed: "單元已完成"
 };
 
 const statusClass: Record<WeekStatus, string> = {
@@ -301,16 +301,16 @@ function WeekNodeButton({ node }: { node: WeekMapNode }) {
         <NodeVisual node={node} />
         <div className="absolute left-1/2 top-[-5%] -translate-x-1/2"><StatusBadge status={node.status} /></div>
         {node.status === "completed" && (
-          <div className="absolute right-[2%] top-[25%] flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-[#F2C94C] text-lg shadow-md" aria-label="完成寶石" title="完成寶石">◆</div>
+          <div className="absolute right-[2%] top-[25%] flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-[#F2C94C] text-lg shadow-md" aria-label="單元完成標章" title="單元完成標章">◆</div>
         )}
         {node.status === "pending" && (
-          <div className="absolute bottom-[-4%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#D4B477] bg-[#FFF9EA]/95 px-3 py-1 text-[11px] font-bold text-[#755B2F] shadow-sm">等待審核</div>
+          <div className="absolute bottom-[-4%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#D4B477] bg-[#FFF9EA]/95 px-3 py-1 text-[11px] font-bold text-[#755B2F] shadow-sm">待教師核可</div>
         )}
         {node.status === "returned" && (
-          <div className="absolute bottom-[-4%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-red-300 bg-red-50/95 px-3 py-1 text-[11px] font-bold text-red-800 shadow-sm">已退件，請修正</div>
+          <div className="absolute bottom-[-4%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-red-300 bg-red-50/95 px-3 py-1 text-[11px] font-bold text-red-800 shadow-sm">論述待釐清，請修正</div>
         )}
         {node.status === "in_progress" && (
-          <div className="absolute bottom-[-4%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#E1C477] bg-[#FFF9E7]/95 px-3 py-1 text-[11px] font-bold text-[#6F592A] opacity-0 shadow-sm transition group-hover:opacity-100">點擊進入</div>
+          <div className="absolute bottom-[-4%] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[#E1C477] bg-[#FFF9E7]/95 px-3 py-1 text-[11px] font-bold text-[#6F592A] opacity-0 shadow-sm transition group-hover:opacity-100">進入探究單元</div>
         )}
       </div>
     </button>

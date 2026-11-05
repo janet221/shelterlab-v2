@@ -377,7 +377,7 @@ export const invitationRepository = {
     if(!opportunity||!profile||opportunity.organizationId!==organizationId||!profile.optedIn)return null;
     const now=nowIso(),item:MatchInvitation={id:id("invitation"),organizationId,studentMatchProfileId:profileId,opportunityId,status:"pending",message,createdAt:now,updatedAt:now};
     write(KEYS.invitations,[item,...this.list()]);
-    notificationRepository.add({category:"matching",kind:"matching_invitation",title:"收到匿名媒合邀請",summary:`${opportunity.organizationName} 邀請你查看「${opportunity.title}」。`,source:"ShelterLab 匿名媒合",opportunityId,invitationId:item.id,actionLabel:"查看活動",actionHref:`/student/opportunities/${opportunityId}`});
+    notificationRepository.add({category:"matching",kind:"matching_invitation",title:"收到匿名媒合邀請",summary:`${opportunity.organizationName} 邀請您查閱「${opportunity.title}」。`,source:"ShelterLab 匿名媒合",opportunityId,invitationId:item.id,actionLabel:"查看活動",actionHref:`/student/opportunities/${opportunityId}`});
     return item;
   },
   respond(invitationId:string,response:"accepted"|"declined"){
@@ -392,7 +392,7 @@ export const invitationRepository = {
 };
 
 const demoVisitPrograms=():VisitProgram[]=>{
-  const now=nowIso(); return organizationRepository.partnerManaged().map((organization,index)=>({id:`visit-program-${organization.id}`,organizationId:organization.id,title:index===2?"動保教育半日參訪（功能示範）":"認識動保工作的團體參訪（功能示範）",programType:"life_education",gradeBands:["國中","高中"],capacity:30,durationMinutes:120,learningGoals:["理解單位工作","練習安全提問"],preTasks:["閱讀公開資料","完成行前問題單"],itinerary:["單位介紹","學習站輪轉","反思整理"],learningStations:["照護流程","認養資訊","安全通報"],safetyRules:["由教師帶隊","遵守場域動線"],animalContactRules:["未經工作人員同意不接觸動物"],worksheet:"記錄一項看見的需求與可行回應。",reflectionPrompt:"這次參訪如何改變你對動保行動的理解？",availableDates:["2026-10-15","2026-11-12"],status:"published",createdAt:now,updatedAt:now}));
+  const now=nowIso(); return organizationRepository.partnerManaged().map((organization,index)=>({id:`visit-program-${organization.id}`,organizationId:organization.id,title:index===2?"動保教育半日參訪（功能示範）":"認識動保工作的團體參訪（功能示範）",programType:"life_education",gradeBands:["國中","高中"],capacity:30,durationMinutes:120,learningGoals:["理解單位工作","練習安全提問"],preTasks:["閱讀公開資料","完成行前問題單"],itinerary:["單位介紹","學習站輪轉","反思整理"],learningStations:["照護流程","認養資訊","安全通報"],safetyRules:["由教師帶隊","遵守場域動線"],animalContactRules:["未經工作人員同意不接觸動物"],worksheet:"記錄一項觀察到的需求與可行回應。",reflectionPrompt:"本次參訪如何改變您對動物保護行動的理解？",availableDates:["2026-10-15","2026-11-12"],status:"published",createdAt:now,updatedAt:now}));
 };
 function ensureVisitPrograms(){const current=read<VisitProgram[]>(KEYS.visitPrograms,[]);if(current.length)return current;return hasWindow()?write(KEYS.visitPrograms,demoVisitPrograms()):demoVisitPrograms();}
 export const visitProgramRepository = {
@@ -441,13 +441,13 @@ export const applicationNotificationService = {
     const organization=application?organizationRepository.get(application.organizationId):undefined;
     const label=decisionLabel[input.decision];
     const subject=input.subject?.trim()||`【ShelterLab】${opportunity?.title??"活動申請"}${label}通知`;
-    const body=input.body?.trim()||`${application?.studentLabel??"同學"}您好：\n\n你申請的「${opportunity?.title??"活動"}」目前結果為：${label}。\n請依 ${organization?.name??"動保機構"} 後續通知確認時間、安全與陪同條件。\n\n此信由機構人員使用自己的 Email 軟體寄出，ShelterLab 尚未自動寄信。`;
+    const body=input.body?.trim()||`${application?.studentLabel??"同學"}您好：\n\n您申請的「${opportunity?.title??"活動"}」目前結果為：${label}。\n請依 ${organization?.name??"動保機構"} 後續通知確認時間、安全與陪同條件。\n\n此信由機構人員使用自己的電子郵件軟體寄出，ShelterLab 不會自動寄送信件。`;
     return {subject,body,mailtoUrl:`mailto:${encodeURIComponent(input.recipientEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,sentByPlatform:false as const};
   }
 };
 
 function notifyApplicants(opportunity:ActionOpportunity,kind:ActionNotification["kind"],title:string,summary:string){ for(const application of applicationRepository.list().filter(item=>item.opportunityId===opportunity.id))notificationRepository.add({category:"application",kind,title,summary,source:opportunity.organizationName,opportunityId:opportunity.id,applicationId:application.id,actionLabel:"查看活動",actionHref:`/student/opportunities/${opportunity.id}`}); }
-function notifyPreferenceMatches(opportunity:ActionOpportunity){ const preferences=preferenceRepository.get(); if(!matchesPreferences(opportunity,preferences))return; notificationRepository.add({category:"new_opportunity",kind:"preference_match",title:"符合你偏好的新機會上架",summary:`${opportunity.title} · ${opportunity.city}`,source:"動保行動機會雷達",opportunityId:opportunity.id,actionLabel:"查看活動",actionHref:`/student/opportunities?opportunity=${opportunity.id}`}); }
+function notifyPreferenceMatches(opportunity:ActionOpportunity){ const preferences=preferenceRepository.get(); if(!matchesPreferences(opportunity,preferences))return; notificationRepository.add({category:"new_opportunity",kind:"preference_match",title:"符合偏好條件的新活動已發布",summary:`${opportunity.title} · ${opportunity.city}`,source:"動保行動機會雷達",opportunityId:opportunity.id,actionLabel:"查看活動",actionHref:`/student/opportunities?opportunity=${opportunity.id}`}); }
 function syncWeekSixCompletion(opportunity:ActionOpportunity){ try{ const key="shelterlab-week6-action-draft-v2",raw=localStorage.getItem(key); if(!raw)return; const draft=JSON.parse(raw); draft.stage=5;draft.furthestStage=5;draft.status="draft";draft.actionRecord={...draft.actionRecord,actionType:draft.actionRecord?.actionType||opportunity.title,status:"completed",nextStep:draft.actionRecord?.nextStep||"完成反思並整理參與證明"};localStorage.setItem(key,JSON.stringify(draft)); }catch{} }
 
 export const opportunityPrototype = {

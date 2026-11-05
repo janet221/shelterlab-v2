@@ -21,10 +21,10 @@ const WEEK_NAMES = ["", "第一週", "第二週", "第三週", "第四週", "第
 const WEEK_WORLDS: Record<WeekNumber, { icon: string; name: string; instruction: string }> = {
   1: { icon: "🧭", name: "關係觀察站", instruction: "追查場景、關係與責任" },
   2: { icon: "🗓️", name: "生活規劃桌", instruction: "把承諾放進真實生活" },
-  3: { icon: "🔬", name: "分類鑑定所", instruction: "拆解品種欄位與標籤" },
-  4: { icon: "🕸️", name: "源頭控制室", instruction: "追蹤流入、過程與出口" },
-  5: { icon: "⚖️", name: "公共議事廳", instruction: "比較價值、代價與配套" },
-  6: { icon: "📓", name: "田野行動站", instruction: "記錄、查證並設計行動" }
+  3: { icon: "🔬", name: "分類鑑定所", instruction: "拆解品種標籤" },
+  4: { icon: "🕸️", name: "源頭控制室", instruction: "追蹤動物的來源與去向" },
+  5: { icon: "⚖️", name: "公共議事廳", instruction: "權衡政策的代價與配套" },
+  6: { icon: "📓", name: "田野行動站", instruction: "記錄、查證並規劃行動" }
 };
 
 function clean(value: string) {
@@ -252,21 +252,21 @@ export default function GuidedWeekCourse({ week, onShowIntro }: { week: WeekNumb
           {requiresNote && (
             <label className={styles.reflection}>
               <span>留下你的判斷與理由</span>
-              <textarea value={note} onChange={(event) => updateNote(event.target.value)} placeholder="請根據目前取得的證據作答；無法確認的部分可以明確寫下來。" />
-              <small>{note.trim().length < 8 ? "至少寫下 8 個字，讓理由足以被理解。" : "紀錄已保存，你仍可以返回修正。"}</small>
+              <textarea value={note} onChange={(event) => updateNote(event.target.value)} placeholder="請根據目前看到的證據來寫；如果不確定的地方，也可以直接寫下來。" />
+              <small>{note.trim().length < 8 ? "請至少填寫 8 個字，以完整說明您的想法。" : "紀錄已自動儲存，可隨時返回修改。"}</small>
             </label>
           )}
 
           {saved.stage === parsed.sections.length - 1 && (
             <div className={styles.rewardPreview}>
               <img src={reward.image} alt="" />
-              <div><small>完成本週即可取得</small><strong>{reward.name}</strong><p>{reward.description}</p></div>
+              <div><small>完成本週即可解鎖</small><strong>{reward.name}</strong><p>{reward.description}</p></div>
             </div>
           )}
           <div className={styles.actions}>
-            <button type="button" className={styles.secondary} disabled={saved.stage === 0} onClick={() => setSaved((current) => ({ ...current, stage: Math.max(0, current.stage - 1) }))}>← 上一環節</button>
+            <button type="button" className={styles.secondary} disabled={saved.stage === 0} onClick={() => setSaved((current) => ({ ...current, stage: Math.max(0, current.stage - 1) }))}>← 上一關</button>
             <button type="button" className={styles.primary} disabled={!canContinue} onClick={next}>
-              {saved.stage === parsed.sections.length - 1 ? `收下${reward.name}` : "完成任務，前往下一關 →"}
+              {saved.stage === parsed.sections.length - 1 ? `收下${reward.name}` : "完成，進入下一關 →"}
             </button>
           </div>
         </article>

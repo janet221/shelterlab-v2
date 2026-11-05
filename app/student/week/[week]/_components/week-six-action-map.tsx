@@ -51,18 +51,18 @@ export default function WeekSixActionMap({ matches, location, selectedId, onSele
   }), []);
   const first = matches.find((item) => item.exactMatch) || matches[0];
   const visibleTypes = [...new Set(matches.map((item) => item.organization.organizationType))];
-  const legendNames = { public_shelter: "公立收容所", animal_home: "動物之家", government_agency: "動保處／防疫所", animal_protection_office:"動保處／防疫所", education_park: "教育園區", animal_welfare_education_park:"動保教育園區", registered_nonprofit: "已驗證民間團體", animal_welfare_association:"動保協會", foundation:"基金會", rescue_group: "救援／中途組織", private_rescue_group:"民間救援／中途", other_verified_organization:"其他已驗證單位", other_partner: "其他合作單位" } as const;
+  const legendNames = { public_shelter: "公立動物收容所", animal_home: "動物之家", government_agency: "縣市動保處／防疫所", animal_protection_office:"縣市動保處／防疫所", education_park: "動保教育園區", animal_welfare_education_park:"動保教育園區", registered_nonprofit: "已驗證民間團體", animal_welfare_association:"動保協會", foundation:"基金會", rescue_group: "救援／中途組織", private_rescue_group:"民間救援／中途", other_verified_organization:"其他已驗證單位", other_partner: "其他合作單位" } as const;
   return <div className="week6-map-shell">
     <MapContainer center={[23.7, 120.95]} zoom={7} scrollWheelZoom className="week6-map" ref={mapRef}>
       <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <Recenter location={location} countyMatch={first} />
       <MarkerClusterGroup chunkedLoading showCoverageOnHover={false}>
         {matches.map(({ organization, distanceKm }) => <Marker key={organization.id} position={[organization.latitude, organization.longitude]} icon={icons[organization.organizationType]} eventHandlers={{ click: () => onSelect(organization.id) }}>
-          <Popup><strong>{organization.name}</strong><br />{organization.address}<br />{distanceKm === null ? "" : `約 ${distanceKm.toFixed(1)} 公里`}<br /><button type="button" onClick={() => onSelect(organization.id)}>{selectedId === organization.id ? "已加入行動計畫" : "查看我可以怎麼幫"}</button></Popup>
+          <Popup><strong>{organization.name}</strong><br />{organization.address}<br />{distanceKm === null ? "" : `約 ${distanceKm.toFixed(1)} 公里`}<br /><button type="button" onClick={() => onSelect(organization.id)}>{selectedId === organization.id ? "已納入行動計畫" : "檢視參與途徑"}</button></Popup>
         </Marker>)}
       </MarkerClusterGroup>
-      {location && <Marker position={[location.latitude, location.longitude]} icon={icons.user}><Popup>你的約略位置（只在此裝置計算）</Popup></Marker>}
+      {location && <Marker position={[location.latitude, location.longitude]} icon={icons.user}><Popup>使用者概略位置（僅限本機運算）</Popup></Marker>}
     </MapContainer>
-    <div className="week6-map-legend">{visibleTypes.map((type) => <span key={type} className={markerClass[type]}>● {legendNames[type]}</span>)}{matches.some(item=>item.organization.hasOfficialVolunteerInfo)&&<span>◎ 官方曾公告志工資訊</span>}</div>
+    <div className="week6-map-legend">{visibleTypes.map((type) => <span key={type} className={markerClass[type]}>● {legendNames[type]}</span>)}{matches.some(item=>item.organization.hasOfficialVolunteerInfo)&&<span>◎ 官方曾發布志工招募資訊</span>}</div>
   </div>;
 }

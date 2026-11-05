@@ -6,6 +6,7 @@ import type { WeekAuditEntry, WeekGameAudit } from "@/lib/classroom/data-types";
 import { clearEvaluatorDemoStates, clearEvaluatorLearningDrafts, evaluatorDemoState, setEvaluatorDemoState, setEvaluatorPreviewReward, learningStorage, restoreEvaluatorLearningDrafts, snapshotEvaluatorLearningDrafts, type EvaluatorDemoState } from "@/lib/classroom/browser-storage";
 import { parseStudentReviewFeedback } from "@/lib/classroom/review-guidelines";
 import { getLearningTool, type WeekNumber } from "@/lib/student-map";
+import EvaluatorStageNavigator, { EVALUATOR_INTRO_PAGE_NAVIGATION_EVENT, EVALUATOR_ROLE_PATH_NAVIGATION_EVENT, EVALUATOR_STAGE_NAVIGATION_EVENT } from "./evaluator-stage-navigator";
 
 const AUDIT_KEY_PREFIX = "shelterlab-week-game-audit-v1";
 const WEEK_STATE_KEYS: Record<number, string[]> = {
@@ -15,6 +16,15 @@ const WEEK_STATE_KEYS: Record<number, string[]> = {
   4: ["shelterlab-week4-v1"],
   5: ["shelterlab-week5-v1"],
   6: ["shelterlab-week6-action-draft-v2"]
+};
+
+const EVALUATOR_STAGE_LABELS: Record<number, readonly string[]> = {
+  1: ["初步觀察", "生活路徑", "責任配套", "影音判讀", "資料深思"],
+  2: ["法律與資格", "時間與備援", "經濟能力", "情緒與家庭", "影音思考", "資料深思"],
+  3: ["品種的誕生", "性格迷思", "遺傳風險", "領養與買賣", "影音思考", "資料深思"],
+  4: ["系統全貌", "政策與證據", "家犬源頭", "餵養與共存", "影音判讀", "資料深思"],
+  5: ["制度解碼", "收容福利", "生態衝突", "公共選擇", "影音判讀", "資料深思"],
+  6: ["選擇地區與機會", "確認資源資訊", "確認參與條件", "行前安全訓練", "準備聯絡內容", "完成參與準備"]
 };
 
 type StoredAudit = Omit<WeekGameAudit, "completed" | "completedAt"> & {
@@ -374,7 +384,10 @@ export default function WeekAuditTracker({ accountId, week, status, reviewFeedba
     if (effectiveStatus === "pending") setShowPendingNotice(true);
   }, [effectiveStatus]);
 
-  const record = (event: SyntheticEvent) => capture(accountId, week, event.target);
+  const record = (event: SyntheticEvent) => {
+    if (event.target instanceof Element && event.target.closest("[data-evaluator-control]")) return;
+    capture(accountId, week, event.target);
+  };
   const completedTool = getLearningTool(week as WeekNumber);
   return <div ref={rootRef} className="student-week-audit" onClickCapture={record} onInputCapture={record} onChangeCapture={record}>
     {!evaluatorPreview && effectiveStatus === "completed" && !reviewCompleted && <div className="fixed inset-0 z-[160] grid place-items-center overflow-y-auto bg-[radial-gradient(circle_at_top,#fffefa_0%,#f7eedc_55%,#ded0b6_100%)] p-5">
@@ -382,26 +395,26 @@ export default function WeekAuditTracker({ accountId, week, status, reviewFeedba
         <p className="text-xs font-black uppercase tracking-[.2em] text-[#98762e]">Week {week} Completed</p>
         <h1 id="completed-week-title" className="mt-3 text-3xl font-black text-[#3f554d]">第 {week} 週關卡已通過</h1>
         <div className="mx-auto mt-5 h-40 w-40 rounded-3xl border border-[#dfc885] bg-[#fff3cf] p-3 shadow-inner"><img src={completedTool.image} alt={completedTool.name} className="h-full w-full rounded-2xl object-contain"/></div>
-        <p className="mt-5 text-sm font-bold text-[#7a6338]">已獲得探索工具</p><h2 className="mt-1 text-2xl font-black text-[#443a31]">{completedTool.name}</h2>
+        <p className="mt-5 text-sm font-bold text-[#7a6338]">成功解鎖探索工具</p><h2 className="mt-1 text-2xl font-black text-[#443a31]">{completedTool.name}</h2>
         <p className="mx-auto mt-3 max-w-md text-sm font-semibold leading-7 text-[#6d6258]">{completedTool.description}</p>
         <p className="mt-5 rounded-2xl bg-[#f4eee3] px-4 py-3 text-sm font-bold text-[#66594d]">是否重新檢視第 {week} 週關卡與自己提交的答案？檢視模式不會修改正式作答紀錄。</p>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2"><a href="/student" className="rounded-xl border border-[#bca989] bg-white px-5 py-3 font-black text-[#5d5145]">返回遊戲地圖</a><button type="button" onClick={()=>setReviewCompleted(true)} className="rounded-xl bg-[#6C9270] px-5 py-3 font-black text-white shadow-md hover:bg-[#587c5c]">重新檢視本週作答</button></div>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2"><a href="/student" className="rounded-xl border border-[#bca989] bg-white px-5 py-3 font-black text-[#5d5145]">返回遊戲地圖</a><button type="button" onClick={()=>setReviewCompleted(true)} className="rounded-xl bg-[#6C9270] px-5 py-3 font-black text-white shadow-md hover:bg-[#587c5c]">回顧本週作答</button></div>
       </section>
     </div>}
     {review && <aside className={`sticky top-0 z-[110] border-b px-5 py-4 shadow-sm ${review.decision === "reject" ? "border-red-200 bg-red-50 text-red-950" : "border-emerald-200 bg-emerald-50 text-emerald-950"}`}>
       <div className="mx-auto max-w-5xl">
         {review.decision === "reject"
           ? <p className="font-black">教師即時評語：{review.items.map((item) => item.comment).join("；")}</p>
-          : <p className="font-black">教師審查：通過</p>}
+          : <p className="font-black">教師審查：審核通過</p>}
       </div>
     </aside>}
-    {effectiveStatus === "pending" && <aside className="sticky top-0 z-[105] border-b-2 border-amber-300 bg-amber-100 px-5 py-5 text-center text-lg font-black text-amber-950 shadow-md">作業稽核中；送出內容已鎖定，待教師審核後才可繼續。 <a className="ml-3 text-sm underline" href="/student">返回六週地圖</a></aside>}
+    {effectiveStatus === "pending" && <aside className="sticky top-0 z-[105] border-b-2 border-amber-300 bg-amber-100 px-5 py-5 text-center text-lg font-black text-amber-950 shadow-md">作業審核中；您提交的內容目前已鎖定，待教師完成審查後即可繼續。 <a className="ml-3 text-sm underline" href="/student">返回六週地圖</a></aside>}
     {showPendingNotice && effectiveStatus === "pending" && <div className="fixed inset-0 z-[150] grid place-items-center bg-stone-950/55 p-5" role="presentation">
       <section className="w-full max-w-md rounded-3xl border-2 border-amber-300 bg-white p-7 text-center shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="audit-pending-title">
         <span aria-hidden="true" className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-amber-100 text-2xl">⌛</span>
         <p className="mt-4 text-xs font-black uppercase tracking-[.18em] text-amber-700">Audit in progress</p>
-        <h2 id="audit-pending-title" className="mt-2 text-2xl font-black text-amber-950">作業稽核中</h2>
-        <p className="mt-3 text-base font-bold leading-7 text-stone-700">送出內容已鎖定，正在等待教師審查。</p>
+        <h2 id="audit-pending-title" className="mt-2 text-2xl font-black text-amber-950">作業等待審核中</h2>
+        <p className="mt-3 text-base font-bold leading-7 text-stone-700">作答內容已成功提交並鎖定，目前正等待教師審查。</p>
         <button type="button" onClick={()=>setShowPendingNotice(false)} className="mt-6 w-full rounded-xl bg-[#c58f3d] px-5 py-3 font-black text-white shadow-md transition hover:bg-[#aa772f] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-300">我知道了</button>
       </section>
     </div>}
@@ -411,10 +424,27 @@ export default function WeekAuditTracker({ accountId, week, status, reviewFeedba
       {effectiveStatus === "returned" && <button type="button" onClick={simulateResubmission} className="mt-3 w-full rounded-xl bg-[#c58f3d] px-4 py-3 text-sm font-black text-white">模擬學生修改後再次送出</button>}
       {effectiveStatus === "pending" && <button type="button" onClick={simulateApproval} className="mt-3 w-full rounded-xl bg-[#5e9163] px-4 py-3 text-sm font-black text-white">模擬教師審查通過</button>}
       {effectiveStatus === "completed" && <a href="/student" className="mt-3 block rounded-xl bg-[#5e9163] px-4 py-3 text-center text-sm font-black text-white">回到地圖查看解鎖結果</a>}
-      <p className="mt-2 text-[11px] text-[#75613d]">展示狀態不寫入正式稽核與退件紀錄。</p>
+      <p className="mt-2 text-[11px] text-[#75613d]">展示狀態不會寫入正式紀錄。</p>
     </aside>}
     <div ref={contentRef}>
-      {revisionReady ? children : <main className="p-10 text-center font-bold">正在還原已送出的作答狀態並前往填答題…</main>}
+      <EvaluatorStageNavigator
+        visible={evaluatorPreview}
+        week={week}
+        stages={EVALUATOR_STAGE_LABELS[week] ?? []}
+        introPages={week === 1 ? ["議題與資料", "六週探究軸線", "核心學習目標", "預期學習成果"] : undefined}
+        stageValues={week === 1 ? [0, 1, 2, 4, 5] : undefined}
+        rolePaths={week === 1 ? [{ id: "home", label: "家庭犬責任挑戰" }, { id: "work", label: "工作犬責任挑戰" }, { id: "school", label: "校犬責任挑戰" }, { id: "street", label: "街頭犬責任挑戰" }] : undefined}
+        onSelect={(stage) => window.dispatchEvent(new CustomEvent(EVALUATOR_STAGE_NAVIGATION_EVENT, { detail: { week, stage } }))}
+        onSelectIntroPage={week === 1 ? (page) => window.dispatchEvent(new CustomEvent(EVALUATOR_INTRO_PAGE_NAVIGATION_EVENT, { detail: { week, page } })) : undefined}
+        onSelectRolePath={week === 1 ? (path) => window.dispatchEvent(new CustomEvent(EVALUATOR_ROLE_PATH_NAVIGATION_EVENT, { detail: { week, path } })) : undefined}
+        onSelectWeek={(targetWeek) => {
+          if (targetWeek === week) return;
+          const query = new URLSearchParams(window.location.search);
+          query.set("evaluator", "1");
+          window.location.assign(`/student/week/${targetWeek}?${query.toString()}`);
+        }}
+      />
+      {revisionReady ? children : <main className="p-10 text-center font-bold">正在幫你找回上次寫到一半的進度…</main>}
     </div>
   </div>;
 }

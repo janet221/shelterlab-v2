@@ -19,8 +19,8 @@ export function PublicPageShell({ children, hideFooter = false }: { children: Re
 const primaryNav = [
   ["首頁", "/"],
   ["專案願景", "/#vision"],
-  ["如何運作", "/tour/welcome"],
-  ["開始體驗", "/start"]
+  ["系統運作說明", "/tour/welcome"],
+  ["開始探究", "/start"]
   
 ] as const;
 
@@ -75,7 +75,7 @@ export function PublicHeader({ inverse = false }: { inverse?: boolean }) {
           {primaryNav.map(([label, href]) => (
             <Link
               className={
-                label === "開始體驗"
+                label === "開始探究"
                   ? `rounded-full px-4 py-1.5 sm:px-5 sm:py-2 font-bold shadow-xs transition transform hover:-translate-y-0.5 ${
                       inverse 
                         ? "border border-white bg-white text-slate-950" 
@@ -108,8 +108,9 @@ export function PublicFooter() {
         {/* 品牌與核心說明 */}
         <div>
           <Brand gold href="/#top" />
+          <h2 className="mt-4 text-sm font-bold tracking-wide text-[#ebd197]">ShelterLab｜青少年公共議題探究實驗室</h2>
           <p className="mt-4 max-w-md text-xs leading-6 text-[#cdbfae]/80">
-            ShelterLab 連結校園學習、政府開放資料與收容實務，引導青少年閱讀證據、辨識偏見、理解不同立場，讓關心轉化為有依據的判斷與能負責完成的行動。
+            結合遊戲化課程、政府開放資料與第一線收容所，帶青少年在了解社會真實需求後，審視自身能力與時間，有計畫地完成參訪行動。
           </p>
         </div>
 
@@ -117,8 +118,8 @@ export function PublicFooter() {
         <nav className="grid content-start gap-2.5 text-sm" aria-label="核心功能">
           <strong className="mb-1 text-[#ebd197] font-bold">探索實驗室</strong>
           <Link className="hover:text-white transition-colors" href="/#vision">專案願景</Link>
-          <Link className="hover:text-white transition-colors" href="/tour/welcome">如何運作</Link>
-          <Link className="hover:text-white transition-colors" href="/start">開始體驗</Link>
+          <Link className="hover:text-white transition-colors" href="/tour/welcome">系統運作說明</Link>
+          <Link className="hover:text-white transition-colors" href="/start">開始探究</Link>
         </nav>
 
         <nav className="grid content-start gap-2.5 text-sm" aria-label="補充資訊">

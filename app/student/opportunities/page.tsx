@@ -129,7 +129,7 @@ export default function OpportunitySearchPage(){
 
   return <main className={styles.page}>
     <header className={styles.header}><div><p className={styles.eyebrow}>課後行動中心</p><h1>ShelterLab 動保活動布告欄</h1><p>先閱讀活動內容與參與前確認事項，再依主辦單位提供的官方聯絡方式自行洽詢。ShelterLab 不代替學生送出申請。</p></div><div className={styles.actions}><Link className={styles.button} href="/student">返回六週地圖</Link></div></header>
-    <nav className={styles.sectionTabs} aria-label="活動布告欄分區"><button type="button" className={styles.primary}>收容所活動公告</button></nav>
+    <div className={styles.sectionTabs}><span>收容所活動公告</span></div>
 
     {contacting&&<ContactModal item={contacting} profile={profile} onClose={()=>setContacting(null)} onCopy={copyText}/>}
     {simulationTarget&&<SimulationModal organization={simulationTarget} onClose={()=>setSimulationTarget(null)} onAdd={addSimulationPlan}/>}

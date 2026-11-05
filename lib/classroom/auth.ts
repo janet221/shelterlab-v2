@@ -5,23 +5,21 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 type ClassroomAccount = { role: "student" | "teacher" | "shelter"; email: string };
 
-export function isEvaluatorDemoEnabled() {
+type EvaluatorRole = "student" | "teacher" | "shelter";
+
+function hasEvaluatorAccounts(role?: EvaluatorRole): boolean {
+  if (role === "teacher") return Boolean(process.env.EVALUATOR_TEACHER_EMAIL && process.env.EVALUATOR_TEACHER_PASSWORD);
+  if (role === "student") return Boolean(process.env.EVALUATOR_STUDENT_EMAILS && process.env.EVALUATOR_STUDENT_PASSWORD);
+  if (role === "shelter") return Boolean(process.env.EVALUATOR_SHELTER_EMAIL && process.env.EVALUATOR_SHELTER_PASSWORD);
+  return hasEvaluatorAccounts("student") && hasEvaluatorAccounts("teacher") && hasEvaluatorAccounts("shelter");
+}
+
+export function isEvaluatorDemoEnabled(role?: EvaluatorRole) {
   const setting = process.env.EVALUATOR_DEMO_ENABLED?.trim().toLowerCase();
   if (setting === "false") return false;
-  if (setting === "true") return true;
-
-  // A deployment with the complete evaluator account set is already
-  // intentionally configured for judging. This fallback keeps that experience
-  // visible if only the optional switch was omitted from Vercel.
-  return Boolean(
-    process.env.EVALUATOR_TEACHER_EMAIL
-    && process.env.EVALUATOR_TEACHER_PASSWORD
-    && process.env.EVALUATOR_STUDENT_EMAILS
-    && process.env.EVALUATOR_STUDENT_PASSWORD
-    && process.env.EVALUATOR_CLASS_CODE
-    && process.env.EVALUATOR_SHELTER_EMAIL
-    && process.env.EVALUATOR_SHELTER_PASSWORD
-  );
+  // A role's quick-login option should not disappear because another role's
+  // account is missing. Each role is checked against its own credentials.
+  return hasEvaluatorAccounts(role);
 }
 
 function evaluatorEmails(role: "student" | "teacher") {
@@ -32,12 +30,12 @@ function evaluatorEmails(role: "student" | "teacher") {
 }
 
 export function isEvaluatorAccount(account: ClassroomAccount) {
-  if (!isEvaluatorDemoEnabled() || account.role === "shelter") return false;
+  if (!isEvaluatorDemoEnabled(account.role) || account.role === "shelter") return false;
   return evaluatorEmails(account.role).includes(account.email.trim().toLowerCase());
 }
 
 export function evaluatorLoginAccounts(role: "student" | "teacher") {
-  if (!isEvaluatorDemoEnabled()) throw new RequestError(404, "找不到功能。");
+  if (!isEvaluatorDemoEnabled(role)) throw new RequestError(503, "此角色的評審快速登入帳號尚未完成設定。");
   const password = role === "teacher"
     ? process.env.EVALUATOR_TEACHER_PASSWORD
     : process.env.EVALUATOR_STUDENT_PASSWORD;

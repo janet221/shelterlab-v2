@@ -11,8 +11,8 @@
 
 .statusDock { position:fixed; z-index:20; right:22px; bottom:22px; width:min(410px,calc(100vw - 44px)); border:2px solid #ac6656; border-radius:20px 15px 23px 17px; padding:14px 17px; background:rgba(255,248,240,.97); box-shadow:6px 7px 0 rgba(91,85,76,.14); pointer-events:none; }
 .statusDock > div { display:flex; align-items:center; gap:14px; }
-.statusDock span { font-weight:950; }
-.statusDock strong { color:#d34f4c; font-size:22px; letter-spacing:3px; }
+.statusDock span { flex-shrink:0; font-weight:950; white-space:nowrap; }
+.statusDock strong { flex-shrink:0; color:#d34f4c; font-size:22px; letter-spacing:3px; white-space:nowrap; }
 .statusDock section { margin-top:10px; border-top:1px dashed currentColor; padding-top:10px; }
 .statusDock section b { display:block; }
 .statusDock section p { margin:4px 0 0; font-size:13px; font-weight:750; line-height:1.6; }
@@ -93,6 +93,9 @@
 .challengeGrid { margin-top:16px; }
 
 .videoLayout { display:grid; grid-template-columns:.8fr 1.2fr; gap:18px; align-items:start; }
+.videoStage { display:grid; gap:20px; }
+.videoReview { padding:20px; border:1px solid #e1d4bf; border-radius:18px; background:#fffdf8; }
+.videoReview h3 { margin:0 0 13px; color:#2f5f54; font-size:24px; }
 .videoLayout > article { position:sticky; top:20px; border:3px solid #5b554c; border-radius:27px 19px 30px 22px; padding:25px; color:#fff; background:#315f55; box-shadow:6px 7px 0 rgba(91,85,76,.12); }
 .videoLayout > article small { color:#cde3da; font-weight:900; }
 .videoLayout > article h3 { margin:12px 0; font-family:Georgia,"Noto Serif TC",serif; font-size:31px; }

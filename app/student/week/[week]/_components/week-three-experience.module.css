@@ -134,8 +134,8 @@
 }
 
 .compactHearts { display: flex; align-items: center; gap: 12px; }
-.compactHearts span { font-weight: 950; }
-.compactHearts strong { color: #d34a48; font-size: 22px; letter-spacing: 3px; }
+.compactHearts span { flex-shrink: 0; font-weight: 950; white-space: nowrap; }
+.compactHearts strong { flex-shrink: 0; color: #d34a48; font-size: 22px; letter-spacing: 3px; white-space: nowrap; }
 .compactHearts small { margin-left: auto; color: #765b55; font-weight: 800; }
 .inlineFeedback { margin-top: 8px; border-top: 1px dashed currentColor; padding: 9px 2px 1px; line-height: 1.55; }
 .inlineFeedback strong { display: block; }
@@ -483,6 +483,9 @@
 .sourceRow .sourceLink { margin-top: 0; }
 
 .videoLayout { display: grid; grid-template-columns: .82fr 1.18fr; gap: 22px; align-items: start; }
+.videoStage { display:grid; gap:20px; }
+.videoReview { padding:20px; border:1px solid #e1d4bf; border-radius:18px; background:#fffdf8; }
+.videoReview h3 { margin:0 0 13px; color:#2f5f54; font-size:24px; }
 .videoPanel { position: sticky; top: 18px; border: 3px solid #5b554c; border-radius: 29px 21px 31px 23px; padding: 25px; color: #fff; background: #397673; box-shadow: 6px 7px 0 rgba(57,118,115,.16); }
 .videoPanel small { color: #cce7df; font-weight: 950; letter-spacing: .08em; }
 .videoPanel h3 { margin: 9px 0 0; font-family: Georgia, "Noto Serif TC", serif; font-size: 30px; }

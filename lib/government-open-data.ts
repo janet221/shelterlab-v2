@@ -59,7 +59,13 @@ export type CountyShelterNeed = { county:string; year:number; month:number; maxC
 export type SchoolDirectoryEntry = { id:string; name:string; county:string; district?:string; level?:SchoolLevel; publicPrivate?:"public"|"private"; address:string; phone:string; website:string; schoolYear:string; sourceUrl?:string };
 export type OpenDataSourceState = { mode: "live" | "fallback"; updatedAt: string; fallbackDate?: string; datasetUrl: string; apiUrl: string; message: string };
 export type AdoptionSnapshot = { source: OpenDataSourceState; countyCounts: Record<string, number>; shelterCounts: Record<string, number>; sampleDogs: AdoptionDog[]; organizations: ActionOrganization[] };
-export type ShelterStatsSnapshot = { source: OpenDataSourceState; latestByCounty: CountyShelterStat[] };
+export type ShelterStatsProcessingSummary = {
+  rawRecordCount: number;
+  eligibleCountyMonthCount: number;
+  excludedInvalidCountyOrPeriodCount: number;
+  retainedLatestCountyCount: number;
+};
+export type ShelterStatsSnapshot = { source: OpenDataSourceState; latestByCounty: CountyShelterStat[]; processing?: ShelterStatsProcessingSummary };
 export type ShelterNeedsSnapshot = { source: OpenDataSourceState; latestByCounty: CountyShelterNeed[] };
 export type SchoolDirectorySnapshot = { source: OpenDataSourceState; schools: SchoolDirectoryEntry[] };
 
@@ -128,7 +134,7 @@ export function latestShelterStats(input: unknown): CountyShelterStat[] {
   const currentCounties = new Set<string>(TAIWAN_COUNTIES);
   for (const row of parseArray(shelterStatsRowSchema, input)) {
     const county = normalizeCountyName(text(row.rpt_county)), year = safeNumber(row.rpt_year), month = safeNumber(row.rpt_month);
-    if (!currentCounties.has(county) || year === null || month === null) continue;
+    if (!currentCounties.has(county) || year === null || month === null || month < 1 || month > 12) continue;
     const current = latest.get(county);
     if (current && current.year * 100 + current.month >= year * 100 + month) continue;
     latest.set(county, { county, year, month, acceptedCount: safeNumber(row.accept_count), adoptedCount: safeNumber(row.adopt_count),
@@ -136,6 +142,23 @@ export function latestShelterStats(input: unknown): CountyShelterStat[] {
       euthanasiaRate: safeNumber(row.end_rate), diedCount: safeNumber(row.dead_count), deathRate: safeNumber(row.dead_rate) });
   }
   return [...latest.values()].sort((a, b) => a.county.localeCompare(b.county, "zh-Hant"));
+}
+
+export function summarizeShelterStatsProcessing(input: unknown, latestByCounty: CountyShelterStat[]): ShelterStatsProcessingSummary {
+  const rows = parseArray(shelterStatsRowSchema, input);
+  const currentCounties = new Set<string>(TAIWAN_COUNTIES);
+  let eligibleCountyMonthCount = 0;
+  for (const row of rows) {
+    const county = normalizeCountyName(text(row.rpt_county));
+    const year = safeNumber(row.rpt_year), month = safeNumber(row.rpt_month);
+    if (currentCounties.has(county) && year !== null && month !== null && month >= 1 && month <= 12) eligibleCountyMonthCount += 1;
+  }
+  return {
+    rawRecordCount: rows.length,
+    eligibleCountyMonthCount,
+    excludedInvalidCountyOrPeriodCount: rows.length - eligibleCountyMonthCount,
+    retainedLatestCountyCount: latestByCounty.length
+  };
 }
 
 export function latestShelterNeeds(input: unknown): CountyShelterNeed[] {
@@ -211,9 +234,10 @@ export async function getShelterStatsSnapshot(): Promise<ShelterStatsSnapshot> {
   try {
     const rows = await fetchOfficial(SHELTER_STATS_API_URL);
     const latestByCounty = latestShelterStats(rows);
+    const processing = summarizeShelterStatsProcessing(rows, latestByCounty);
     const latest = latestByCounty.reduce((value, item) => Math.max(value, item.year * 100 + item.month), 0);
     const updatedAt = latest ? `${Math.floor(latest / 100)} 年 ${latest % 100} 月` : "官方未提供";
-    const payload: ShelterStatsSnapshot = { source: { mode: "live", updatedAt, datasetUrl: SHELTER_STATS_DATASET_URL, apiUrl: SHELTER_STATS_API_URL, message: "使用農業部最新可用期間資料" }, latestByCounty };
+    const payload: ShelterStatsSnapshot = { source: { mode: "live", updatedAt, datasetUrl: SHELTER_STATS_DATASET_URL, apiUrl: SHELTER_STATS_API_URL, message: "使用農業部最新可用期間資料" }, latestByCounty, processing };
     cachedStats = payload;
     return payload;
   } catch {
