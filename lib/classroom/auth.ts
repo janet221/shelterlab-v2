@@ -7,6 +7,26 @@ type ClassroomAccount = { role: "student" | "teacher" | "shelter"; email: string
 
 type EvaluatorRole = "student" | "teacher" | "shelter";
 
+export function missingSupabaseAuthSettings() {
+  const missing: string[] = [];
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    missing.push("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY（或舊版 NEXT_PUBLIC_SUPABASE_ANON_KEY）");
+  }
+  return missing;
+}
+
+export function missingEvaluatorSettings(role: EvaluatorRole) {
+  const required: Record<EvaluatorRole, Array<[string, string | undefined]>> = {
+    teacher: [["EVALUATOR_TEACHER_EMAIL", process.env.EVALUATOR_TEACHER_EMAIL], ["EVALUATOR_TEACHER_PASSWORD", process.env.EVALUATOR_TEACHER_PASSWORD]],
+    student: [["EVALUATOR_STUDENT_EMAILS", process.env.EVALUATOR_STUDENT_EMAILS], ["EVALUATOR_STUDENT_PASSWORD", process.env.EVALUATOR_STUDENT_PASSWORD], ["EVALUATOR_CLASS_CODE", process.env.EVALUATOR_CLASS_CODE]],
+    shelter: [["EVALUATOR_SHELTER_EMAIL", process.env.EVALUATOR_SHELTER_EMAIL], ["EVALUATOR_SHELTER_PASSWORD", process.env.EVALUATOR_SHELTER_PASSWORD]],
+  };
+  const missing = required[role].filter(([, value]) => !value?.trim()).map(([name]) => name);
+  if (process.env.EVALUATOR_DEMO_ENABLED?.trim().toLowerCase() === "false") missing.unshift("EVALUATOR_DEMO_ENABLED（請設為 true，或移除 false）");
+  return missing;
+}
+
 function hasEvaluatorAccounts(role?: EvaluatorRole): boolean {
   if (role === "teacher") return Boolean(process.env.EVALUATOR_TEACHER_EMAIL && process.env.EVALUATOR_TEACHER_PASSWORD);
   if (role === "student") return Boolean(process.env.EVALUATOR_STUDENT_EMAILS && process.env.EVALUATOR_STUDENT_PASSWORD);

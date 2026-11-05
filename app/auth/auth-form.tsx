@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { createBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 type Mode = "login" | "signup";
@@ -45,7 +46,7 @@ async function loginWithServer(role: AccountRole, email: string, password: strin
   if (!response.ok || result.account?.role !== role) throw new Error(result.error || "登入憑證未能建立，請重試。");
 }
 
-export default function AuthForm({ role, initialMode = "login", evaluatorEnabled = false, evaluatorConfigured = true }: { role: AccountRole; initialMode?: Mode; evaluatorEnabled?: boolean; evaluatorConfigured?: boolean }) {
+export default function AuthForm({ role, initialMode = "login", evaluatorEnabled = false, evaluatorConfigured = true, missingEvaluatorSettings = [], missingAuthSettings = [] }: { role: AccountRole; initialMode?: Mode; evaluatorEnabled?: boolean; evaluatorConfigured?: boolean; missingEvaluatorSettings?: string[]; missingAuthSettings?: string[] }) {
   const [mode, setMode] = useState<Mode>(initialMode);
   const [recovery, setRecovery] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -66,7 +67,9 @@ export default function AuthForm({ role, initialMode = "login", evaluatorEnabled
     if (evaluatorOpen) { setEvaluatorOpen(false); return; }
     setMode("login"); setRecovery(false); setError("");
     if (!evaluatorConfigured) {
-      setError("這個身分的評審體驗帳號尚未設定；補齊該角色的固定帳號設定後即可快速登入。");
+      setError(missingEvaluatorSettings.length
+        ? `這個身分的評審快速登入尚未設定。請在 Vercel 專案設定 → Environment Variables → Production 補齊：${missingEvaluatorSettings.join("、")}。儲存後請重新部署。`
+        : "這個身分的評審體驗帳號尚未設定；補齊該角色的固定帳號設定後即可快速登入。");
       setEvaluatorOpen(true);
       return;
     }
@@ -152,11 +155,12 @@ export default function AuthForm({ role, initialMode = "login", evaluatorEnabled
     <div className="grid grid-cols-2 rounded-full bg-[#f3eadb] p-1" role="tablist" aria-label="帳號操作">
       {(["login", "signup"] as const).map((tab) => { const selected = mode === tab && !recovery; return <button type="button" role="tab" aria-selected={selected} className={`rounded-full px-4 py-2.5 text-sm font-bold transition-all ${selected ? "bg-white text-[#5f5142] shadow-sm" : "text-[#7f705e] hover:text-[#3c3024]"}`} onClick={() => changeMode(tab)} key={tab}>{tab === "login" ? "登入" : "建立帳號"}</button>; })}
     </div>
+    {missingAuthSettings.length > 0 && <p role="alert" className="mt-4 rounded-xl border border-[#e8b8aa] bg-[#fff2ef] px-4 py-3 text-sm leading-6 text-[#963d30]">正式登入服務尚未完成設定。請在 Vercel 專案設定 → Environment Variables → Production 補齊：{missingAuthSettings.join("、")}。儲存後請重新部署。</p>}
     {evaluatorEnabled && !recovery && <div className="mt-5 rounded-2xl border border-[#d8bd79] bg-[#fff8df] p-4 shadow-sm">
       <button type="button" onClick={toggleEvaluatorAccounts} className="flex w-full items-center justify-between gap-3 text-left font-bold text-[#5b4521]" aria-expanded={evaluatorOpen}>
         <span><span aria-hidden="true">⚡</span> 評審快速登入專區</span><span aria-hidden="true">{evaluatorOpen ? "收合" : "選擇帳號"}</span>
       </button>
-      {!evaluatorConfigured && <p className="mt-2 text-xs leading-5 text-[#806b49]">此角色的固定評審帳號尚未在目前環境設定。</p>}
+      {!evaluatorConfigured && <p className="mt-2 text-xs leading-5 text-[#806b49]">此角色的固定評審帳號尚未在目前環境設定。展開此區可查看需要補齊的變數名稱；實際密碼不會顯示在網站上。</p>}
       {evaluatorOpen && <div className="mt-3 space-y-2 border-t border-[#e4d19e] pt-3">
         <div className="grid gap-2 sm:grid-cols-2">{evaluatorAccounts.map((account, index) => {
           const buttonLabel = account.label === "教師帳號" ? "登入教師帳號" : `登入${account.label.replace(/\s+/g, "")}帳號`;
@@ -186,6 +190,10 @@ export default function AuthForm({ role, initialMode = "login", evaluatorEnabled
       {role === "shelter" && mode === "signup" && <label className="block text-sm font-bold text-stone-700">收容所合作代碼<input className={fieldClass} name="partnershipCode" type="password" required maxLength={128} autoComplete="off" placeholder="請輸入管理單位提供的機構授權碼" /></label>}
       <Status error={error} notice={notice} /><button disabled={busy} className={primaryButtonClass}>{busy ? "處理中…" : mode === "signup" ? `建立${roleLabel}帳號` : `${roleLabel}登入`}</button>
     </form>}
+    <div className="mt-5 border-t border-[#eadcc5] pt-4 text-center">
+      <p className="text-xs leading-5 text-[#81725f]">競賽備援｜免登入公開觀摩，不建立角色身分、不開放工作台操作</p>
+      <Link href={`/evaluator-preview?role=${role}`} className="mt-1 inline-flex min-h-10 items-center justify-center rounded-full px-4 text-sm font-bold text-[#746043] underline decoration-[#c9ad78] underline-offset-4 transition hover:bg-[#fbf4e8] hover:text-[#483820]">開啟 {roleLabel} 公開展示導覽</Link>
+    </div>
   </section>;
 }
 

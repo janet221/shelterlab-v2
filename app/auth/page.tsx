@@ -1,6 +1,6 @@
 import { PublicHeader } from "@/app/_components/public-shell";
 import { PublicGridBackground, publicGridOverlay } from "@/app/_components/public-grid-background";
-import { isEvaluatorDemoEnabled } from "@/lib/classroom/auth";
+import { isEvaluatorDemoEnabled, missingEvaluatorSettings, missingSupabaseAuthSettings } from "@/lib/classroom/auth";
 import AuthForm from "./auth-form";
 
 export default async function AuthPage({ searchParams }: { searchParams: Promise<{ role?: string; mode?: string }> }) {
@@ -16,7 +16,7 @@ export default async function AuthPage({ searchParams }: { searchParams: Promise
           <div data-testid="auth-content" className="mx-auto max-w-lg">
             <p className="font-bold tracking-wide text-[#8f7c5e]">ShelterLab · {roleLabel}</p>
             <h1 className="mt-2 text-3xl font-bold text-[#332a22]">登入／註冊專區</h1>
-            <div className="mt-7"><AuthForm role={accountRole} initialMode={mode === "signup" ? "signup" : "login"} evaluatorEnabled evaluatorConfigured={isEvaluatorDemoEnabled(accountRole)} /></div>
+            <div className="mt-7"><AuthForm role={accountRole} initialMode={mode === "signup" ? "signup" : "login"} evaluatorEnabled evaluatorConfigured={isEvaluatorDemoEnabled(accountRole)} missingEvaluatorSettings={missingEvaluatorSettings(accountRole)} missingAuthSettings={missingSupabaseAuthSettings()} /></div>
           </div>
         </main>
       </div>
