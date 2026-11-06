@@ -45,9 +45,9 @@ export const OPEN_DATA_REGISTRY: OpenDatasetRegistryEntry[] = [
   },
   {
     id: "moa-shelter-statistics-73396",
-    title: "全國公立動物收容所收容處理情形統計表二",
+    title: "全國公立動物收容所收容處理情形統計表（細項）",
     provider: "農業部",
-    sourceUrl: "https://data.nat.gov.tw/dataset/73396",
+    sourceUrl: "https://data.gov.tw/dataset/73396",
     resourceUrl: "https://data.moa.gov.tw/Service/OpenData/TransService.aspx?IsTransData=1&UnitId=p9yPwrCs2OtC",
     dataType: "json_api",
     updateFrequency: "每月",

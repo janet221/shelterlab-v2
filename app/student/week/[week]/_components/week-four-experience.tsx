@@ -1,5 +1,7 @@
 "use client";
 
+import DataMethodInfo from "./data-method-info";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -658,10 +660,10 @@ export default function WeekFourExperience({ auditDemo = false, evaluatorPreview
           </section>}
 
           {saved.stage === 5 && <section>
-            <div className={styles.storyBanner}><small>農業部「動物認領養」開放資料 · 快照日 {RECORD.snapshotDate}</small><h3>「母、未絕育」是兩個欄位，不是「正在懷孕」的診斷</h3><p>資料能確認公開紀錄的性別與登載的絕育狀態，但無法直接支持其是否懷孕或曾繁殖。</p><a href="https://data.gov.tw/dataset/85903" target="_blank" rel="noreferrer">查看政府原始資料集 ↗</a></div>
+            <div className={styles.storyBanner}><small>農業部「動物認領養」開放資料 · 分析明細截止日 {RECORD.snapshotDate}</small><h3>「母、未絕育」是兩個欄位，不是「正在懷孕」的診斷</h3><p>資料能確認公開紀錄的性別與登載的絕育狀態，但無法直接支持其是否懷孕或曾繁殖。</p><a href="https://data.gov.tw/dataset/85903" target="_blank" rel="noreferrer">查看政府原始資料集 ↗</a></div>
             <div className={base.dataStatSummary}><article><small>公犬</small><strong>2,999 筆</strong><span>留所天數中位數 696 天</span></article><article><small>母犬</small><strong>2,689 筆</strong><span>留所天數中位數 603 天</span></article><article><small>性別未註明</small><strong>14 筆</strong><span>留所天數中位數 194 天</span></article></div>
             <p className={styles.dataScopeNote}>統計只描述同一份資料快照中的性別標示與留所天數；樣本數差異很大，也沒有繁殖史，不能解讀為性別或絕育狀態造成留所結果。</p>
-            <div className={styles.caseFile}><div className={styles.casePhoto}><img src={RECORD.image} alt={`政府公開資料個案 ${RECORD.subId}`} loading="lazy" referrerPolicy="no-referrer" /></div><div><small>公開個案 · {RECORD.subId}</small><h3>先讀欄位，再提出問題</h3><div className={styles.caseFields}>{RECORD.displayFields.map(([label, value]) => <span key={label}><b>{label}</b>{value}</span>)}</div><p>{RECORD.evidenceBoundary}</p></div></div>
+            <DataMethodInfo record={RECORD} /><div className={styles.caseFile}><div className={styles.casePhoto}><img src={RECORD.image} alt={`政府公開資料個案 ${RECORD.subId}`} loading="lazy" referrerPolicy="no-referrer" /></div><div><small>公開個案 · {RECORD.subId}</small><h3>先讀欄位，再提出問題</h3><div className={styles.caseFields}>{RECORD.displayFields.map(([label, value]) => <span key={label}><b>{label}</b>{value}</span>)}</div><p>{RECORD.evidenceBoundary}</p></div></div>
             <div className={styles.dataBoundary}><section><small>資料可以直接支持</small><h3>母犬，資料標示未絕育</h3><p>也能閱讀年齡分類、體型、毛色、品種標示與目前場域等公開欄位。</p></section><section><small>資料不能直接支持</small><h3>牠正在懷孕或曾繁殖</h3><p>懷孕、健康、繁殖史及進入收容原因，都需要其他紀錄或專業檢查。</p></section></div>
             {taskHeading("任務一", "把風險轉成查證問題", "從八張卡找出至少四項能補足資料界線的證據。", `${dataCount} / 至少 4`)}
             <div className={styles.taskPanel}>{fileGrid(orders.dataFiles, DATA_FILES, "dataFiles", 5)}</div>

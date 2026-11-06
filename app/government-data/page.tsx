@@ -17,8 +17,9 @@ type Resource = {
 const openDatasets: Resource[] = [
   { title: "動物認領養", provider: "農業部動物保護司", url: "https://data.gov.tw/dataset/85903", note: "提供公開待認養動物個案欄位，作為資料判讀與個案比較素材。", usedIn: "學生第 2、3、4 週：認養資料判讀、品種標籤與資料界線練習。" },
   { title: "全國公立動物收容所收容處理情形統計表", provider: "農業部", url: "https://data.gov.tw/dataset/41236", note: "提供縣市與月份層級的入所、認領養及處理統計。", usedIn: "學生第 6 週：收容所資料快照與行前判讀。" },
-  { title: "全國公立動物收容所收容處理情形統計表二", provider: "農業部", url: "https://data.nat.gov.tw/dataset/73396", note: "提供容量、月底在養與入所來源等欄位。", usedIn: "學生第 6 週：收容所資料快照與行前判讀。" },
+  { title: "全國公立動物收容所收容處理情形統計表（細項）", provider: "農業部", url: "https://data.gov.tw/dataset/73396", note: "提供容量、月底在養與入所來源等欄位。", usedIn: "學生第 6 週：收容所資料快照與行前判讀。" },
   { title: "一般高級中等學校名錄", provider: "教育部統計處", url: "https://data.gov.tw/dataset/6089", note: "用於確認教師設定的學校與縣市；同步失敗時使用有日期的備援快照。", usedIn: "教師設定頁與學生第 6 週：學校／縣市選擇。" },
+  { title: "公立收容所資料", provider: "農業部", url: "https://data.gov.tw/dataset/134284", note: "提供收容所名稱、縣市、地址、電話及經緯度，供地圖定位與查詢。", usedIn: "學生第 6 週與教師端：收容所地圖及縣市篩選。" },
   { title: "國家教育研究院愛學網", provider: "國家教育研究院", url: "https://data.gov.tw/dataset/6318", note: "僅使用教材中繼資料與官方外部連結，不下載、鏡像或重新散布影片。", usedIn: "學生第 1、2、3 週：官方影音教材連結。" },
 ];
 

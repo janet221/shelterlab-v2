@@ -1,5 +1,7 @@
 "use client";
 
+import DataMethodInfo from "./data-method-info";
+
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -670,7 +672,7 @@ export default function WeekThreeExperience({ auditDemo = false, evaluatorPrevie
             <p className={styles.statsIntro}>同一份資料快照中，以下比較四種品種標示的樣本數、留所天數中位數與留所超過 180 天的比例。樣本數差異很大，只能描述這批資料，不能推論品種造成留所結果。</p>
             <div className={styles.statsGrid}>{W3_STATS.map((item) => <article key={item.breed}><div><h3>{item.breed}</h3><b>n={item.sample.toLocaleString("zh-TW")}</b></div><div className={styles.statBar}><span style={{ width: `${Math.max(8, (item.median / 1100) * 100)}%` }} /></div><div className={styles.statNumbers}><span>留所天數中位數<strong>{item.median.toLocaleString("zh-TW")} 天</strong></span><span>180 天以上<strong>{item.over180}</strong></span></div></article>)}</div>
             <p className={styles.warning}>四組樣本數差距很大；圖表只能描述目前資料中的分布，不能據此宣稱「某品種造成留所較久」，也不能把結果套到每一隻犬。</p>
-            <div className={styles.caseFile}><div className={styles.casePhoto}><img src={CASE_RECORD.image} alt={`開放資料犬隻 ${CASE_RECORD.subId}`} loading="lazy" referrerPolicy="no-referrer" /></div><div><small>政府 Open Data · {CASE_RECORD.subId}</small><h3>「混種犬」沒有說出的事情</h3><div className={styles.caseFields}>{CASE_RECORD.displayFields.map(([label, value]) => <span key={label}><b>{label}</b>{value}</span>)}</div><p>{CASE_RECORD.evidenceBoundary}</p></div></div>
+            <DataMethodInfo record={CASE_RECORD} /><div className={styles.caseFile}><div className={styles.casePhoto}><img src={CASE_RECORD.image} alt={`開放資料犬隻 ${CASE_RECORD.subId}`} loading="lazy" referrerPolicy="no-referrer" /></div><div><small>政府 Open Data · {CASE_RECORD.subId}</small><h3>「混種犬」沒有說出的事情</h3><div className={styles.caseFields}>{CASE_RECORD.displayFields.map(([label, value]) => <span key={label}><b>{label}</b>{value}</span>)}</div><p>{CASE_RECORD.evidenceBoundary}</p></div></div>
             <div className={styles.filedBox}><h3>要解釋差異，還需要哪些證據？</h3><p>至少選出 3 項可繼續查證的資料；把武斷推論放進來會扣愛心。</p><div className={styles.cardGrid}>{orders.data.map((id) => DATA_CHOICES.find((item) => item.id === id)!).map((item) => <button key={item.id} type="button" className={saved.dataChecks.includes(item.id) ? styles.filedChoice : ""} onClick={() => fileChoice(5, item.id, item.correct)}>{saved.dataChecks.includes(item.id) ? "✓ " : "＋ "}{item.label}</button>)}</div><small>已歸檔 {correctData} / 至少 3</small></div>
             <label className={styles.reflection}><span>當我在選擇認養一隻狗時，我是不是會用品種來當成決定性的因素？如果我真的將品種當作決定性因素，可能會有哪些狗的真實需求與經歷因此被忽略？你會如何查證後再做選擇？</span><textarea value={saved.reflection} onChange={(event) => setSaved((current) => ({ ...current, reflection: event.target.value }))} placeholder="請用自己的話寫下：我還需要查什麼、詢問誰，以及我會如何負責……" /><small>{reflectionLength > 0 ? "✓ 已記錄回答" : "不限字數；完成後即可繼續。"}</small></label>
             <label className={styles.boundaryCheck}><input type="checkbox" checked={saved.boundaryConfirmed} onChange={(event) => setSaved((current) => ({ ...current, boundaryConfirmed: event.target.checked }))} /><span>我知道這份資料能描述群體差異，但不能單獨證明品種標籤造成留所較久。</span></label>

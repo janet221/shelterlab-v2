@@ -65,6 +65,7 @@
 .snapshot :global(.snapshot-details),.snapshot :global(.snapshot-details-grid article),.snapshot :global(.snapshot-detective [role="status"]){border-color:#e2d2bc;background:#fffaf0;color:var(--w6-ink)}
 .snapshot :global(.snapshot-details summary),.snapshot :global(.snapshot-details-grid h3),.snapshot :global(.snapshot-detective h3){color:var(--w6-accent-dark)}
 .snapshot :global(.snapshot-dogs-heading){display:flex;align-items:center;justify-content:space-between;gap:12px}
+.snapshot :global(.snapshot-dogs>.snapshot-dogs-heading){display:flex}
 .snapshot :global(.snapshot-dogs-heading h3){margin:0}
 .snapshot :global(.snapshot-info-button){display:grid;place-items:center;width:30px;height:30px;border:1px solid #b88a48;border-radius:50%;background:#fff7e7;color:#75532a;font-family:inherit;font-size:1rem;font-weight:800;cursor:pointer}
 .snapshot :global(.snapshot-info-button:hover){background:#f4e5bf;transform:translateY(-1px)}

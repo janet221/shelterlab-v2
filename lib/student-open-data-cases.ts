@@ -33,7 +33,7 @@ const DATASET = {
   datasetUrl: "https://data.gov.tw/dataset/85903",
   apiUrl:
     "https://data.moa.gov.tw/Service/OpenData/TransService.aspx?IsTransData=1&UnitId=QcbUEzN6E6DL",
-  snapshotDate: "2026/09/12"
+  snapshotDate: "2026/09/05"
 } as const;
 
 /**

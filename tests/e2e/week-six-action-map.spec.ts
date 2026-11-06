@@ -46,7 +46,7 @@ async function mockOpenData(page: Page, suppliedOrganizations = organizations) {
     latestByCounty: [{ county: "臺北市", year: 115, month: 8, acceptedCount: 12, adoptedCount: 8, adoptionRate: 66.7, adoptionTotal: 8, euthanizedCount: 0, euthanasiaRate: 0, diedCount: 0, deathRate: 0 }]
   }}));
   await page.route("**/api/open-data/shelter-needs", (route) => route.fulfill({ json: {
-    source: { mode: "live", updatedAt: "114 年 12 月", datasetUrl: "https://data.nat.gov.tw/dataset/73396", apiUrl: "https://data.moa.gov.tw/", message: "測試資料" },
+    source: { mode: "live", updatedAt: "114 年 12 月", datasetUrl: "https://data.gov.tw/dataset/73396", apiUrl: "https://data.moa.gov.tw/", message: "測試資料" },
     latestByCounty: [{ county: "臺北市", year: 114, month: 12, maxCapacity: 50, currentShelter: 20, currentFoster: 3, currentTotal: 23, governmentCapture: 1, foundDelivered: 4, ownerSurrender: 2, rescue: 1, legalSeizure: 0, otherIntake: 0, totalIntake: 8, returned: 1, publicAdoption: 5, groupAdoption: 1, totalOutcome: 7 }]
   }}));
   await page.route("**/api/open-data/schools", (route) => route.fulfill({ json: {

@@ -12,7 +12,7 @@ export const ADOPTION_DATASET_URL = "https://data.moa.gov.tw/open_detail.aspx?id
 export const ADOPTION_API_URL = "https://data.moa.gov.tw/Service/OpenData/TransService.aspx?IsTransData=1&UnitId=QcbUEzN6E6DL";
 export const SHELTER_STATS_DATASET_URL = "https://data.gov.tw/dataset/41236";
 export const SHELTER_STATS_API_URL = "https://data.moa.gov.tw/Service/OpenData/TransService.aspx?IsTransData=1&UnitId=DyplMIk3U1hf";
-export const SHELTER_NEEDS_DATASET_URL = "https://data.nat.gov.tw/dataset/73396";
+export const SHELTER_NEEDS_DATASET_URL = "https://data.gov.tw/dataset/73396";
 export const SHELTER_NEEDS_API_URL = "https://data.moa.gov.tw/Service/OpenData/TransService.aspx?IsTransData=1&UnitId=p9yPwrCs2OtC";
 export const SCHOOL_DIRECTORY_DATASET_URL = "https://data.gov.tw/dataset/6089";
 export const SCHOOL_DIRECTORY_API_URL = "https://stats.moe.gov.tw/files/school/115/high.json";
@@ -49,7 +49,9 @@ export const schoolDirectoryRowSchema = z.object({
 
 const text = (value: unknown) => String(value ?? "").replace(/<br\s*\/?>/gi, "；").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 export const safeNumber = (value: unknown): number | null => {
-  const parsed = Number(text(value).replace(/[% ,]/g, ""));
+  const cleaned = text(value).replace(/[% ,]/g, "");
+  if (!cleaned) return null;
+  const parsed = Number(cleaned);
   return Number.isFinite(parsed) ? parsed : null;
 };
 
@@ -58,7 +60,8 @@ export type CountyShelterStat = { county: string; year: number; month: number; a
 export type CountyShelterNeed = { county:string; year:number; month:number; maxCapacity:number|null; currentShelter:number|null; currentFoster:number|null; currentTotal:number|null; governmentCapture:number|null; foundDelivered:number|null; ownerSurrender:number|null; rescue:number|null; legalSeizure:number|null; otherIntake:number|null; totalIntake:number|null; returned:number|null; publicAdoption:number|null; groupAdoption:number|null; totalOutcome:number|null };
 export type SchoolDirectoryEntry = { id:string; name:string; county:string; district?:string; level?:SchoolLevel; publicPrivate?:"public"|"private"; address:string; phone:string; website:string; schoolYear:string; sourceUrl?:string };
 export type OpenDataSourceState = { mode: "live" | "fallback"; updatedAt: string; fallbackDate?: string; datasetUrl: string; apiUrl: string; message: string };
-export type AdoptionSnapshot = { source: OpenDataSourceState; countyCounts: Record<string, number>; shelterCounts: Record<string, number>; sampleDogs: AdoptionDog[]; organizations: ActionOrganization[] };
+export type AdoptionProcessingSummary = { rawRecordCount: number; eligibleRecordCount: number; excludedRecordCount: number; unclassifiedCountyCount: number; missingSubIdCount: number };
+export type AdoptionSnapshot = { source: OpenDataSourceState; countyCounts: Record<string, number>; shelterCounts: Record<string, number>; sampleDogs: AdoptionDog[]; organizations: ActionOrganization[]; processing?: AdoptionProcessingSummary };
 export type ShelterStatsProcessingSummary = {
   rawRecordCount: number;
   eligibleCountyMonthCount: number;
@@ -108,13 +111,16 @@ function countyFrom(row: Record<string, unknown>, countiesByShelter: Map<string,
 }
 
 export function normalizeAdoptions(input: unknown, organizations: ActionOrganization[]) {
-  const rows = parseArray(adoptionRowSchema, input).filter((row) => text(row.animal_kind) === "狗" && text(row.animal_status).toUpperCase() === "OPEN");
+  const rawRows = parseArray(adoptionRowSchema, input);
+  const rows = rawRows.filter((row) => text(row.animal_kind) === "狗" && text(row.animal_status).toUpperCase() === "OPEN");
   const countiesByShelter = new Map(organizations.map((item) => [item.name, item.county]));
   const countyCounts: Record<string, number> = {}, shelterCounts: Record<string, number> = {};
   const sampleDogs: AdoptionDog[] = [], samplesPerCounty: Record<string, number> = {};
-  let updatedAt = "";
+  let updatedAt = "", unclassifiedCountyCount = 0, missingSubIdCount = 0;
   for (const row of rows) {
     const county = countyFrom(row, countiesByShelter), shelterName = text(row.shelter_name);
+    if (county === "未分類") unclassifiedCountyCount++;
+    if (!text(row.animal_subid)) missingSubIdCount++;
     countyCounts[county] = (countyCounts[county] ?? 0) + 1;
     shelterCounts[shelterName] = (shelterCounts[shelterName] ?? 0) + 1;
     const rowUpdated = text(row.cDate || row.animal_update);
@@ -126,7 +132,7 @@ export function normalizeAdoptions(input: unknown, organizations: ActionOrganiza
       samplesPerCounty[county] = (samplesPerCounty[county] ?? 0) + 1;
     }
   }
-  return { countyCounts, shelterCounts, sampleDogs, updatedAt };
+  return { countyCounts, shelterCounts, sampleDogs, updatedAt, processing: { rawRecordCount: rawRows.length, eligibleRecordCount: rows.length, excludedRecordCount: rawRows.length - rows.length, unclassifiedCountyCount, missingSubIdCount } };
 }
 
 export function latestShelterStats(input: unknown): CountyShelterStat[] {
@@ -173,7 +179,7 @@ export function latestShelterNeeds(input: unknown): CountyShelterNeed[] {
     const dogCapacity = safeNumber(row.max_stay_dog_count), catCapacity = safeNumber(row.max_stay_cat_count);
     latest.set(county, {
       county, year, month,
-      maxCapacity: dogCapacity === null && catCapacity === null ? null : (dogCapacity ?? 0) + (catCapacity ?? 0),
+      maxCapacity: dogCapacity === null || catCapacity === null ? null : dogCapacity + catCapacity,
       currentShelter: safeNumber(row.fe_gg_count), currentFoster: safeNumber(row.fe_ms_count), currentTotal: safeNumber(row.fe_sum_count),
       governmentCapture: safeNumber(row.in_gg_count), foundDelivered: safeNumber(row.in_ms_count), ownerSurrender: safeNumber(row.in_lv_count),
       rescue: safeNumber(row.in_re_count), legalSeizure: safeNumber(row.in_lw_count), otherIntake: safeNumber(row.in_els_count), totalIntake: safeNumber(row.in_tot_count),
@@ -218,7 +224,7 @@ export async function getAdoptionSnapshot(): Promise<AdoptionSnapshot> {
     const normalized = normalizeAdoptions(adoptionRows, organizations);
     const counts = normalized.shelterCounts;
     const payload: AdoptionSnapshot = { source: { mode: "live", updatedAt: normalized.updatedAt, datasetUrl: ADOPTION_DATASET_URL, apiUrl: ADOPTION_API_URL, message: "使用農業部即時開放資料" },
-      countyCounts: normalized.countyCounts, shelterCounts: counts, sampleDogs: normalized.sampleDogs,
+      countyCounts: normalized.countyCounts, shelterCounts: counts, sampleDogs: normalized.sampleDogs, processing: normalized.processing,
       organizations: organizations.map((item) => ({ ...item, openDogCount: counts[item.name] ?? 0 })) };
     cachedAdoptions = payload;
     return payload;
@@ -281,7 +287,7 @@ export async function getSchoolDirectorySnapshot(requireComplete = false, forceR
     console.error("教育部高中名錄同步失敗", error);
     if (cachedSchools?.source.mode === "live") return { ...cachedSchools, source:{ ...cachedSchools.source, mode:"fallback", fallbackDate:cachedSchools.source.updatedAt, message:"教育部檔案暫時無法使用，目前沿用最近一次完整名錄" } };
     if (requireComplete) throw new Error("教育部完整高中名錄暫時無法同步");
-    const fallback:SchoolDirectorySnapshot = { source:{ mode:"fallback", updatedAt:`115 學年度（快照 ${WEEK_SIX_SCHOOL_SNAPSHOT_DATE}）`, fallbackDate:WEEK_SIX_SCHOOL_SNAPSHOT_DATE, datasetUrl:SCHOOL_DIRECTORY_DATASET_URL, apiUrl:SCHOOL_DIRECTORY_API_URL, message:"官方同步暫時無法完成，目前使用有日期的教育部名錄備援快照" }, schools:WEEK_SIX_SCHOOL_SNAPSHOT.map((school)=>({...school})) };
+    const fallback:SchoolDirectorySnapshot = { source:{ mode:"fallback", updatedAt:`${WEEK_SIX_SCHOOL_SNAPSHOT_DATE}（名錄備援）`, fallbackDate:WEEK_SIX_SCHOOL_SNAPSHOT_DATE, datasetUrl:SCHOOL_DIRECTORY_DATASET_URL, apiUrl:SCHOOL_DIRECTORY_API_URL, message:"官方同步暫時無法完成，目前使用有日期的教育部名錄備援快照" }, schools:WEEK_SIX_SCHOOL_SNAPSHOT.map((school)=>({...school})) };
     return fallback;
   }
 }

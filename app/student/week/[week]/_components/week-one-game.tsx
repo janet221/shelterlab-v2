@@ -1,5 +1,7 @@
 "use client";
 
+import DataMethodInfo from "./data-method-info";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -419,13 +421,13 @@ export default function WeekOneGame({ auditDemo = false, evaluatorPreview = fals
           <h2 className={styles.stageTitle}>{COPY.stages[5].title}</h2>
           <p className={styles.stageLead}>你在認養頁看到一隻黑色犬隻。照片先吸引目光，資料卻只留下幾個欄位。請把單筆個案放回同一份開放資料的群體結果，再分清楚「看見差異」與「解釋原因」。</p>
         </div>
-        <div className={styles.revealGrid}>
+        <DataMethodInfo record={CASE_RECORD} /><div className={styles.revealGrid}>
           <div className={styles.photoFrame}><img src={CASE_RECORD.image} referrerPolicy="no-referrer" loading="lazy" alt="政府動物認領養 Open Data 公開犬隻照片" /></div>
           <div className={styles.dossierGrid}>{CASE_RECORD.displayFields.map(([label, value]) => <div className={styles.dataSlip} key={label}><span className={styles.dataSlipLabel}>{label}</span><strong className={styles.dataSlipValue}>{value}</strong></div>)}</div>
         </div>
-        <div className={styles.statFlow} aria-label="毛色留所天數統計摘要"><article className={styles.statCard}><span className={styles.statLabel}>黑色</span><strong className={styles.statValue}>n=2,720</strong><p>留所天數中位數 772.5 天</p></article><article className={styles.statCard}><span className={styles.statLabel}>灰黑色</span><strong className={styles.statValue}>n=31</strong><p>留所天數中位數 1,186 天</p></article></div>
+        <div className={styles.statFlow} aria-label="毛色留所天數統計摘要"><article className={styles.statCard}><span className={styles.statLabel}>黑色</span><strong className={styles.statValue}>n=2,720</strong><p>留所天數中位數 772.5 天</p></article><article className={styles.statCard}><span className={styles.statLabel}>棕黑色</span><strong className={styles.statValue}>n=31</strong><p>留所天數中位數 1,186 天</p></article></div>
         <p className={styles.stageLead}>統計截止日為 2026-09-05，以公開資料的推定入所日計算仍在公開待認養犬隻的留所天數。兩組樣本數差距很大，數字只能描述這份資料中的分布，不能證明毛色造成留所較久。</p>
-        <label className={styles.promptLabel} htmlFor="week-one-reflection">如果有人只看見「灰黑色的中位數較高」就說深色犬一定比較不受歡迎，這個結論漏看了哪些資料？你會再查證什麼？</label>
+        <label className={styles.promptLabel} htmlFor="week-one-reflection">如果有人只看見「棕黑色的中位數較高」就說深色犬一定比較不受歡迎，這個結論漏看了哪些資料？你會再查證什麼？</label>
         <textarea id="week-one-reflection" className={styles.paperInput} value={draft.responsibleRewrite} placeholder="寫下資料支持的現象，以及解釋原因前還需要查證的資料……" onChange={(event) => updateWeekOne({ responsibleRewrite: event.target.value })} />
         <small className={styles.inputHint}>{draft.responsibleRewrite.trim() ? "✓ 已記錄回答" : "不限字數；完成後即可繼續。"}</small>
         <div className={styles.buttonRow}><PaperButton onClick={finish} disabled={draft.responsibleRewrite.trim().length === 0}>完成第一週</PaperButton></div>

@@ -1,6 +1,21 @@
 import Link from "next/link";
 import { PublicFooter, PublicHeader } from "./_components/public-shell";
+import styles from "./not-found.module.css";
 
 export default function NotFound() {
-  return <div className="min-h-screen bg-white"><PublicHeader /><main className="mx-auto max-w-5xl px-5 py-20 lg:px-8"><p className="font-mono text-sm text-rose-700">404 · 找不到頁面</p><h1 className="mt-4 text-4xl font-semibold sm:text-5xl">這條證據路徑不存在。</h1><p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">連結可能已失效，或指定的公開證據目前無法顯示。ShelterLab 不會因此補造替代資料。</p><div className="mt-8 flex flex-wrap gap-3"><Link className="border border-slate-950 bg-slate-950 px-4 py-3 text-sm font-bold text-white" href="/">返回首頁</Link><Link className="border border-slate-400 px-4 py-3 text-sm font-bold" href="/tour/welcome">開始互動導覽</Link></div></main><PublicFooter /></div>;
+  return <div className={styles.page}>
+    <PublicHeader />
+    <main className={styles.main}>
+      <div className={styles.card}>
+        <span className={styles.label}>404 · 頁面不存在</span>
+        <h1>這條路暫時走不通</h1>
+        <p>你尋找的頁面可能已移動或不再提供。回到首頁，繼續探索動物生命與我們的社會吧。</p>
+        <div className={styles.actions}>
+          <Link href="/">返回首頁 <span aria-hidden="true">↗</span></Link>
+          <Link href="/start">開始探究 <span aria-hidden="true">→</span></Link>
+        </div>
+      </div>
+    </main>
+    <PublicFooter />
+  </div>;
 }

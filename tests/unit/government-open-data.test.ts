@@ -34,6 +34,13 @@ describe("Ministry of Agriculture Open Data normalization", () => {
     const result = normalizeAdoptions(rows, shelters);
     expect(result.countyCounts["臺北市"]).toBe(1);
     expect(result.sampleDogs).toHaveLength(1);
+    expect(result.processing).toEqual({ rawRecordCount: 3, eligibleRecordCount: 1, excludedRecordCount: 2, unclassifiedCountyCount: 0, missingSubIdCount: 0 });
+  });
+  it("reports missing county and identifier without inventing a sample", () => {
+    const result = normalizeAdoptions([{ animal_kind: "狗", animal_status: "OPEN", shelter_name: "未知" }], []);
+    expect(result.processing).toMatchObject({ rawRecordCount: 1, eligibleRecordCount: 1, unclassifiedCountyCount: 1, missingSubIdCount: 1 });
+    expect(result.countyCounts["未分類"]).toBe(1);
+    expect(result.sampleDogs).toHaveLength(0);
   });
   it("selects the latest year and month per county with safe numeric conversion", () => {
     const rows = [
@@ -48,6 +55,9 @@ describe("Ministry of Agriculture Open Data normalization", () => {
     expect(latest.month).toBe(2);
     expect(latest.adoptionRate).toBe(40);
     expect(safeNumber("not-a-number")).toBeNull();
+    expect(safeNumber(null)).toBeNull();
+    expect(safeNumber(" ")).toBeNull();
+    expect(safeNumber("0")).toBe(0);
   });
   it("uses the dated fallback instead of fake zeroes when official APIs fail", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
@@ -64,6 +74,10 @@ describe("Ministry of Agriculture Open Data normalization", () => {
     ]);
     expect(latest).toMatchObject({ county: "臺北市", year: 114, month: 12, maxCapacity: 27, currentTotal: 15, foundDelivered: 4, ownerSurrender: 2, legalSeizure: 1, totalIntake: 9 });
   });
+  it("does not treat a missing capacity field as zero", () => {
+    const [row] = latestShelterNeeds([{ rpt_year: 114, rpt_county: "臺北市", rpt_month: 12, max_stay_dog_count: 20, max_stay_cat_count: "" }]);
+    expect(row.maxCapacity).toBeNull();
+  });
   it("normalizes the school directory without inventing coordinates", () => {
     const schools = normalizeSchoolDirectory([{ 學年度: "115", 代碼: "000001", 學校名稱: "測試高中", 縣市名稱: "[01]臺北市", 地址: "[01]臺北市測試路1號", 電話: "02-12345678", 網址: "https://example.edu.tw" }]);
     expect(schools).toEqual([{ id: "000001", name: "測試高中", county: "臺北市", level:"senior_high", publicPrivate:"public", address: "臺北市測試路1號", phone: "02-12345678", website: "https://example.edu.tw", schoolYear: "115", sourceUrl:"https://data.gov.tw/dataset/6089" }]);
@@ -72,6 +86,10 @@ describe("Ministry of Agriculture Open Data normalization", () => {
   it("registers all required official datasets and keeps TDX optional", () => {
     expect(OPEN_DATA_REGISTRY.map((dataset) => dataset.id)).toEqual(expect.arrayContaining(["moa-animal-adoption", "moa-shelter-statistics-41236", "moa-shelter-statistics-73396", "moe-senior-high-directory-6089", "tdx-transport-optional"]));
     expect(OPEN_DATA_REGISTRY.find((dataset) => dataset.id === "tdx-transport-optional")?.verificationStatus).toBe("optional");
+    expect(OPEN_DATA_REGISTRY.find((dataset) => dataset.id === "moa-shelter-statistics-73396")).toMatchObject({
+      title: "全國公立動物收容所收容處理情形統計表（細項）",
+      sourceUrl: "https://data.gov.tw/dataset/73396",
+    });
     expect(OPEN_DATA_REGISTRY.filter((dataset) => dataset.verificationStatus === "verified").every((dataset) => Boolean(dataset.provider && dataset.sourceUrl && dataset.lastUpdated && dataset.license))).toBe(true);
   });
 });
